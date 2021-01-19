@@ -1,14 +1,19 @@
 <template>
   <div class="understand-sign-language">
+    <div class="play-area">
+      <div class="current-word" v-if="currentWord">
+        <div>{{round.currentStep}} / {{wordsPerRound}}</div>
+        <div>IMG</div>
+        <span>{{ currentWord.word }}</span>
+      </div>
 
-    <div class="current-word" v-if="currentWord">
-      <div>{{round.currentStep}} / {{wordsPerRound}}</div>
-      <div>IMG</div>
-      <span>{{ currentWord.word }}</span>
+      <div class="understand-options">
+        <span v-for="(option, i) in round.optionIndices" :key="i" @click="selectOption(option)">{{ vocabulary[option].word }}</span>
+      </div>
     </div>
-
-    <div class="understand-options">
-      <span v-for="(option, i) in round.optionIndices" :key="i" @click="selectOption(option)">{{ vocabulary[option].word }}</span>
+    <div class="time-limit" :style="'--remainingPct: ' + remainingTimePct + '%'">
+      <div class="bar"></div>
+      <span class="label">{{step.remainingTime.toFixed(1)}}</span>
     </div>
 
   </div>
@@ -32,6 +37,10 @@ export default defineComponent({
       type: Number,
       default: 6,
     },
+    stepTimeLimit: {
+      type: Number,
+      default: 4.2,
+    },
   },
   data() {
     return {
@@ -42,6 +51,10 @@ export default defineComponent({
         currentWordIndex: -1,
         optionIndices: [] as number[],
       },
+      step: {
+        remainingTime: 0,
+      },
+      tickInterval: -1,
     };
   },
   computed: {
@@ -53,6 +66,9 @@ export default defineComponent({
     },
     currentWord(): VocabularyEntry {
       return this.vocabulary[this.currentWordIndex];
+    },
+    remainingTimePct(): number {
+      return this.step.remainingTime / this.stepTimeLimit * 100;
     },
   },
   methods: {
@@ -75,17 +91,27 @@ export default defineComponent({
         optionIndices[i] = this.currentWordIndex;
       }
       this.round.optionIndices = optionIndices;
+      this.step.remainingTime = this.stepTimeLimit;
     },
     selectOption(option: number) {
       if (option === this.currentWordIndex) {
-        this.round.currentStep++;
-        if (this.round.currentStep === this.wordsPerRound) {
-          alert("You did done good");
-        } else {
-          this.initializeOptions();
-        }
+        this.nextStep();
       } else {
         this.startRound();
+      }
+    },
+    nextStep() {
+      this.round.currentStep++;
+      if (this.round.currentStep === this.wordsPerRound) {
+        alert("You did done good");
+      } else {
+        this.initializeOptions();
+      }
+    },
+    updateTimeLimit() {
+      this.step.remainingTime -= 0.05;
+      if (this.step.remainingTime <= 0) {
+        this.initializeOptions();
       }
     },
   },
@@ -93,6 +119,8 @@ export default defineComponent({
     UnderstandApi.loadVocabulary()
         .then((entries) => this.vocabulary = entries)
         .then(() => this.startRound());
+
+    this.tickInterval = setInterval(() => this.updateTimeLimit(), 50);
   },
 });
 </script>
@@ -101,9 +129,11 @@ export default defineComponent({
 .understand-sign-language {
   max-width: 420px;
 
-  display: flex;
-  flex-direction: row;
-  gap: 1em;
+  .play-area {
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+  }
 
   .current-word {
     height: 120px;
@@ -113,6 +143,21 @@ export default defineComponent({
     flex-direction: column;
     justify-content: center;
     align-items: center;
+  }
+  .time-limit {
+    position: relative;
+
+    .bar {
+      position: absolute;
+      top: 0.25em;
+
+      background: rgba(pink, 0.5);
+      width: var(--remainingPct, 0);
+      height: 0.5em;
+    }
+    .label {
+      position: absolute;
+    }
   }
 
   .understand-options {

@@ -19,6 +19,11 @@ let routes: RouteRecordRaw[] = [
         component: () => import("@/minigames/ToggleMatrix/ToggleMatrixComponent.vue"),
     },
     {
+        path: "/minigames/sitting-shamans",
+        name: "minigames.sittingShamans",
+        component: () => import("@/minigames/ZebraFoal/ZebraFoalComponent.vue"),
+    },
+    {
         path: "/",
         name: "index",
         component: MinigamesIndexComponent,

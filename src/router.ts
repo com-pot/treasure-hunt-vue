@@ -14,6 +14,11 @@ let routes: RouteRecordRaw[] = [
         component: () => import("@/minigames/CircularDomino/CircularDominoComponent.vue"),
     },
     {
+        path: "/minigames/switcheroo",
+        name: "minigames.toggleMatrix",
+        component: () => import("@/minigames/ToggleMatrix/ToggleMatrixComponent.vue"),
+    },
+    {
         path: "/",
         name: "index",
         component: MinigamesIndexComponent,

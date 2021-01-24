@@ -11,7 +11,7 @@ type MinigameSpec = {
 const minigames: MinigameSpec[] = [
     {caption: "Understand", to: {name: 'minigame.dev.understand'}},
     {caption: "TBA"},
-    {caption: "BPC"},
+    {caption: "BPC", to: {name: 'minigame.dev.bpc'}},
     {caption: "Anagram", to: {name: 'minigame.dev.anagram'}},
     {caption: "TBA"},
     {caption: "Toggle matrix", to: {name: 'minigame.dev.toggleMatrix'}},
@@ -49,6 +49,11 @@ const routes: RouteRecordRaw[] = [
                 path: "understand",
                 name: "minigame.dev.understand",
                 component: () => import("@/minigames/Understand/UnderstandComponent.vue"),
+            },
+            {
+                path: "bpc",
+                name: "minigame.dev.bpc",
+                component: () => import("@/minigames/Bpc/BpcComponent.vue"),
             },
             {
                 path: "anagram",

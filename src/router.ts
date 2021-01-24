@@ -9,6 +9,11 @@ let routes: RouteRecordRaw[] = [
         component: () => import("@/minigames/Understand/UnderstandComponent.vue"),
     },
     {
+        path: "/minigames/anagram",
+        name: "minigames.anagram",
+        component: () => import("@/minigames/Anagram/AnagramComponent.vue"),
+    },
+    {
         path: "/minigames/domino",
         name: "minigames.domino",
         component: () => import("@/minigames/CircularDomino/CircularDominoComponent.vue"),

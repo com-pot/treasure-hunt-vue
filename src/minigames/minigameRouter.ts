@@ -16,7 +16,7 @@ const minigames: MinigameSpec[] = [
     {caption: "TBA"},
     {caption: "Toggle matrix", to: {name: 'minigame.dev.toggleMatrix'}},
     {caption: "Sitting shamans", to: {name: 'minigame.dev.sittingShamans'}},
-    {caption: "Totems"},
+    {caption: "Totems", to: {name: 'minigame.dev.mixMatch'}},
     {caption: "Domino", to: {name: 'minigame.dev.domino'}},
     {caption: "Drums"},
 ];
@@ -64,6 +64,11 @@ const routes: RouteRecordRaw[] = [
                 path: "domino",
                 name: "minigame.dev.domino",
                 component: () => import("@/minigames/CircularDomino/CircularDominoComponent.vue"),
+            },
+            {
+                path: "mix-match",
+                name: "minigame.dev.mixMatch",
+                component: () => import("@/minigames/MixMatch/MixMatchComponent.vue"),
             },
             {
                 path: "switcheroo",

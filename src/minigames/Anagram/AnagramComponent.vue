@@ -64,7 +64,9 @@ export default defineComponent({
 
 <style lang="scss">
 .mg-anagram {
-  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
 
   .letters {
     display: flex;
@@ -75,7 +77,7 @@ export default defineComponent({
 
     i {
       display: inline-block;
-      width: 24px;
+      width: 32px;
       height: 24px;
       font-style: normal;
 

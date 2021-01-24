@@ -142,8 +142,6 @@ export default defineComponent({
 
 <style lang="scss">
 .mg-zebra-foal {
-  max-width: 420px;
-
   .areas {
     display: flex;
     flex-direction: row;

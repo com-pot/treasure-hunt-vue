@@ -1,5 +1,5 @@
 <template>
-  <div class="understand-sign-language">
+  <div class="mg-understand">
     <div class="play-area">
       <div class="current-word" v-if="currentWord">
         <div>{{round.currentStep}} / {{wordsPerRound}}</div>
@@ -126,9 +126,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.understand-sign-language {
-  max-width: 420px;
-
+.mg-understand {
   .play-area {
     display: flex;
     flex-direction: row;
@@ -145,6 +143,7 @@ export default defineComponent({
     align-items: center;
   }
   .time-limit {
+    height: 20px;
     position: relative;
 
     .bar {

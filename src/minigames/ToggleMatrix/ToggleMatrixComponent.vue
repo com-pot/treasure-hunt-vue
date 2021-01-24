@@ -65,9 +65,6 @@ export default defineComponent({
 
 <style lang="scss">
 .mg-toggle-matrix {
-  max-width: 420px;
-  margin: 0 auto;
-
   .matrix-field {
     display: inline-grid;
     grid-template-columns: repeat(var(--matrix-width), minmax(0, 1fr));

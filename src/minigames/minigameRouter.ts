@@ -18,7 +18,7 @@ const minigames: MinigameSpec[] = [
     {caption: "Sitting shamans", to: {name: 'minigame.dev.sittingShamans'}},
     {caption: "Totems", to: {name: 'minigame.dev.mixMatch'}},
     {caption: "Domino", to: {name: 'minigame.dev.domino'}},
-    {caption: "Drums"},
+    {caption: "Drums", to: {name: 'minigame.dev.drums'}},
 ];
 
 const routes: RouteRecordRaw[] = [
@@ -79,6 +79,11 @@ const routes: RouteRecordRaw[] = [
                 path: "sitting-shamans",
                 name: "minigame.dev.sittingShamans",
                 component: () => import("@/minigames/ZebraFoal/ZebraFoalComponent.vue"),
+            },
+            {
+                path: "drums",
+                name: "minigame.dev.drums",
+                component: () => import("@/minigames/Drums/DrumsComponent.vue"),
             },
         ],
     },

@@ -58,6 +58,10 @@ export default defineComponent({
       align-items: flex-start;
       text-align: start;
       justify-content: flex-end;
+
+      &:last-child {
+        grid-column: 2;
+      }
     }
 
     > a {

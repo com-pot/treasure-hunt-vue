@@ -14,7 +14,7 @@
 
       <div class="input-pair input-pair-full input-pair-center">
         <label>&nbsp;</label>
-        <button type="submit" :disabled="solved">Check</button>
+        <button type="submit" class="btn btn-vivid" :disabled="solved">Check</button>
       </div>
     </form>
 

@@ -13,7 +13,7 @@
                  @slotClicked="clickSlot('placed', $event)"/>
     </div>
     <div class="controls">
-      <button @click="checkValid">Test</button>
+      <button @click="checkValid" class="btn btn-vivid">Test</button>
     </div>
 
 
@@ -149,6 +149,7 @@ export default defineComponent({
   }
 
   .controls {
+    margin-block-start: 1em;
     text-align: center;
   }
 

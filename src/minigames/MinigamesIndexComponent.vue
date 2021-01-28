@@ -2,12 +2,13 @@
   <div class="minigame-index">
     <div class="links">
       <template v-for="(link, i) in minigames">
-        <router-link v-if="link.to" :key="'link-' + i" :to="link.to">
+
+        <router-link v-if="link.to" :key="'link-' + i" :to="link.to" class="btn btn-vivid">
           <span>{{ formatOrderNumber(i + 1) }}</span>
           <span>{{ link.caption }}</span>
         </router-link>
 
-        <div v-else :key="'dead-link-' + i">
+        <div v-else :key="'dead-link-' + i" class="btn btn-bland">
           <span>{{ formatOrderNumber(i + 1) }}</span>
           <span>{{ link.caption }}</span>
         </div>
@@ -50,7 +51,6 @@ export default defineComponent({
       padding: 8px;
       border-radius: 4px;
 
-      background: #444;
       font-weight: bold;
 
       display: flex;
@@ -66,11 +66,6 @@ export default defineComponent({
 
     > a {
       text-decoration: none;
-      color: deeppink;
-    }
-
-    > div {
-      color: #CCC;
     }
   }
 }

@@ -5,9 +5,9 @@
 
     <div class="guide" v-if="currentPattern">
       <span>Měl bych opakovat, co slyším...</span>
-      <button @click="playSamplePattern()" :disabled="isPlaying">Poslechnout</button>
+      <button @click="playSamplePattern()" :disabled="isPlaying" class="btn btn-vivid">Poslechnout</button>
       <div class="progression">
-        <span v-for="(step, i) in currentPattern" :key="i" :class="['step', i < currentAttemptStep && 'check']">{{step}}</span>
+        <span v-for="(step, i) in currentPattern" :key="i" :class="['step', i < currentAttemptStep && 'check']">{{drums[step].note}}</span>
       </div>
     </div>
 
@@ -16,7 +16,7 @@
     </div>
 
     <div class="drums" v-if="loaded">
-      <button v-for="drum in drums" :key="drum.note" class="drum" @click="hitDrum(drum)">{{ drum.note }}</button>
+      <button v-for="drum in drums" :key="drum.note" class="btn btn-vivid drum" @click.prevent="hitDrum(drum)">{{ drum.note }}</button>
     </div>
   </div>
 </template>
@@ -33,14 +33,14 @@ export default defineComponent({
   setup() {
     const drums = ref([
       {note: 'C4'},
-      {note: 'D4'},
-      {note: 'E4'},
-      {note: 'F4'},
+      {note: 'G4'},
+      {note: 'C5'},
+      {note: 'G5'},
     ] as Drum[]);
 
     const patterns = ref([
-      ['C4', 'E4', 'C4'],
-      ['C4', 'E4', 'C4', 'F4', 'E4'],
+      [0, 2, 0],
+      [0, 2, 0, 3, 2],
     ]);
 
     const loaded = ref(false);
@@ -60,18 +60,22 @@ export default defineComponent({
     let currentPattern = computed(() => patterns.value[correctPatterns.value]);
     let currentAttemptStep = ref(0);
 
-    function hitDrum(drum: Drum) {
+    function hitDrum(drum: Drum, source: 'player'|'sample' = 'player', when?: number) {
       drumAdjuster.set({
         volume: (Math.random() - 0.5) * 6,
       });
-      console.log(drumAdjuster.volume.value)
+      synth.triggerAttackRelease(drum.note, "8n", when);
 
-      synth.triggerAttackRelease(drum.note, "8n");
+      if (source !== "player") {
+        return;
+      }
+
       let pattern = currentPattern.value;
       if (!pattern) {
         return
       }
-      let nextNote = pattern[currentAttemptStep.value];
+      let nextNoteIndex = pattern[currentAttemptStep.value];
+      let nextNote = drums.value[nextNoteIndex].note;
 
       if (nextNote && drum.note === nextNote) {
         currentAttemptStep.value++;
@@ -90,8 +94,8 @@ export default defineComponent({
       let now = Tone.now();
 
       isPlaying.value = true;
-      currentPattern.value.forEach((note, i) => {
-        synth.triggerAttackRelease(note, '8n', now + i * 0.66);
+      currentPattern.value.forEach((drumIndex, i) => {
+        hitDrum(drums.value[drumIndex], 'sample', now + i * 0.66);
       });
 
       isPlaying.value = false;
@@ -137,18 +141,20 @@ export default defineComponent({
     display: flex;
     flex-direction: row;
     justify-content: center;
-    gap: 0.5em;
+    gap: 1em;
 
     .drum {
-      width: 60px;
+      width: 72px;
       height: 80px;
-      border: none;
-      background: #444;
-      border-radius: 8px;
 
-      color: deeppink;
       font-weight: bold;
       font-size: 16pt;
+
+      @for $n from 1 through 4 {
+        &:nth-child(#{$n}) {
+          margin-top: 10px - $n * 5px;
+        }
+      }
     }
   }
 }

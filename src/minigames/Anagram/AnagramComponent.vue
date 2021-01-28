@@ -3,8 +3,9 @@
     <div class="title">Shuffle pls</div>
     <div class="letters input">
       <i v-for="(letter, i) in inputLetters" :key="i"
-         :class="letter.picked && 'picked'" @click="pickLetter(i)">{{ letter.char }}</i>
+         :class="[letter.picked && 'picked', letter.char === ' ' && 'disabled']" @click="pickLetter(i)">{{ letter.char }}</i>
     </div>
+    <button :class="['btn', spaceAvailable ? 'btn-vivid' : 'btn-bland']" @click="addSpace">Mezera</button>
     <div :class="['letters', 'output', outputSuccess && 'success']">
       <i v-for="(letter, i) in outputLetters" @click="clearLetter(i)" :key="i">{{ letter.char }}</i>
     </div>
@@ -15,7 +16,7 @@
 import {defineComponent, ref, computed} from "vue";
 
 type InputLetter = { char: string, picked: boolean };
-type OutputLetter = {char: string, sourceIndex: number};
+type OutputLetter = {char: string, sourceIndex?: number};
 
 export default defineComponent({
   props: {
@@ -30,9 +31,12 @@ export default defineComponent({
     let outputText = computed(() => outputLetters.value.map((l) => l.char).join(''));
     let outputSuccess = computed(() => outputText.value === "anagram");
 
+    const spaceAvailable = computed(() => outputText.value.length && outputText.value.charAt(outputText.value.length - 1) !== ' ');
+
     return {
       inputLetters,
       outputLetters,
+      spaceAvailable,
       outputSuccess,
       pickLetter(i: number) {
         let letter = inputLetters.value[i];
@@ -46,12 +50,19 @@ export default defineComponent({
         letter.picked = true;
         outputLetters.value.push({char: letter.char, sourceIndex: i})
       },
+      addSpace() {
+        if (!spaceAvailable.value) {
+          return;
+        }
+
+        outputLetters.value.push({char: ' '});
+      },
       clearLetter(i: number) {
         let letter = outputLetters.value[i];
         if (!letter) {
           return;
         }
-        if (letter.sourceIndex) {
+        if (typeof letter.sourceIndex === "number") {
           inputLetters.value[letter.sourceIndex].picked = false;
         }
         outputLetters.value.splice(i, 1);
@@ -63,6 +74,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+@import "~@/sass/vars/colors";
+
 .mg-anagram {
   display: flex;
   flex-direction: column;
@@ -81,20 +94,26 @@ export default defineComponent({
       height: 24px;
       font-style: normal;
 
-      background: #aaa;
+      background: $dim;
+      border: 2px solid;
 
-      &:not(.picked) {
+      &:not(.picked):not(.disabled) {
         cursor: pointer;
+        border-color: deeppink;
+        color: deeppink;
       }
-      &.picked {
+      &.picked, &.disabled {
         filter: opacity(0.75);
+        border-color: #ccc;
+        color: #ccc;
       }
     }
   }
 
   .output.success {
     i {
-      background: lightgreen;
+      color: lightgreen !important;
+      border-color: lightgreen !important;
     }
   }
 }

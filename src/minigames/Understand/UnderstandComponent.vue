@@ -8,7 +8,8 @@
       </div>
 
       <div class="understand-options">
-        <span v-for="(option, i) in round.optionIndices" :key="i" @click="selectOption(option)">{{ vocabulary[option].word }}</span>
+        <span v-for="(option, i) in round.optionIndices" :key="i" class="btn btn-vivid"
+              @click="selectOption(option)">{{ vocabulary[option].word }}</span>
       </div>
     </div>
     <div class="time-limit" :style="'--remainingPct: ' + remainingTimePct + '%'">
@@ -172,8 +173,7 @@ export default defineComponent({
 
     > span {
       padding: 0.50em 1.25em;
-      background: rgba(80, 80, 80, 0.5);
-      border-radius: 2px;
+      font-weight: bold;
 
       cursor: pointer;
     }

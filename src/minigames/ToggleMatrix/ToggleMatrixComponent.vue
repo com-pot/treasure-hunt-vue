@@ -1,13 +1,19 @@
 <template>
   <div class="mg-toggle-matrix" :style="matrixCss">
-    <p class="guide">
-      To be or not to ...
-    </p>
-    <div class="matrix-field">
+    <div class="guide">
+      <div class="hint hint-1">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="hint hint-2">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </div>
+
+    <div :class="['matrix-field', success && 'success']">
       <div v-for="field in fields" :key="field.key" class="field" :style="{'--row': field.row, '--col': field.col}">
         <label :class="matrixValue[field.key] && 'selected'">
           <input type="checkbox" v-model="matrixValue[field.key]">
-          <span>{{ field.label }}</span>
+<!--          <span>{{ field.label }}</span>-->
         </label>
       </div>
       <div class="field"></div>
@@ -17,7 +23,7 @@
     </div>
 
     <div class="matrix-controls">
-      <button @click="checkAnswer" class="btn btn-vivid">Test</button>
+      <button @click="checkAnswer" :class="['btn', success ? 'btn-success' : 'btn-vivid']">Test</button>
     </div>
   </div>
 </template>
@@ -42,6 +48,7 @@ export default defineComponent({
         {row: 3, col: 3, label: 'E', key: 'emu'},
       ],
       matrixValue: {},
+      success: false,
     };
   },
   computed: {
@@ -61,8 +68,9 @@ export default defineComponent({
           .filter((field) => value[field.key])
           .map((field) => field.key)
           .join('-');
-      if (serialized === 'boar-emu') {
-        alert("You did good");
+
+      if (serialized === 'boar-cicada-emu') {
+        this.success = true;
       }
     },
   },
@@ -74,6 +82,38 @@ export default defineComponent({
 @import "~@/sass/vars/colors";
 
 .mg-toggle-matrix {
+  .guide {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+
+    margin-block-end: 1em;
+
+    .hint {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+
+      i {
+        background: $dim;
+        display: block;
+        width: 8px;
+        height: 8px;
+      }
+    }
+
+    .hint-1 {
+      i:nth-child(2), i:nth-child(9) {
+        background: $vivid;
+      }
+    }
+
+    .hint-2 {
+      i:nth-child(4) {
+        background: $vivid;
+      }
+    }
+  }
+
   .matrix-field {
     display: inline-grid;
     grid-template-columns: repeat(var(--matrix-width), minmax(0, 1fr));
@@ -110,18 +150,25 @@ export default defineComponent({
 
       &.selected {
         border-color: $vivid;
-        color: $vivid;
       }
 
       &:not(.selected) {
         border-color: #ccc;
-        color: #ccc;
       }
+    }
+  }
+
+  .matrix-field.success {
+    .field > label.selected {
+      border-color: $earth;
     }
   }
 
   .matrix-controls {
     margin-block-start: 1em;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
   }
 }
 </style>

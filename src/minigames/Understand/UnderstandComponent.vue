@@ -3,8 +3,9 @@
     <div class="play-area">
       <div class="current-word" v-if="currentWord">
         <div>{{round.currentStep}} / {{wordsPerRound}}</div>
-        <div>IMG</div>
-        <span>{{ currentWord.word }}</span>
+        <div class="img-wrapper">
+          <img :src="currentWord.pictureUrl" alt="Neznámé slovo">
+        </div>
       </div>
 
       <div class="understand-options">
@@ -40,7 +41,7 @@ export default defineComponent({
     },
     stepTimeLimit: {
       type: Number,
-      default: 4.2,
+      default: 6.6,
     },
   },
   data() {
@@ -105,6 +106,7 @@ export default defineComponent({
       this.round.currentStep++;
       if (this.round.currentStep === this.wordsPerRound) {
         alert("You did done good");
+        this.startRound();
       } else {
         this.initializeOptions();
       }
@@ -112,7 +114,7 @@ export default defineComponent({
     updateTimeLimit() {
       this.step.remainingTime -= 0.05;
       if (this.step.remainingTime <= 0) {
-        this.initializeOptions();
+        this.startRound();
       }
     },
   },
@@ -130,18 +132,28 @@ export default defineComponent({
 .mg-understand {
   .play-area {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 1em;
   }
 
   .current-word {
-    height: 120px;
-    width: 72px;
-
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
+
+    .img-wrapper {
+      flex: 1;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      img {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    }
   }
   .time-limit {
     height: 20px;
@@ -161,8 +173,6 @@ export default defineComponent({
   }
 
   .understand-options {
-    border-left: 1px gray solid;
-
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;

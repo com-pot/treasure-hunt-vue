@@ -1,7 +1,6 @@
 import {expect} from "chai";
 
-import {Radians} from "@/types/graphics";
-import trigonometry from "@/utils/trigonometry";
+import trigonometry, {Radians} from "@/utils/trigonometry";
 
 describe("trigonometry.ts", () => {
     let step = Math.PI / 10;

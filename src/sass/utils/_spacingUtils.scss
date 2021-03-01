@@ -1,0 +1,7 @@
+$sides: 't' 'top', 'l' 'left', 'r' 'right' 'b' 'botton';
+
+@each $letter, $side in $sides {
+  .m#{$letter}-auto {
+    margin-#{$side}: auto;
+  }
+}

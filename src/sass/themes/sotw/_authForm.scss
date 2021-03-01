@@ -1,0 +1,32 @@
+.auth-form {
+  background: lightpink;
+  border: 2px solid lightgray;
+}
+
+.form-group {
+  margin: 4px;
+  padding: 8px;
+
+  border: 1px solid gray;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  .input-label {
+    width: 120px;
+  }
+
+  input {
+    flex: 1;
+  }
+
+  .check-input {
+    margin-block: 0.25em;
+    text-align: start;
+
+    input {
+      margin-inline: 0.5em;
+    }
+  }
+}

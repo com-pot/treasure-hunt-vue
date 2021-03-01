@@ -1,0 +1,15 @@
+.hamburger {
+  padding: 4px;
+  width: 24px;
+  height: 24px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+
+  i {
+    display: block;
+    width: 100%;
+    border-top: 1px solid dimgray;
+  }
+}

@@ -1,11 +1,14 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
-import minigameRouter from "@/minigames/minigameRouter";
+import {debugRoutes as minigamesDebugRoutes} from "@/modules/Minigames/routes";
+import sotwRoutes from "@/modules/SotW/routes.ts";
+
 
 let routes: RouteRecordRaw[] = [
-    ...minigameRouter,
+    ...minigamesDebugRoutes,
+    ...sotwRoutes,
     {
-        path: '/:path(.*)',
+        path: '/:path(.+)',
         component: {
             template: "<p>uh oh, '{{$route.params.path}}'</p>"
         },

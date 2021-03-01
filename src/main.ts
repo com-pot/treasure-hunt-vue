@@ -1,9 +1,12 @@
 import { createApp } from 'vue'
-import App from './App.vue'
+import App from '@/modules/Layout/App.vue'
 import router from './routing/router'
 import {RouteTitle} from "@/routing/types";
+import authStore from "@/modules/Auth/authStore";
 
 import "@/sass/main.scss";
+
+authStore.actions._initUserData();
 
 router.beforeEach((to, from, next) => {
     let title: RouteTitle = to.meta.title;

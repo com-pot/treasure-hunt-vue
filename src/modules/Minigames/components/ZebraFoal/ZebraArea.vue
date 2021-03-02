@@ -1,16 +1,18 @@
 <template>
-  <ul class="zebra-area">
+  <ul :class="['zebra-area', circle && 'circle', inline && 'inline', displayMode]">
     <li v-for="(slot, i) in slots" :key="i" @click="$emit('slotClicked', i)"
-        :class="[
+        :style="{'--angle': getAngle(i), '--image': getImage(slot)}"
+    >
+      <div :class="[
           'zebra-slot',
            slot.zebra ? 'occupied' : 'empty',
            slot.locked && 'locked',
            slot.hasError && 'error',
            activeIndex === i && 'selected',
-        ]"
-    >
-      <span v-if="!slot.zebra">---</span>
-      <span v-else>{{ slot.zebra.name }}</span>
+        ]">
+        <span class="name" v-if="!slot.zebra">---</span>
+        <span class="name" v-else>{{ slot.zebra.name }}</span>
+      </div>
     </li>
   </ul>
 </template>
@@ -26,13 +28,27 @@ export default defineComponent({
     },
   },
   props: {
-    slots: {type: Array  as PropType<ZebraSlot[]>, required: true},
+    displayMode: {type: String as PropType<'images' | 'names'>, default: 'images'},
+    slots: {type: Array as PropType<ZebraSlot[]>, required: true},
     activeIndex: [Number, Boolean],
+    circle: {type: Boolean, default: false},
+    inline: {type: Boolean, default: false}
   },
-
+  computed: {
+    slotDegrees(): number {
+      return 360 / this.slots.length;
+    },
+  },
   methods: {
-    onPlaceClicked(i: number) {
+    getAngle(i: number): string {
+      return (this.slotDegrees * i) + 'deg'
+    },
+    getImage(slot: ZebraSlot): string|undefined {
+      if (this.displayMode !== 'images' || !slot.zebra) {
+        return
+      }
 
+      return 'url("/minigames/shamans/' + slot.zebra.name + '.png")';
     },
   },
 });
@@ -43,6 +59,20 @@ export default defineComponent({
   list-style: none;
   margin: 0;
 
+  --item-color: #eee;
+
+  .selected {
+    --item-color: #cedace;
+  }
+
+  .locked {
+    --item-color: #aaa;
+  }
+
+  .error {
+    --item-color: blueviolet;
+  }
+
   .zebra-slot {
     width: 64px;
     height: 32px;
@@ -50,17 +80,68 @@ export default defineComponent({
     display: flex;
     justify-content: center;
     align-items: center;
-
-    &:not(:last-child) {
-      margin-block-end: 0.1em;
-    }
-
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px 4px rgba(lightgray, 0.25);
     &.occupied {
       background: var(--item-color);
     }
 
     &.empty {
       border: 1px solid var(--item-color);
+    }
+  }
+
+  &.circle {
+    position: relative;
+    z-index: 1;
+
+    li {
+      position: absolute;
+      top: calc(50% - 16px);
+      left: 50%;
+
+      width: 42%;
+
+      transform-origin: 0 50%;
+      transform: rotate(var(--angle));
+    }
+
+    .zebra-slot {
+      margin-inline-start: auto;
+      transform: rotate(calc(-1 * var(--angle, 0deg)));
+    }
+  }
+
+  &.inline {
+    display: flex;
+    flex-direction: row;
+    margin-inline-end: -0.25em;
+
+    li {
+      margin-inline-end: 0.25em;
+    }
+  }
+
+  &.images {
+    .zebra-slot {
+      width: 72px;
+      height: 72px;
+      padding: 4px;
+
+      .name {
+        display: none;
+      }
+
+      &:before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100%;
+        background-image: var(--image);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+      }
     }
   }
 }

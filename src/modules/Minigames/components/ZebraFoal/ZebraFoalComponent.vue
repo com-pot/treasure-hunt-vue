@@ -1,147 +1,142 @@
 <template>
   <div class="mg-zebra-foal">
-    <div class="help">
-      <p v-for="zebra in helpfulZebras" :key="zebra.name">{{zebra.helpText}}</p>
-    </div>
     <div class="areas">
-      <ZebraArea class="waiting-area" :slots="zebras.waiting"
+      <ZebraArea class="waiting-area" :slots="zebras.waiting.value" inline :display-mode="displayMode"
                  :active-index="activePosition === 'waiting' && activeIndex"
                  @slot-clicked="clickSlot('waiting', $event)"/>
 
-      <ZebraArea class="placed-area" :slots="zebras.placed"
+      <ZebraArea class="placed-area" :slots="zebras.placed.value" circle :display-mode="displayMode"
                  :active-index="activePosition === 'placed' && activeIndex"
                  @slotClicked="clickSlot('placed', $event)"/>
     </div>
+
     <div class="controls">
       <button @click="checkValid" class="btn btn-vivid">Test</button>
     </div>
-
-
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import {computed, defineComponent, PropType, ref} from "vue";
 import * as ZebraModel from "./Model/ZebraFoalModel";
 
-import {sotwZebras} from "./ZebrasSotw";
 import ZebraArea from "./ZebraArea.vue";
 import ZebraNeighborRule, {NeighborPositions, NeighborRuleEvaluator} from "./Model/ZebraNeighborRule";
 import {Zebra} from "./Model/ZebraFoalModel";
 
 type Position = 'waiting' | 'placed';
+type ZebraFoalMinigameData = {
+  zebras: Zebra[],
+  check: string,
+}
 
 export default defineComponent({
   components: {ZebraArea},
-  data() {
-    let waiting = sotwZebras.slice(1).map((zebra, i) => ({zebra} as ZebraModel.ZebraSlot));
-
-    let placed = sotwZebras.map((zebra, i) => ({
+  props: {
+    displayMode: {type: String as PropType<'images' | 'names'>, default: 'images'},
+    minigameData: {type: Object as PropType<ZebraFoalMinigameData>, required: true},
+  },
+  setup(props, {emit}) {
+    const allZebras = computed<Zebra[]>(() => props.minigameData.zebras)
+    const waiting = ref<ZebraModel.ZebraSlot[]>(allZebras.value.slice(1).map((zebra) => ({zebra})))
+    const placed = ref<ZebraModel.ZebraSlot[]>(allZebras.value.map((zebra, i) => ({
       zebra: i === 0 ? zebra : undefined,
       locked: i === 0,
-    } as ZebraModel.ZebraSlot));
+    })))
+    const activePosition = ref<Position | null>(null)
+    const activeIndex = ref(-1)
 
-    return {
-      allZebras: sotwZebras,
-      zebras: {
-        waiting,
-        placed,
-      },
-      activePosition: null as Position | null,
-      activeIndex: -1,
-    };
-  },
-  computed: {
-    helpfulZebras(): Zebra[] {
-      return this.allZebras.filter((zebra) => zebra.helpText);
-    },
-    placedZebras(): ZebraModel.Zebra[] {
-      return this.zebras.placed
+    const zebras = {placed, waiting};
+
+    const placedZebras = computed<ZebraModel.Zebra[]>(() => placed.value
         .filter((slot) => slot.zebra)
-        .map((slot) => slot.zebra as ZebraModel.Zebra);
-    },
-  },
-  methods: {
-    clickSlot(position: Position, index: number) {
-      if (position === this.activePosition && index === this.activeIndex) {
-        this.activeIndex = -1;
+        .map((slot) => slot.zebra as ZebraModel.Zebra))
+
+    function clickSlot(position: Position, index: number) {
+      if (position === activePosition.value && index === activeIndex.value) {
+        activeIndex.value = -1;
         return;
       }
 
-      let slot = this.zebras[position][index] as ZebraModel.ZebraSlot;
+      let slot = zebras[position].value[index] as ZebraModel.ZebraSlot;
 
       if (!slot || slot.locked) {
         return;
       }
-      if (this.activeIndex === -1 || this.activePosition === null) {
-        this.activePosition = position;
-        this.activeIndex = index;
+      if (activeIndex.value === -1 || activePosition.value === null) {
+        activePosition.value = position;
+        activeIndex.value = index;
       } else {
-        let activeSlot = this.zebras[this.activePosition][this.activeIndex] as ZebraModel.ZebraSlot;
-        let clickedSlot = this.zebras[position][index] as ZebraModel.ZebraSlot;
+        let activeSlot = zebras[activePosition.value].value[activeIndex.value] as ZebraModel.ZebraSlot;
+        let clickedSlot = zebras[position].value[index] as ZebraModel.ZebraSlot;
 
         let temp = clickedSlot.zebra;
         clickedSlot.zebra = activeSlot.zebra;
         activeSlot.zebra = temp;
 
-        this.activeIndex = -1;
-        this.clearErrors();
+        activeIndex.value = -1;
+        clearErrors();
       }
-
-
-    },
-    clearErrors() {
-      let slots: ZebraModel.ZebraSlot[] = this.zebras.waiting;
-      slots.forEach((slot) => slot.hasError = false);
-      slots = this.zebras.placed;
-      slots.forEach((slot) => slot.hasError = false);
-    },
-    checkValid(): boolean {
-      let allPlaced = this.checkNoWaiting();
-      let allSated = this.checkAllPlacedAndSated();
+    }
+    function clearErrors() {
+      zebras.waiting.value.forEach((slot) => slot.hasError = false);
+      zebras.placed.value.forEach((slot) => slot.hasError = false);
+    }
+    function checkValid(): void {
+      let allPlaced = checkNoWaiting();
+      let allSated = checkAllPlacedAndSated();
 
       if (allPlaced && allSated) {
-        this.$emit('minigameSignal', {
+        emit('minigameSignal', {
           type: 'success',
         });
-        return true;
+      } else {
+        emit('minigameSignal', {
+          type: 'error',
+        });
       }
-      return false;
-    },
-    checkNoWaiting(): boolean {
+    }
+    function checkNoWaiting(): boolean {
       let allPlaced = true;
-      this.zebras.waiting.forEach((slot: ZebraModel.ZebraSlot) => {
+      zebras.waiting.value.forEach((slot: ZebraModel.ZebraSlot) => {
         slot.hasError = !!slot.zebra;
         allPlaced = allPlaced && !slot.zebra;
       });
 
       return allPlaced;
-    },
-    checkAllPlacedAndSated(): boolean {
-      let allSated = true;
-      let zebraIndex = 0;
-      this.zebras.placed.forEach((slot: ZebraModel.ZebraSlot) => {
+    }
+    function checkAllPlacedAndSated(): boolean {
+      zebras.placed.value.forEach((slot: ZebraModel.ZebraSlot, zebraIndex: number) => {
         let zebra = slot.zebra;
         if (!zebra || !zebra.rules) {
           return;
         }
 
-        let rulesSated = zebra.rules.every((rule, i) => this.evaluateRule(rule, zebraIndex));
+        let rulesSated = zebra.rules.every((rule) => evaluateRule(rule, zebraIndex));
         slot.hasError = !rulesSated;
-        allSated = allSated && rulesSated;
-        zebraIndex++;
       });
 
-      return allSated;
-    },
-    evaluateRule(rule: ZebraNeighborRule, zebraIndex: number): boolean {
+      return zebras.placed.value.every((slot) => !slot.hasError);
+    }
+    function evaluateRule(rule: ZebraNeighborRule, zebraIndex: number): boolean {
       if (NeighborPositions.includes(rule[0])) {
-        return NeighborRuleEvaluator(this.placedZebras, zebraIndex, rule);
+        return NeighborRuleEvaluator(placedZebras.value, zebraIndex, rule);
       }
 
-      console.warn("Could not evaulate rule", rule);
+      console.warn("Could not evaluate rule", rule);
       return false;
-    },
+    }
+
+    return {
+      zebras: {
+        waiting,
+        placed,
+      },
+      activePosition,
+      activeIndex,
+      clickSlot,
+      checkValid,
+    };
   },
 })
 </script>
@@ -150,29 +145,18 @@ export default defineComponent({
 .mg-zebra-foal {
   .areas {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 0.5em;
+  }
+
+  .placed-area {
+    width: 100%;
+    height: 420px;
   }
 
   .controls {
     margin-block-start: 1em;
     text-align: center;
   }
-
-
-  --item-color: #eee;
-
-  .selected {
-    --item-color: #cedace;
-  }
-
-  .locked {
-    --item-color: #aaa;
-  }
-
-  .error {
-    --item-color: blueviolet;
-  }
-
 }
 </style>

@@ -1,7 +1,7 @@
 import {expect} from "chai";
 
-import {matchZebras} from "@/minigames/ZebraFoal/Model/ZebraNeighborRule";
-import {Zebra} from "@/minigames/ZebraFoal/Model/ZebraFoalModel";
+import {matchZebras, NeighborRuleEvaluator} from "./ZebraNeighborRule";
+import {Zebra} from "./ZebraFoalModel";
 
 describe("ZebraNeighborRule", () => {
     const zebras: Zebra[] = [
@@ -68,5 +68,38 @@ describe("ZebraNeighborRule", () => {
                 expectNames(matched, expectedNames);
             })
         });
+    })
+})
+
+describe("Predefined evaluator", () => {
+    const zebras: Zebra[] = [
+        { name: 'john', rules: []},
+        { name: 'rose', rules: []},
+        { name: 'dave', rules: []},
+        { name: 'jade', rules: []},
+    ];
+    describe('existing evaluator', () => {
+        it('Matches, positive', () => {
+            let result = NeighborRuleEvaluator(zebras, 0, ['after', ["includes", "rose"]])
+            expect(result).to.be.true;
+        })
+        it("Doesn't match, positive", () => {
+            let result = NeighborRuleEvaluator(zebras, 0, ['after', ["includes", "karkat"]])
+            expect(result).to.be.false;
+        })
+        it('Matches, negative', () => {
+            let result = NeighborRuleEvaluator(zebras, 0, ['after', ["!includes", "bec"]])
+            expect(result).to.be.true;
+        })
+        it("Doesn't match, positive", () => {
+            let result = NeighborRuleEvaluator(zebras, 0, ['after', ["!includes", "dave"]])
+            expect(result).to.be.false;
+        })
+
+    })
+
+    it('does not match missing evaluator', () => {
+        let result = NeighborRuleEvaluator(zebras, 0, ['after', ["sees", "vriska"]])
+        expect(result).to.be.false;
     })
 })

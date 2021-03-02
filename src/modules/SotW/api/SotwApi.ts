@@ -1,4 +1,5 @@
 import {PartOfStory} from "../model/SotwModel";
+import {Zebra} from "@/modules/Minigames/components/ZebraFoal/Model/ZebraFoalModel";
 
 const storyParts: PartOfStory[] = [
     {
@@ -32,13 +33,77 @@ const storyParts: PartOfStory[] = [
     {storyPartId: 'story-totem', storyTitle: 'Totem', storyContent: "404: Příběh není k mání"},
     {storyPartId: 'story-tri-na-tri', storyTitle: 'Tři na tři', storyContent: "404: Příběh není k mání"},
     {storyPartId: 'story-pochop', storyTitle: 'Porozuměj', storyContent: "404: Příběh není k mání"},
-    {storyPartId: 'story-samani', storyTitle: 'Šamani', storyContent: "404: Příběh není k mání"},
+    {
+        storyPartId: 'story-samani',
+        storyTitle: 'Šamani',
+        storyContent: "<p>Nebude snadné usadit šamany ostatních kmenů, aby spolu vydrželi u jednoho ohně." +
+            " Místo šamana kmene jelenů jakožto hostitele je jasné, ale ostatní? Dle toho co jsem zjistil tak :</p>" +
+            "<ul><li>Medvědi se od nepaměti přátelí s vlky, ale pumy a buvoly jsou jejich nepřátelé.</li>" +
+            "<li>Sovy byli vždy přáteli nás Jelenů a nikdy neměli v oblibě medvědy a lišky.</li>" +
+            "<li>Pumy jsou známé tím že se s nikým výrazně nepřátelí pouze mají spory s liškami a sovami.</li>" +
+            "<li>Naproti tomu vlci se snaží zavděčit pumám jak mohou a spřátelit se s nimi i za cenu toho že se tím dostaly do sporů s námi jeleny a bizony.</li>" +
+            "<li>Díky tomu bizoni pohrdají podlézavými vlky a namyšlenými pumami a spřátelili se se sovami.</li></ul>" +
+            "<p>Dýmka vždy koluje od hostitele ve směru hodinových ručiček a šaman bizonu by se urazil pokud by jí dostal před ním šaman medvědu…<br/" +
+            "Jak si s tím  jen poradím ?</p>",
+    },
     {
         storyPartId: 'story-epilog',
         storyTitle: 'Cool cool cool',
         storyContent: 'Tak zas někdy. <i>*mrk mrk*</i>'
     }
 ];
+
+const zebras: Zebra[] = [
+    {name: 'deer', helpText: '', rules: []},
+    {
+        name: 'bear',
+        helpText: '',
+        rules: [
+            ["within", 1, ["includes", "wolf"]],
+            ['within', 1, ["!includes", "cougar"]],
+            ['within', 1, ["!includes", "bison"]],
+        ],
+    },
+    {
+        name: 'owl',
+        helpText: '',
+        rules: [
+            ["within", 1, ["includes", "deer"]],
+            ["within", 1, ["!includes", "bear"]],
+            ["within", 1, ["!includes", "fox"]],
+        ],
+    },
+    {
+        name: 'cougar',
+        helpText: '',
+        rules: [
+            ["within", 1, ["!includes", "fox"]],
+            ["within", 1, ["!includes", "owl"]],
+        ],
+    },
+    {name: 'fox', rules: []},
+    {
+        name: 'wolf',
+        helpText: '',
+        rules: [
+            ["within", 1, ["includes", "cougar"]],
+            ["within", 1, ["!includes", "deer"]],
+            ["within", 1, ["!includes", "bison"]],
+        ],
+    },
+    {
+        name: 'bison',
+        helpText: '',
+        rules: [
+            ["within", 1, ["!includes", "wolf"]],
+            ["within", 1, ["!includes", "cougar"]],
+            ["within", 1, ["includes", "owl"]],
+            ["before", ["!includes", "bear"]],
+        ],
+    },
+
+
+]
 
 export default class SotwApi {
     async loadStoryTitles() {
@@ -74,6 +139,10 @@ export default class SotwApi {
                 ],
                 check: '744b18',
             }
+        }
+        if (minigameId === 'zebraFoal') {
+
+            return { zebras, check: 'aaaa'}
         }
         return ;
     }

@@ -29,6 +29,7 @@ $navOpenTransition: 0.2s ease;
 
 .navigation {
   position: fixed;
+  z-index: 100;
   top: 0;
   left: 0;
   height: 100vh;
@@ -46,6 +47,7 @@ $navOpenTransition: 0.2s ease;
 
   + .pull-strap {
     position: fixed;
+    z-index: 101;
     top: 2rem;
     left: calc(#{$navigationWidth} - 2px);
 

@@ -3,8 +3,13 @@ import {PartOfStory} from "../model/SotwModel";
 const storyParts: PartOfStory[] = [
     {
         storyPartId: 'story-prolog',
-        storyTitle: "A je to",
+        storyTitle: "No co to?",
         storyContent: 'Syčák od recepce do tý dýmky musel dát nějaký svinstvo, tohle přece nejsou Boskovice, anebo alespoň ne ve 2021'
+    },
+    {
+        storyPartId: 'story-drums',
+        storyTitle: 'Bum bum',
+        storyContent: "",
     },
     {
         storyPartId: 'story-remedy',
@@ -24,9 +29,22 @@ const storyParts: PartOfStory[] = [
         storyTitle: "Scrics srsoc",
         storyContent: 'Tak jsem si myslel že si zahraju tu písmenkovou hru až se mi z toho zpřeházely písmena'
     },
+    {storyPartId: 'story-totem', storyTitle: 'Totem', storyContent: "404: Příběh není k mání"},
+    {storyPartId: 'story-tri-na-tri', storyTitle: 'Tři na tři', storyContent: "404: Příběh není k mání"},
+    {storyPartId: 'story-pochop', storyTitle: 'Porozuměj', storyContent: "404: Příběh není k mání"},
+    {storyPartId: 'story-samani', storyTitle: 'Šamani', storyContent: "404: Příběh není k mání"},
+    {
+        storyPartId: 'story-epilog',
+        storyTitle: 'Cool cool cool',
+        storyContent: 'Tak zas někdy. <i>*mrk mrk*</i>'
+    }
 ];
 
 export default class SotwApi {
+    async loadStoryTitles() {
+        return Object.fromEntries(storyParts.map((part) => [part.storyPartId, part.storyTitle]))
+    }
+
     async loadStoryPart(storyPartId: string): Promise<PartOfStory> {
         const part = storyParts.find((p) => p.storyPartId === storyPartId);
         if (!part) {

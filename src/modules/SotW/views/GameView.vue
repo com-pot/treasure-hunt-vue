@@ -21,13 +21,14 @@
 </template>
 
 <script lang="ts">
-import {computed, watch} from "vue";
+import {computed, ref} from "vue";
 import Navigation from "@/modules/Layout/components/Navigation.vue";
 import authStore from "@/modules/Auth/authStore";
 import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
-import * as SotwModel from "../model/SotwModel"
 
 import playerStore from "@/modules/SotW/playerStore";
+import serviceContainer from "@/modules/SotW/serviceContainer";
+import SotwApi from "@/modules/SotW/api/SotwApi";
 
 type StoryLink = {
   text: string,
@@ -42,11 +43,15 @@ export default {
   setup() {
     const $router = useRouter();
     const $route = useRoute();
+    const sotwApi = serviceContainer.getService<SotwApi>('sotwApi');
+
+    const storyPartTitles = ref<{[key: string]: string}>({});
+    sotwApi.loadStoryTitles().then((titles) => storyPartTitles.value = titles);
 
     const storyLinks = computed<StoryLink[]>(() => {
       return playerStore.progression.value.storyNodes.map((node) => {
         const link: StoryLink =  {
-          text: SotwModel.getNodeName(node),
+          text: storyPartTitles.value[node.storyPartId] || 'Neznámá část příběhu - ' + node.storyPartId,
           to: {name: 'sotw.NodeView', params: {nodeId: node.nodeId}},
         }
 

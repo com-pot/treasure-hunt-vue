@@ -6,7 +6,7 @@ const storyNodes: StoryNode[] = [
     {nodeId: 's-prolog', type: "story", storyPartId: 'story-prolog', nodeStatus: "visited"},
     {nodeId: 's-a', type: "story", storyPartId: 'story-anagram', nodeStatus: "visited", minigameId: 'm-a'},
     {nodeId: 's-b', type: "story", storyPartId: 'story-remedy', nodeStatus: "visited", minigameId: 'm-b'},
-    {nodeId: 's-d', type: "story", storyPartId: 'story-bubny', nodeStatus: "visited", minigameId: 'm-d'},
+    {nodeId: 's-d', type: "story", storyPartId: 'story-drums', nodeStatus: "visited", minigameId: 'm-d'},
     {nodeId: 's-m', type: "story", storyPartId: 'story-totem', nodeStatus: "visited", minigameId: 'm-m'},
     {nodeId: 's-t', type: "story", storyPartId: 'story-tri-na-tri', nodeStatus: "visited", minigameId: 'm-t'},
     {nodeId: 's-u', type: "story", storyPartId: 'story-pochop', nodeStatus: "visited", minigameId: 'm-u'},

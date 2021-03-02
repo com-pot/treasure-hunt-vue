@@ -1,20 +1,16 @@
 <template>
-  <div :class="['mg-bpc', solved && 'solved']">
+  <div :class="['mg-bpc']">
 
-    <p class="problem-description">
-      2 beaks, 1 Spider. How much?
-    </p>
-
-    <form class="input" @submit.prevent="checkValues">
+    <form class="bpc-container" @submit.prevent="checkValues">
       <div class="input-pair" v-for="input in inputs" :key="input.name">
         <label :for="input.name">{{ input.caption }}</label>
-        <input type="numeric" inputmode="number" :disabled="solved" v-model.number="inputsModel[input.name]"
+        <input type="number" inputmode="numeric" v-model.number="inputsModel[input.name]"
                :id="input.name"/>
       </div>
 
       <div class="input-pair input-pair-full input-pair-center">
         <label>&nbsp;</label>
-        <button type="submit" class="btn btn-vivid" :disabled="solved">Check</button>
+        <button type="submit" class="btn btn-vivid">Check</button>
       </div>
     </form>
 
@@ -22,34 +18,36 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, ref} from "vue";
+import {computed, defineComponent, PropType, ref} from "vue";
+import {hashCode} from "@/utils/stringUtils";
 
 type InputSpec = {
   name: string,
   caption: string,
-  expectedCount: number,
 };
 
-export default defineComponent({
-  setup(props, {emit}) {
-    let inputs = ref([
-      {name: "leg", caption: "Legs", expectedCount: 16},
-      {name: "gryphon", caption: "Gryphons", expectedCount: 2},
-      {name: "eye", caption: "Eyes", expectedCount: 12},
-    ] as InputSpec[]);
-    let solved = ref(false);
+type BpcMinigameData = { inputs: InputSpec[], check: string }
 
-    let inputsModel = ref({
-      gryphon: 1,
-    } as {[name: string]: number});
+export default defineComponent({
+  props: {
+    minigameData: {type: Object as PropType<BpcMinigameData>, required: true},
+  },
+  setup(props, {emit}) {
+    const inputs = computed(() => props.minigameData.inputs);
+    const inputsModel = ref(Object.fromEntries(inputs.value.map((input) => [input.name, 0])));
 
     function checkValues() {
-      let allCorrect = inputs.value.every((input) => inputsModel.value[input.name] === input.expectedCount);
-      if (allCorrect) {
-        solved.value = true;
+      let valueSerialized = Object.values(inputsModel.value).map((v) => 's4lty' + v + 'p3pp3ry').join('-');
+      let hash = hashCode(valueSerialized).substr(0, 6);
+
+      if (hash === props.minigameData.check) {
         emit('minigameSignal', {
           type: 'success',
         });
+      } else {
+        emit('minigameSignal', {
+          type: 'error',
+        })
       }
     }
 
@@ -57,7 +55,6 @@ export default defineComponent({
       inputs,
       inputsModel,
       checkValues,
-      solved,
     };
   },
 });
@@ -66,7 +63,7 @@ export default defineComponent({
 
 <style lang="scss">
 .mg-bpc {
-  .input {
+  .bpc-container {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -90,12 +87,6 @@ export default defineComponent({
       input {
         align-self: stretch;
       }
-    }
-  }
-
-  &.solved {
-    input[disabled] {
-      background: lightgreen;
     }
   }
 }

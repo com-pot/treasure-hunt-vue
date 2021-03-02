@@ -11,8 +11,15 @@ export default defineComponent({
   setup() {
     return {
       handleSignal(signal: any) {
-        if ('type' in signal && signal.type === 'success') {
+        if (!('type' in signal)) {
+          console.warn("No type");
+          return
+        }
+
+        if (signal.type === 'success') {
           alert("Gooooooood");
+        } else if (signal.type === 'error') {
+          alert("Ooooof");
         }
       }
     }

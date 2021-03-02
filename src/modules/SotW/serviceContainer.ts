@@ -7,6 +7,7 @@ import TextsService from "@/modules/SotW/services/TextsService";
 const universeDefinition = {
     factory: () => new Universe({
         'characters.guide.name': 'Tir Zapa',
+        'characters.protagonist.name': '-[-hocha-]-',
         'company.casino.name': 'Gamble Tour',
     })
 };

@@ -54,6 +54,17 @@ const debugRoutes: RouteRecordRaw[] = [
                 path: "bpc",
                 name: "minigame.dev.bpc",
                 component: () => import("./components/Bpc/BpcComponent.vue"),
+                props() {
+                    return {
+                        minigameData: {
+                            inputs: [
+                                {name: 'sticks', caption: "Tyčky"},
+                                {name: 'diamonds', caption: "Diamanty"},
+                            ],
+                            check: '5de53d',
+                        },
+                    };
+                },
             },
             {
                 path: "anagram",

@@ -29,6 +29,7 @@ import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
 import playerStore from "@/modules/SotW/playerStore";
 import serviceContainer from "@/modules/SotW/serviceContainer";
 import SotwApi from "@/modules/SotW/api/SotwApi";
+import AudioService from "@/modules/SotW/services/AudioService";
 
 type StoryLink = {
   text: string,
@@ -44,6 +45,10 @@ export default {
     const $router = useRouter();
     const $route = useRoute();
     const sotwApi = serviceContainer.getService<SotwApi>('sotwApi');
+    const sotwAudio = serviceContainer.getService<AudioService>('sotwAudio');
+
+    sotwAudio.preloadFiles()
+      .then(() => console.log("Audio ready"));
 
     const storyPartTitles = ref<{[key: string]: string}>({});
     sotwApi.loadStoryTitles().then((titles) => storyPartTitles.value = titles);

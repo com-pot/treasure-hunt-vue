@@ -74,6 +74,10 @@ export default defineComponent({
         this.$emit('minigameSignal', {
           type: 'success',
         });
+      } else {
+        this.$emit('minigameSignal', {
+          type: 'error',
+        });
       }
     },
   },

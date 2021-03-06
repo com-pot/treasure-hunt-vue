@@ -20,7 +20,7 @@
 
     <SotwViewMinigame v-else-if="viewState === 'ready' && loadedNode.node.type === 'minigame'"
                       :minigame-id="loadedNode.node.minigameId" :minigame-data="loadedNode.nodeData"
-                      @sotwSignal="handleSignal"
+                      @sotwSignal="handleMinigameSignal"
     />
 
     <div class="view-error" v-else>
@@ -51,6 +51,7 @@ import SotwViewStory from "@/modules/SotW/views/SotwViewStory.vue";
 import SotwViewMinigame from "@/modules/SotW/views/SotwViewMinigame.vue";
 import SotwApi from "@/modules/SotW/api/SotwApi.ts";
 import {SotwSignal} from "../types/game";
+import AudioService from "@/modules/SotW/services/AudioService";
 
 type LoadedNode = {
   node: KnownSotwNode,
@@ -68,6 +69,7 @@ export default defineComponent({
   setup(props) {
     const sotwApi = serviceContainer.getService<SotwApi>('sotwApi');
     const $router = useRouter();
+    const sotwAudio = serviceContainer.getService<AudioService>('sotwAudio');
 
     const viewState = ref<ViewState>('loading');
     const node = ref<KnownSotwNode|null>(props.node || null);
@@ -167,11 +169,19 @@ export default defineComponent({
         handler.call(undefined);
       }
     }
+    function handleMinigameSignal(signal: any) {
+      if (signal.type === 'success') {
+        sotwAudio.play('minigameOk')
+      } else {
+        sotwAudio.play('minigameKo')
+      }
+    }
 
     return {
       viewState,
       loadedNode,
       handleSignal,
+      handleMinigameSignal,
       nodeLinks,
     };
   },

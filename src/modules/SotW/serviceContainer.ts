@@ -3,6 +3,7 @@ import {createContainer} from "@/di/container";
 import Universe from "@/modules/SotW/services/Universe";
 import JsonApiAdapter from "@/modules/Api/services/JsonApiAdapter";
 import TextsService from "@/modules/SotW/services/TextsService";
+import AudioService from "@/modules/SotW/services/AudioService";
 
 const universeDefinition = {
     factory: () => new Universe({
@@ -19,5 +20,11 @@ export default createContainer({
     },
     sotwApi: {factory: () => new SotwApi()},
     universe: universeDefinition,
-    textsService: {factory: (container => new TextsService(container.getService('universe')))}
+    textsService: {factory: (container => new TextsService(container.getService('universe')))},
+    sotwAudio: {
+        factory: () => new AudioService({
+            minigameOk: '/audio/generic/ok.mp3',
+            minigameKo: '/audio/generic/ko.mp3',
+        }, 'sotw-audio'),
+    },
 });

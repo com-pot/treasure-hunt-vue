@@ -37,7 +37,7 @@ const actions = {
         }
         const {userData, authToken} = authData
 
-        if (!userData.login) {
+        if (!userData || !userData.login) {
             console.warn("Invalid values");
             return;
         }

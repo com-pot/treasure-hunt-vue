@@ -105,6 +105,12 @@ const zebras: Zebra[] = [
 
 ]
 
+const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
+    anagram: () => Promise.resolve({inputText: 'srics srsoc', check: '28f185a6'}),
+    zebraFoal: () => Promise.resolve({ zebras, check: 'aaaa'}),
+    mixMatch: () => import("./mixMatchMinigameData.json"),
+}
+
 export default class SotwApi {
     async loadStoryTitles() {
         return Object.fromEntries(storyParts.map((part) => [part.storyPartId, part.storyTitle]))
@@ -127,9 +133,10 @@ export default class SotwApi {
     }
 
     async loadMinigameData(minigameId: string): Promise<any> {
-        if (minigameId === 'anagram') {
-            return {inputText: 'srics srsoc', check: '28f185a6'}
+        if (minigameId in minigameDataLoaders) {
+            return minigameDataLoaders[minigameId]()
         }
+
         if (minigameId === 'bpc') {
             return {
                 inputs: [
@@ -140,10 +147,9 @@ export default class SotwApi {
                 check: '744b18',
             }
         }
-        if (minigameId === 'zebraFoal') {
 
-            return { zebras, check: 'aaaa'}
-        }
-        return ;
+        console.debug("Minigame", minigameId, "does not have data")
+
+        return null;
     }
 }

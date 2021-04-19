@@ -19,6 +19,8 @@
     />
 
     <SotwViewMinigame v-else-if="viewState === 'ready' && loadedNode.node.type === 'minigame'"
+                      :viewStateData="viewStateData"
+                      @change:viewStateData="viewStateData = $event"
                       :minigame-id="loadedNode.node.minigameId" :minigame-data="loadedNode.nodeData"
                       @sotwSignal="handleMinigameSignal"
     />
@@ -47,11 +49,13 @@ import {KnownSotwNode} from "../model/SotwModel";
 import SotwViewLoading from "@/modules/SotW/views/SotwViewLoading.vue";
 
 import serviceContainer from "@/modules/SotW/serviceContainer.ts";
+import * as viewStateStore from "@/modules/SotW/viewStateStore.ts";
 import SotwViewStory from "@/modules/SotW/views/SotwViewStory.vue";
 import SotwViewMinigame from "@/modules/SotW/views/SotwViewMinigame.vue";
 import SotwApi from "@/modules/SotW/api/SotwApi.ts";
 import {SotwSignal} from "../types/game";
 import AudioService from "@/modules/SotW/services/AudioService";
+import {log} from "tone/build/esm/core/util/Debug";
 
 type LoadedNode = {
   node: KnownSotwNode,
@@ -75,6 +79,9 @@ export default defineComponent({
     const node = ref<KnownSotwNode|null>(props.node || null);
     const loadedNode = ref<LoadedNode|null>(null);
 
+    const viewStateData = ref<object|null>(null);
+
+
     async function loadNode(node: KnownSotwNode): Promise<LoadedNode|null> {
       let nodeData = {};
       if (node.type === "story") {
@@ -85,8 +92,20 @@ export default defineComponent({
 
       return { node, nodeData };
     }
+    function loadNodeViewStateData(node: KnownSotwNode): void {
+      viewStateData.value = viewStateStore.actions.loadState(node.nodeId)
+    }
+    function saveNodeViewStateData(): void {
+      if (loadedNode.value && viewStateData.value) {
+        viewStateStore.actions.saveState(loadedNode.value.node.nodeId, viewStateData.value)
+      }
+    }
+
+    watch(viewStateData, (value) => console.log("View state data: ", value), {immediate: true})
 
     watch(node, async (nodeSpec) => {
+      saveNodeViewStateData()
+
       if (!nodeSpec) {
         viewState.value = 'error';
         return;
@@ -96,6 +115,7 @@ export default defineComponent({
       let node: LoadedNode|null;
       try {
         node = await loadNode(nodeSpec);
+        loadNodeViewStateData(nodeSpec);
       } catch (error) {
         console.error(error);
         node = null;
@@ -179,12 +199,20 @@ export default defineComponent({
 
     return {
       viewState,
+      viewStateData,
       loadedNode,
       handleSignal,
       handleMinigameSignal,
       nodeLinks,
+      saveNodeViewStateData,
     };
   },
+  mounted() {
+    window.addEventListener('beforeunload', this.saveNodeViewStateData)
+  },
+  beforeUnmount() {
+    window.removeEventListener('beforeunload', this.saveNodeViewStateData)
+  }
 });
 </script>
 

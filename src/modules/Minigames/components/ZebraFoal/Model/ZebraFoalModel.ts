@@ -14,3 +14,9 @@ export type ZebraSlot = {
     locked?: boolean,
     hasError?: boolean,
 }
+
+
+export type ZebraFoalViewState = {
+    /** List of zebra names */
+    placements: (string|null)[],
+}

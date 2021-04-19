@@ -8,6 +8,8 @@
     <component
         :is="componentSpec"
         :minigameData="minigameData"
+        :minigameState="viewStateData"
+        @change:minigameState="console.log('change:viewStateData', $event) || $emit('change:viewStateData', $event)"
         @minigameSignal="$emit('sotwSignal', $event)"
     />
   </template>
@@ -23,24 +25,19 @@ import {loadMinigameComponent} from "@/modules/Minigames/minigameUtils";
 
 import {ViewState} from "../types/views";
 
-type MinigameState = 'idle' | 'running' | 'finished';
-
-
-
 export default defineComponent({
-  emits: ['sotwSignal'],
+  emits: ['sotwSignal', 'change:viewStateData'],
   props: {
     minigameId: {type: String, required: true},
     minigameData: {type: Object, required: true},
+    viewStateData: {type: Object},
   },
   setup(props) {
     const viewState = ref<ViewState>('loading');
-    const minigameState = ref<MinigameState>('idle');
     const componentSpec = shallowRef<any>(null);
 
     async function loadMinigame(minigameId: string) {
       viewState.value = "loading";
-      minigameState.value = "idle";
 
       let minigameModule;
       try {
@@ -53,7 +50,6 @@ export default defineComponent({
 
       componentSpec.value = minigameModule.default;
       viewState.value = "ready";
-      minigameState.value = "running";
     }
 
     watch(() => props.minigameId, loadMinigame, {immediate: true});
@@ -61,7 +57,7 @@ export default defineComponent({
     return {
       viewState,
       componentSpec,
-      minigameState,
+      console,
     };
   },
 });

@@ -6,37 +6,56 @@
     </div>
     <button :class="['btn', spaceAvailable ? 'btn-vivid' : 'btn-bland']" @click="addSpace">Mezera</button>
     <div :class="['letters', 'output', outputSuccess && 'success']">
-      <i v-for="(letter, i) in outputLetters" @click="clearLetter(i)" :key="i">{{ letter.char }}</i>
+      <i v-for="(letter, i) in outputLetters" @click="clearLetter(i)" :key="i">{{ getOutputChar(letter) }}</i>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, ref, computed, PropType, watch} from "vue";
+import {defineComponent, computed, PropType, watch, toRef} from "vue";
 import {hashCode} from "@/utils/stringUtils"
 
-type InputLetter = { char: string, picked: boolean };
-type OutputLetter = {char: string, sourceIndex?: number};
 
-type AnagramMinigameData = {
-  inputText: string,
-  check: string,
-};
+import {AnagramMinigameData, AnagramMinigameState} from "./AnagramModel";
+import * as Model from "./AnagramModel";
+import {useViewStateFromProps} from "@/modules/SotW/utils/useViewState";
+
+
 
 export default defineComponent({
   props: {
     minigameData: {type: Object as PropType<AnagramMinigameData>, required: true},
+    minigameState: {type: Object as PropType<AnagramMinigameState>},
   },
 
   setup(props, {emit}) {
+    const minigameState: AnagramMinigameState = useViewStateFromProps(props, 'minigameState', () => ({
+      outputLetters: [],
+    }))
+    emit('change:minigameState', minigameState)
+
     const inputText = computed<string>(() => props.minigameData.inputText);
-    const inputLetters = computed<InputLetter[]>(() => {
+    const inputLetters = computed<Model.InputLetter[]>(() => {
       return inputText.value.split('')
-          .map((char) => ({char, picked: false}));
+          .map((char, i) => ({
+            char,
+            picked: minigameState.outputLetters.some((letter) => Model.isLetterSelection(letter) && letter.sourceIndex === i)
+          }));
     });
 
-    let outputLetters = ref([] as OutputLetter[]);
-    let outputText = computed(() => outputLetters.value.map((l) => l.char).join(''));
+    const getOutputChar = (letter: Model.OutputLetter): string => {
+      if (Model.isFreeLetter(letter)) {
+        return letter.char;
+      }
+      if (Model.isLetterSelection(letter)) {
+        return inputLetters.value[letter.sourceIndex].char
+      }
+      console.warn("Invalid output letter", letter);
+      return ''
+    }
+
+    let outputLetters = toRef(minigameState, 'outputLetters');
+    let outputText = computed(() => outputLetters.value.map(getOutputChar).join(''));
     let outputSuccess = computed(() => hashCode(outputText.value) === props.minigameData.check);
 
     watch(outputSuccess, (val) => {
@@ -54,6 +73,7 @@ export default defineComponent({
       outputLetters,
       spaceAvailable,
       outputSuccess,
+      getOutputChar,
 
       pickLetter(i: number) {
         let letter = inputLetters.value[i];
@@ -79,7 +99,7 @@ export default defineComponent({
         if (!letter) {
           return;
         }
-        if (typeof letter.sourceIndex === "number") {
+        if (Model.isLetterSelection(letter)) {
           inputLetters.value[letter.sourceIndex].picked = false;
         }
         outputLetters.value.splice(i, 1);

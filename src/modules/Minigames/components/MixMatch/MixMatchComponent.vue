@@ -1,9 +1,8 @@
 <template>
   <div class="mg-mix-match">
-    <p class="guide">{{ guide }}</p>
 
     <div class="pieces">
-      <template v-for="(piece, i) in pieces" :key="i">
+      <template v-for="(piece, i) in internalState.pieces" :key="i">
         <div :class="['piece', 'piece-' + piece.type, i === selectedPiece && setupOpen && 'piece-selected']"
              :style="{'--color': piece.color, '--modelImage': getPieceImage(piece)}"
              @click="selectPiece(i)"></div>
@@ -18,12 +17,12 @@
 
         <div class="attribute start colors">
           <div class="option" v-for="option in colorOptions" :key="option"
-               :style="{'--color': option.color}" @click="pieces[selectedPiece].color = option.color"></div>
+               :style="{'--color': option.color}" @click="internalState.pieces[selectedPiece].color = option.color"></div>
         </div>
 
         <div class="attribute end models">
-          <div class="option" v-for="option in modelOptions" :key="option"
-               :style="{'--image': getModelImage(option.name)}" @click="pieces[selectedPiece].model = option.name"></div>
+          <div class="option" v-for="option in selectedPieceModelOptions" :key="option"
+               :style="{'--image': getModelImage(option.name)}" @click="internalState.pieces[selectedPiece].model = option.name"></div>
         </div>
       </template>
     </div>
@@ -35,68 +34,41 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, ref, watch} from "vue";
+import {computed, defineComponent, PropType, ref, toRef, watch} from "vue";
 import {hashCode} from "@/utils/stringUtils";
 
-type MixPieceType = 'head' | 'body' | 'leg';
-type MixPieceModelOption = {name: string, image: string};
-
-type MixPiece = {
-  type: MixPieceType
-  color: string,
-  model: string,
-}
+import * as Model from "./MixMatchModel"
+import {useViewStateFromProps} from "@/modules/SotW/utils/useViewState";
 
 export default defineComponent({
+  props: {
+    minigameData: {type: Object as PropType<Model.MixMatchMinigameData>, required: true},
+    minigameState: {type: Object as PropType<Model.MixMatchViewState> },
+  },
   setup(props, {emit}) {
-    let guide = ref("P#-B&-Y$");
-    const pieceOptions = ref<{[pieceType: string]: MixPieceModelOption[]}>({
-      head: [
-        {name: 'owl', image: 'A1.png'},
-        {name: 'hawk-light', image: 'A3.png'},
-        {name: 'hawk-dark', image: 'A4.png'},
-      ],
-      body: [
-        {name: 'gorilla', image: 'B1.png'},
-        {name: 'bass', image: 'B2.png'},
-        {name: 'goldfish', image: 'B3.png'},
-        {name: 'fright', image: 'B4.png'},
-        {name: 'peacock', image: 'B5.png'},
-        {name: 'wuff', image: 'B6.png'},
-        {name: 'frog', image: 'B7.png'},
-      ],
-      leg: [
-        {name: 'felid', image: 'C1.png'},
-        {name: 'swan', image: 'C2.png'},
-        {name: 'walrus', image: 'C3.png'},
-      ],
-    });
+    const pieceOptions = toRef(props.minigameData, 'modelOptions');
+    const colorOptions = toRef(props.minigameData, 'colorOptions');
 
-    const pieces = ref([
-      {type: 'head', color: 'gray', model: 'hawk-light'},
-      {type: 'body', color: 'dimgray', model: 'bass'},
-      {type: 'body', color: 'lightgray', model: 'wuff'},
-      {type: 'body', color: 'darkgray', model: 'gorilla'},
-      {type: 'leg', color: 'darkgray', model: 'swan'},
-    ] as MixPiece[]);
-
-    const colorOptions = ref([
-      {color: 'deeppink', label: 'P'},
-      {color: 'yellow', label: 'Y'},
-      {color: 'red', label: 'R'},
-      {color: 'dodgerblue', label: 'B'},
-      {color: 'green', label: 'G'},
-    ]);
+    const internalState = useViewStateFromProps<Model.MixMatchViewState>(props, 'minigameState', () => ({
+      pieces: [
+        {type: 'head', color: 'gray', model: 'hawk-light'},
+        {type: 'body', color: 'dimgray', model: 'bass'},
+        {type: 'body', color: 'lightgray', model: 'wuff'},
+        {type: 'body', color: 'darkgray', model: 'gorilla'},
+        {type: 'leg', color: 'darkgray', model: 'swan'},
+      ]
+    }))
+    emit('change:minigameState', internalState)
 
     const selectedPiece = ref(-1);
     const setupOpen = ref(false);
 
-    const modelOptions = computed(() => {
+    const selectedPieceModelOptions = computed<Model.ModelOption[]>(() => {
       if (selectedPiece.value === -1) {
         return [];
       }
 
-      let modelType = pieces.value[selectedPiece.value].type;
+      let modelType = internalState.pieces[selectedPiece.value].type;
       return pieceOptions.value[modelType];
     })
 
@@ -104,20 +76,20 @@ export default defineComponent({
       let option = colorOptions.value.find((opt) => opt.color === color);
       return option?.label || 'nada';
     };
-    const getPieceImage = (piece: MixPiece): string | undefined => {
-      let option = pieceOptions.value[piece.type].find((option) => option.name === piece.model)
+    const getPieceImage = (piece: Model.MixPiece): string | undefined => {
+      const options = pieceOptions.value[piece.type] as Model.ModelOption[]
+      let option = options.find((option) => option.name === piece.model)
       return option ? 'url("/minigames/totems/' + option.image +'")' : undefined;
     }
 
-    let piecesSerialized = computed(() => pieces.value.map((piece) => colorToLabel(piece.color) + piece.model).join('-'));
+    let piecesSerialized = computed(() => internalState.pieces.map((piece) => colorToLabel(piece.color) + piece.model).join('-'));
 
     return {
-      guide,
-      pieces,
+      internalState,
       setupOpen,
       selectedPiece,
       colorOptions,
-      modelOptions,
+      selectedPieceModelOptions,
       selectPiece: (i: number) => {
         if (i === selectedPiece.value) {
           return
@@ -135,7 +107,7 @@ export default defineComponent({
       },
       getPieceImage,
       getModelImage: (modelName: string): string|undefined => {
-        let option = modelOptions.value.find((model) => model.name === modelName);
+        let option = selectedPieceModelOptions.value.find((model) => model.name === modelName);
         return option ? 'url("/minigames/totems/' + option.image +'")' : undefined;
       },
       checkTotem: () => {
@@ -154,17 +126,11 @@ export default defineComponent({
 <style lang="scss">
 .mg-mix-match {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 0.25em;
 
-  .guide {
-    border-bottom: 1px solid lightgray;
-    padding-bottom: 6px;
-    margin: 0 8px;
-  }
-
   .pieces {
-    grid-row: 2; grid-column: 1;
+    grid-row: 1; grid-column: 1;
     margin-top: 24px;
     margin-bottom: 24px;
 
@@ -222,7 +188,7 @@ export default defineComponent({
     margin-top: 24px;
     margin-bottom: 24px;
 
-    grid-row: 2; grid-column: 1;
+    grid-row: 1; grid-column: 1;
 
     display: flex;
     flex-direction: row;

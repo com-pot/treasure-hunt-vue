@@ -18,23 +18,25 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, PropType, ref} from "vue";
+import {computed, defineComponent, PropType, ref, toRef} from "vue";
 import {hashCode} from "@/utils/stringUtils";
+import {useViewStateFromProps} from "@/modules/SotW/utils/useViewState";
 
-type InputSpec = {
-  name: string,
-  caption: string,
-};
-
-type BpcMinigameData = { inputs: InputSpec[], check: string }
+import * as Model from "./BpcModel"
 
 export default defineComponent({
   props: {
-    minigameData: {type: Object as PropType<BpcMinigameData>, required: true},
+    minigameData: {type: Object as PropType<Model.BpcMinigameData>, required: true},
+    minigameState: {type: Object as PropType<Model.BpcViewState>},
   },
   setup(props, {emit}) {
     const inputs = computed(() => props.minigameData.inputs);
-    const inputsModel = ref(Object.fromEntries(inputs.value.map((input) => [input.name, 0])));
+    const minigameState: Model.BpcViewState = useViewStateFromProps(props, 'minigameState', () => ({
+      inputsModel: Object.fromEntries(inputs.value.map((input) => [input.name, 0])),
+    }))
+    emit('change:minigameState', minigameState)
+
+    const inputsModel = toRef(minigameState, 'inputsModel');
 
     function checkValues() {
       let valueSerialized = Object.values(inputsModel.value).map((v) => 's4lty' + v + 'p3pp3ry').join('-');

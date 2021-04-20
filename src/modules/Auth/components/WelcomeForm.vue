@@ -19,7 +19,7 @@
       </label>
       <label class="check-input">
         <input type="checkbox" checked readonly>
-        <span>Vzdávám se nároku na vrácení poplatku</span>
+        <span>Potvrzuji vstup na vlastní nebezpečí a jsem obeznámen s možností skalpování, intoxikace, ...</span>
       </label>
     </div>
 

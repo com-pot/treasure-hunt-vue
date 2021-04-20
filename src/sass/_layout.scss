@@ -17,6 +17,21 @@ body {
   text-align: center;
 }
 
+#sotw {
+  padding-top: 5vh;
+}
+.root-container {
+  max-width: 60ch;
+  width: 80vw;
+  margin: 0 auto;
+  padding: 40px 8px 60px;
+
+  border-radius: 2rem;
+  background: var(--container-bg);
+  box-shadow: 0 0 0.5rem 1rem var(--container-bg);
+}
+
+
 .bg {
   position: fixed;
   z-index: -1;

@@ -1,14 +1,11 @@
 <template>
   <p v-if="!loaded">Zde budou bubny</p>
 
-  <div class="mg-drums" v-else>
+  <div v-else class="mg-drums" :style="'--strike-duration: ' + strikeAnimationDuration + 'ms'">
 
     <div class="guide" v-if="currentPattern">
       <span>Měl bych opakovat, co slyším...</span>
       <button @click="playSamplePattern()" :disabled="isPlaying" class="btn btn-vivid">Poslechnout</button>
-      <div class="progression">
-        <span v-for="(step, i) in currentPattern" :key="i" :class="['step', i < currentAttemptStep && 'check']">{{drums[step].note}}</span>
-      </div>
     </div>
 
     <div class="guide" v-else>
@@ -16,7 +13,10 @@
     </div>
 
     <div class="drums" v-if="loaded">
-      <button v-for="drum in drums" :key="drum.note" class="btn btn-vivid drum" @click.prevent="hitDrum(drum)">{{ drum.note }}</button>
+      <button v-for="(drum, i) in drums" :key="drum.note"
+              :class="['drum', strikes[i] && 'strike']"
+              @click.prevent="hitDrum(i)"
+      />
     </div>
   </div>
 </template>
@@ -36,7 +36,9 @@ export default defineComponent({
       {note: 'G4'},
       {note: 'C5'},
       {note: 'G5'},
-    ] as Drum[]);
+    ] as Drum[])
+    const strikes = ref(drums.value.map(() => false))
+    const strikeAnimationDuration = 100
 
     const patterns = ref([
       [0, 2, 0],
@@ -60,11 +62,24 @@ export default defineComponent({
     let currentPattern = computed(() => patterns.value[correctPatterns.value]);
     let currentAttemptStep = ref(0);
 
-    function hitDrum(drum: Drum, source: 'player'|'sample' = 'player', when?: number) {
+    const animateStrike = (i: number) => {
+      strikes.value[i] = true
+      setTimeout(() => strikes.value[i] = false, strikeAnimationDuration)
+    }
+
+    function hitDrum(i: number, source: 'player'|'sample' = 'player', when?: number) {
+      const drum = drums.value[i]
+
       drumAdjuster.set({
         volume: (Math.random() - 0.5) * 6,
       });
       synth.triggerAttackRelease(drum.note, "8n", when);
+      if (!when) {
+        animateStrike(i)
+      } else {
+        const timeout = synth.toSeconds(when) - synth.now()
+        setTimeout(() => animateStrike(i), timeout * 1000)
+      }
 
       if (source !== "player") {
         return;
@@ -101,7 +116,7 @@ export default defineComponent({
 
       isPlaying.value = true;
       currentPattern.value.forEach((drumIndex, i) => {
-        hitDrum(drums.value[drumIndex], 'sample', now + i * 0.66);
+        hitDrum(drumIndex, 'sample', now + i * 0.66);
       });
 
       isPlaying.value = false;
@@ -109,18 +124,22 @@ export default defineComponent({
 
     return {
       drums,
+      strikes,
       hitDrum,
       playSamplePattern,
       loaded,
       currentPattern,
       currentAttemptStep,
       isPlaying,
+      strikeAnimationDuration,
     };
   },
 });
 </script>
 
 <style lang="scss">
+$drumAppearance: 1.07, 1.01, 0.94, 1;
+
 .mg-drums {
 
   .guide {
@@ -132,36 +151,45 @@ export default defineComponent({
     gap: 0.25em;
   }
 
-  .step {
-    display: inline-block;
-    padding: 2px 4px;
-    border: 1px solid lightgray;
-    border-radius: 4px;
-
-    &.check {
-      text-decoration: underline;
-    }
-  }
-
   .drums {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 1em;
+    margin-right: -0.5em;
 
     .drum {
-      width: 72px;
-      height: 80px;
+      margin-right: 0.5em;
+      width: 120px;
+      height: 110px;
 
-      font-weight: bold;
-      font-size: 16pt;
+      border: none;
+      background: url("./resources/drum.png") center;
+      background-size: contain;
 
-      @for $n from 1 through 4 {
-        &:nth-child(#{$n}) {
-          margin-top: 10px - $n * 5px;
+      @for $i from 1 through length($drumAppearance) {
+        $brightness: nth($drumAppearance, $i);
+
+        &:nth-child(#{$i}) {
+          filter: brightness($brightness);
         }
       }
+
+      &.strike {
+        animation: drum-strike var(--strike-duration);
+
+        transition: all var(--strike-duration);
+      }
     }
+  }
+}
+
+@keyframes drum-strike {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.05);
   }
 }
 </style>

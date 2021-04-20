@@ -15,7 +15,7 @@
     <div class="drums" v-if="loaded">
       <button v-for="(drum, i) in drums" :key="drum.note"
               :class="['drum', strikes[i] && 'strike']"
-              @click.prevent="hitDrum(i)"
+              @click.prevent="hitDrum(i, $event)"
       />
     </div>
   </div>
@@ -48,7 +48,7 @@ export default defineComponent({
     const loaded = ref(false);
     let synth = new Tone.Sampler({
       urls: {
-        "E4": "Bass-Drum-Hit-Level-5a-www.fesliyanstudios.com.mp3",
+        "G4": "tabla2.mp3",
       },
       release: 1,
       baseUrl: "/audio/drums/",
@@ -67,11 +67,20 @@ export default defineComponent({
       setTimeout(() => strikes.value[i] = false, strikeAnimationDuration)
     }
 
-    function hitDrum(i: number, source: 'player'|'sample' = 'player', when?: number) {
+    function hitDrum(i: number, event?: MouseEvent, when?: number) {
       const drum = drums.value[i]
 
+      let volume = 0
+      if (event && event.offsetY) {
+        const target = event.target as HTMLButtonElement
+        const heightPct = (target.clientHeight - event.offsetY) / target.clientHeight
+        volume = (heightPct - 0.5) * 6
+      } else {
+        volume = (Math.random() - 0.5) * 6
+      }
+
       drumAdjuster.set({
-        volume: (Math.random() - 0.5) * 6,
+        volume,
       });
       synth.triggerAttackRelease(drum.note, "8n", when);
       if (!when) {
@@ -81,7 +90,7 @@ export default defineComponent({
         setTimeout(() => animateStrike(i), timeout * 1000)
       }
 
-      if (source !== "player") {
+      if (!event) {
         return;
       }
 
@@ -116,7 +125,7 @@ export default defineComponent({
 
       isPlaying.value = true;
       currentPattern.value.forEach((drumIndex, i) => {
-        hitDrum(drumIndex, 'sample', now + i * 0.66);
+        hitDrum(drumIndex, undefined, now + i * 0.66);
       });
 
       isPlaying.value = false;

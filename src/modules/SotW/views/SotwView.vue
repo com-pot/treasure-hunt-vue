@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, h, PropType, ref, watch} from "vue";
+import {computed, defineComponent, h, PropType, provide, ref, watch} from "vue";
 import {useRouter} from "vue-router";
 
 import {ViewState} from "../types/views";
@@ -56,6 +56,7 @@ import SotwApi from "@/modules/SotW/api/SotwApi.ts";
 import {SotwSignal} from "../types/game";
 import AudioService from "@/modules/SotW/services/AudioService";
 import {log} from "tone/build/esm/core/util/Debug";
+import {MinigameControls} from "@/modules/SotW/utils/minigameUtils";
 
 type LoadedNode = {
   node: KnownSotwNode,
@@ -78,8 +79,11 @@ export default defineComponent({
     const viewState = ref<ViewState>('loading');
     const node = ref<KnownSotwNode|null>(props.node || null);
     const loadedNode = ref<LoadedNode|null>(null);
+    const viewData = computed(() => loadedNode.value?.nodeData)
+    provide('sotw.viewData', viewData)
 
     const viewStateData = ref<object|null>(null);
+    provide('sotw.viewStateData', viewStateData)
 
 
     async function loadNode(node: KnownSotwNode): Promise<LoadedNode|null> {
@@ -189,6 +193,17 @@ export default defineComponent({
         handler.call(undefined);
       }
     }
+
+    const minigameControls: MinigameControls = {
+      checkSolution(value) {
+        console.log("Todo: compare value to view data check", value)
+        const success = Math.random() < 0.5
+        sotwAudio.play(success ? 'minigameOk' : 'minigameKo')
+        return Promise.resolve(success)
+      }
+    }
+    provide('sotw.minigameControls', minigameControls)
+
     function handleMinigameSignal(signal: any) {
       if (signal.type === 'success') {
         sotwAudio.play('minigameOk')

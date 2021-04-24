@@ -1,4 +1,4 @@
-import {reactive, watch} from "vue";
+import {inject, reactive, Ref, watch} from "vue"
 
 type ResetAbleViewState<T extends object> = T & {resetState: () => void}
 
@@ -33,4 +33,47 @@ export function useViewStateFromProps<T extends object, P extends object = any>(
 
 
     return viewState as unknown as ResetAbleViewState<T>
+}
+
+type ViewState<T> = {
+    value: T,
+}
+
+type ResetableViewState<T> = ViewState<T> & {
+    reset: () => void,
+}
+
+export function useViewData<T>(): Ref<T>  {
+    const viewData = inject<Ref<T>>('sotw.viewData')
+    if (!viewData) {
+        throw new Error("No 'sotw.viewData' provided")
+    }
+
+    return viewData
+}
+
+export function useViewState<T extends object>(): ViewState<T>
+export function useViewState<T extends object>(init: () => T): ResetableViewState<T>
+export function useViewState<T extends object>(init?: () => T)  {
+    const stateValue = inject<Ref<T>>('sotw.viewStateData')
+    if (!stateValue) {
+        throw new Error("No 'sotw.viewStateData' is not available")
+    }
+
+    const stateObj = reactive({
+        value: stateValue
+    }) as ViewState<T>
+
+    if (!init) {
+        return stateObj
+    }
+
+    const resetableStateObj = stateObj as ResetableViewState<T>
+    resetableStateObj.reset = () => resetableStateObj.value = init()
+
+    if (!resetableStateObj.value) {
+        resetableStateObj.reset()
+    }
+
+    return resetableStateObj
 }

@@ -79,6 +79,10 @@
     {
       "color": "green",
       "label": "G"
+    },
+    {
+      "color": "black",
+      "label": "B"
     }
   ]
 }

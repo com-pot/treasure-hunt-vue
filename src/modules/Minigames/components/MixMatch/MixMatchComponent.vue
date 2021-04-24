@@ -1,8 +1,7 @@
 <template>
   <div class="mg-mix-match">
-
     <div class="pieces">
-      <template v-for="(piece, i) in internalState.pieces" :key="i">
+      <template v-for="(piece, i) in internalState.value.pieces" :key="i">
         <div :class="['piece', 'piece-' + piece.type, i === selectedPiece && setupOpen && 'piece-selected']"
              :style="{'--color': piece.color, '--modelImage': getPieceImage(piece)}"
              @click="selectPiece(i)"></div>
@@ -17,39 +16,39 @@
 
         <div class="attribute start colors">
           <div class="option" v-for="option in colorOptions" :key="option"
-               :style="{'--color': option.color}" @click="internalState.pieces[selectedPiece].color = option.color"></div>
+               :style="{'--color': option.color}" @click="internalState.value.pieces[selectedPiece].color = option.color"></div>
         </div>
 
         <div class="attribute end models">
           <div class="option" v-for="option in selectedPieceModelOptions" :key="option"
-               :style="{'--image': getModelImage(option.name)}" @click="internalState.pieces[selectedPiece].model = option.name"></div>
+               :style="{'--image': getModelImage(option.name)}" @click="internalState.value.pieces[selectedPiece].model = option.name"></div>
         </div>
       </template>
     </div>
 
-    <div class="mg-controls">
-      <button class="btn btn-vivid" @click="checkTotem">Vzykoušet</button>
-    </div>
+    <MinigameControls :check-solution="checkTotem" :reset="internalState.reset"/>
   </div>
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, PropType, ref, toRef, watch} from "vue";
-import {hashCode} from "@/utils/stringUtils";
+import {computed, defineComponent, ref} from "vue"
+import {hashCode} from "@/utils/stringUtils"
 
 import * as Model from "./MixMatchModel"
-import {useViewStateFromProps} from "@/modules/SotW/utils/useViewState";
+import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
+import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
+
+import MinigameControls from "@/modules/SotW/components/MinigameControls.vue"
 
 export default defineComponent({
-  props: {
-    minigameData: {type: Object as PropType<Model.MixMatchMinigameData>, required: true},
-    minigameState: {type: Object as PropType<Model.MixMatchViewState> },
-  },
-  setup(props, {emit}) {
-    const pieceOptions = toRef(props.minigameData, 'modelOptions');
-    const colorOptions = toRef(props.minigameData, 'colorOptions');
+  components: {MinigameControls},
+  inheritAttrs: false,
+  setup() {
+    const minigameData = useViewData<Model.MixMatchMinigameData>()
+    const pieceOptions = computed(() => minigameData.value.modelOptions)
+    const colorOptions = computed(() => minigameData.value.colorOptions)
 
-    const internalState = useViewStateFromProps<Model.MixMatchViewState>(props, 'minigameState', () => ({
+    const internalState = useViewState<Model.MixMatchViewState>(() => ({
       pieces: [
         {type: 'head', color: 'gray', model: 'hawk-light'},
         {type: 'body', color: 'dimgray', model: 'bass'},
@@ -58,7 +57,8 @@ export default defineComponent({
         {type: 'leg', color: 'darkgray', model: 'swan'},
       ]
     }))
-    emit('change:minigameState', internalState)
+
+    const controls = useMinigameControls()
 
     const selectedPiece = ref(-1);
     const setupOpen = ref(false);
@@ -68,7 +68,7 @@ export default defineComponent({
         return [];
       }
 
-      let modelType = internalState.pieces[selectedPiece.value].type;
+      let modelType = internalState.value.pieces[selectedPiece.value].type;
       return pieceOptions.value[modelType];
     })
 
@@ -82,7 +82,7 @@ export default defineComponent({
       return option ? 'url("/minigames/totems/' + option.image +'")' : undefined;
     }
 
-    let piecesSerialized = computed(() => internalState.pieces.map((piece) => colorToLabel(piece.color) + piece.model).join('-'));
+    const piecesSerialized = computed(() => internalState.value.pieces.map((piece) => colorToLabel(piece.color) + piece.model).join('-'));
 
     return {
       internalState,
@@ -111,12 +111,7 @@ export default defineComponent({
         return option ? 'url("/minigames/totems/' + option.image +'")' : undefined;
       },
       checkTotem: () => {
-        const check = hashCode(piecesSerialized.value);
-        if (check === '6ed6f1ea') {
-          emit('minigameSignal', {
-            type: 'success',
-          });
-        }
+        controls.checkSolution(hashCode(piecesSerialized.value))
       },
     };
   },
@@ -258,9 +253,9 @@ export default defineComponent({
         .option {
           margin-block-end: 0.2em;
           margin-inline-end: 0.2em;
-          width: 36px;
-          height: 24px;
-          border-radius: 8px;
+          width: 2.5em;
+          height: 1.25em;
+          border-radius: 0.75em;
           background: var(--color);
         }
       }

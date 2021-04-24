@@ -1,31 +1,32 @@
 <template>
   <div class="mg-zebra-foal">
     <div class="areas">
-      <ZebraArea class="waiting-area" :slots="zebras.waiting" inline :display-mode="displayMode"
-                 :active-index="activePosition === 'waiting' && activeIndex"
+      <ZebraArea class="waiting-area" :slots="zebras.waiting" arrangement="inline" :display-mode="displayMode"
+                 :active-index="swapping.selectedGroup === 'waiting' && swapping.selectedIndex"
                  @slot-clicked="clickSlot('waiting', $event)"/>
 
-      <ZebraArea class="placed-area" :slots="zebras.placed" circle :display-mode="displayMode"
-                 :active-index="activePosition === 'placed' && activeIndex"
+      <ZebraArea class="placed-area" :slots="zebras.placed" arrangement="circle" :display-mode="displayMode"
+                 :pipe-position="pipePosition" :pipe-rewind="pipeRewind"
+                 :active-index="swapping.selectedGroup === 'placed' && swapping.selectedIndex"
                  @slotClicked="clickSlot('placed', $event)"/>
     </div>
 
-    <div class="controls">
-      <button @click="checkValid" class="btn btn-vivid">Test</button>
-      <button @click="resetState" class="btn btn-bland">Tak znovu...</button>
-    </div>
+
+    <MinigameControls :check-solution="checkValid" :reset="resetState"/>
   </div>
 </template>
 
 <script lang="ts">
 import {computed, defineComponent, PropType, reactive, ref, toRef, watch} from "vue";
 import * as ZebraModel from "./Model/ZebraFoalModel";
+import {Zebra} from "./Model/ZebraFoalModel";
 
 import {twoPartyMultiGroupSwapping} from "@/modules/Minigames/utils/slotSwapping";
 import ZebraArea from "./ZebraArea.vue";
 import ZebraNeighborRule, {NeighborPositions, NeighborRuleEvaluator} from "./Model/ZebraNeighborRule";
-import {Zebra} from "./Model/ZebraFoalModel";
-import {useViewStateFromProps} from "@/modules/SotW/utils/useViewState";
+import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
+import MinigameControls from "@/modules/SotW/components/MinigameControls.vue";
+import {resolveAfter} from "@/utils/promiseUtils";
 
 type Position = 'waiting' | 'placed';
 type ZebraFoalMinigameData = {
@@ -34,30 +35,27 @@ type ZebraFoalMinigameData = {
 }
 
 export default defineComponent({
-  components: {ZebraArea},
+  components: {MinigameControls, ZebraArea},
+  inheritAttrs: false,
   props: {
     displayMode: {type: String as PropType<'images' | 'names'>, default: 'images'},
-    minigameData: {type: Object as PropType<ZebraFoalMinigameData>, required: true},
-    minigameState: {type: Object as PropType<ZebraModel.ZebraFoalViewState>}
   },
   setup(props, {emit}) {
-    // Minigame data
-    const allZebras = toRef(props.minigameData, 'zebras')
+    const minigameData = useViewData<ZebraFoalMinigameData>()
+    const allZebras = toRef(minigameData.value, 'zebras')
 
-    // Minigame state
-    const minigameState = useViewStateFromProps<ZebraModel.ZebraFoalViewState>(props, 'minigameState', () => {
-      console.log('init: ', allZebras.value.map((zebra: ZebraModel.Zebra, i: number) => i === 0 ? zebra.name : null))
-      return ({
-        placements: allZebras.value.map((zebra: ZebraModel.Zebra, i: number) => i === 0 ? zebra.name : null)
-      });
-    })
-    emit('change:minigameState', minigameState)
+    const minigameState = useViewState<ZebraModel.ZebraFoalViewState>(() => ({
+      placements: allZebras.value.map((zebra: ZebraModel.Zebra, i: number) => i === 0 ? zebra.name : null)
+    }))
+    const placements = computed(() => minigameState.value.placements)
 
     // UI State
     const zebras = reactive({
       placed: [] as ZebraModel.ZebraSlot[],
       waiting: [] as ZebraModel.ZebraSlot[],
     })
+    const pipePosition = ref<number | undefined>(undefined)
+    const pipeRewind = ref(false)
 
     const swapping = twoPartyMultiGroupSwapping<ZebraModel.ZebraSlot, typeof zebras>(zebras)
     const selectedSlot = computed(() => swapping.selectedGroup !== null && swapping.selectedIndex !== null
@@ -72,17 +70,14 @@ export default defineComponent({
     swapping.onSwap = () => clearErrors()
 
 
-    watch(selectedSlot, (zebraSlot) => console.log(zebraSlot))
-
     function initUiState(): void {
       zebras.waiting = allZebras.value.slice(1).map((zebra) => ({zebra}))
       zebras.placed = allZebras.value.map((zebra, i) => ({
         zebra: undefined,
         locked: i === 0,
       }))
-      console.log(minigameState.placements.map((p) => p))
 
-      minigameState.placements.forEach((zebraName, i) => {
+      placements.value.forEach((zebraName, i) => {
         if (zebraName) {
           zebras.placed[i].zebra = allZebras.value.find((zebra) => zebra.name === zebraName)
           zebras.waiting.forEach((slot) => {
@@ -98,13 +93,10 @@ export default defineComponent({
 
     watch(() => zebras.placed, (placed) => {
       placed.forEach(({zebra}, i) => {
-        minigameState.placements[i] = zebra?.name || null
+        placements.value[i] = zebra?.name || null
       })
 
     }, {deep: true})
-
-    const activePosition = toRef(swapping, 'selectedGroup')
-    const activeIndex = toRef(swapping, 'selectedIndex')
 
     const placedZebras = computed<ZebraModel.Zebra[]>(() => zebras.placed
         .filter((slot) => slot.zebra)
@@ -115,20 +107,22 @@ export default defineComponent({
       zebras.placed.forEach((slot) => slot.hasError = false);
     }
 
-    function checkValid(): void {
-      let allPlaced = checkNoWaiting();
-      let allSated = checkAllPlacedAndSated();
+    function checkValid(): Promise<void> {
+      checkNoWaiting()
 
-      if (allPlaced && allSated) {
-        emit('minigameSignal', {
-          type: 'success',
-        });
-      } else {
-        emit('minigameSignal', {
-          type: 'error',
-        });
-      }
+      return checkAllPlacedAndSated()
+          .then((allSated) => {
+            emit('minigameSignal', {
+              type: allSated ? 'success' : 'error',
+            })
+            if (!allSated) {
+              pipePosition.value = undefined
+            } else {
+              checkPipePosition()
+            }
+          })
     }
+
     function checkNoWaiting(): boolean {
       let allPlaced = true;
       zebras.waiting.forEach((slot: ZebraModel.ZebraSlot) => {
@@ -138,16 +132,26 @@ export default defineComponent({
 
       return allPlaced;
     }
-    function checkAllPlacedAndSated(): boolean {
-      zebras.placed.forEach((slot: ZebraModel.ZebraSlot, zebraIndex: number) => {
-        let zebra = slot.zebra;
+
+    async function checkAllPlacedAndSated(): Promise<boolean> {
+      for (let i = 0; i < zebras.placed.length; i++) {
+        pipePosition.value = i
+        await resolveAfter(420)
+
+        const slot = zebras.placed[i]
+        const zebra = slot.zebra as Zebra
         if (!zebra || !zebra.rules) {
-          return;
+          slot.hasError = true
+          continue
         }
 
-        let rulesSated = zebra.rules.every((rule) => evaluateRule(rule, zebraIndex));
+        let rulesSated = zebra.rules.every((rule) => evaluateRule(rule, i));
         slot.hasError = !rulesSated;
-      });
+        await resolveAfter(420)
+      }
+
+      pipePosition.value = zebras.placed.length
+      await resolveAfter(420)
 
       return zebras.placed.every((slot) => !slot.hasError);
     }
@@ -161,14 +165,32 @@ export default defineComponent({
       return false;
     }
 
+    function checkPipePosition() {
+      const pos = pipePosition.value
+      const items = placements.value.length
+      if (pos === undefined || pos < items) {
+        return
+      }
+
+      pipeRewind.value = true
+      return resolveAfter(42)
+          .then(() => {
+            pipePosition.value = pos - items
+            return resolveAfter(42)
+          })
+          .finally(() => pipeRewind.value = false)
+    }
+
     return {
       zebras,
-      activePosition,
-      activeIndex,
+      pipePosition,
+      pipeRewind,
+
+      swapping,
       clickSlot: (group: keyof typeof zebras, index: number) => swapping.pickItem(group, index),
       checkValid,
       resetState: () => {
-        minigameState.resetState()
+        minigameState.reset()
         initUiState()
       },
     };
@@ -187,11 +209,6 @@ export default defineComponent({
   .placed-area {
     width: 100%;
     height: 420px;
-  }
-
-  .controls {
-    margin-block-start: 1em;
-    text-align: center;
   }
 }
 </style>

@@ -129,6 +129,16 @@ const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
             {img: 'deer.png', options: ['fox', 'deer', 'cougar', 'wolf']},
             {img: 'owl.png', options: ['wolf', 'bison', 'fox', 'cougar', 'bear', 'deer']},
         ],
+    }),
+    toggleMatrix: () => Promise.resolve({
+        fields: [
+            {row: 1, col: 1, label: 'A', key: 'albatros'},
+            {row: 2, col: 1, label: 'B', key: 'boar'},
+            {row: 1, col: 2, label: 'C', key: 'cicada'},
+            {row: 3, col: 1, label: 'D', key: 'deer'},
+            {row: 3, col: 3, label: 'E', key: 'emu'},
+        ],
+        check: 'boar-cicada-emu',
     })
 }
 

@@ -2,18 +2,22 @@
   <div class="mg-toggle-matrix" :style="matrixCss">
     <div class="guide">
       <div class="hint hint-1">
-        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        <i/><i/><i/>
+        <i/><i/><i/>
+        <i/><i/><i/>
       </div>
       <div class="hint hint-2">
-        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        <i/><i/><i/>
+        <i/><i/><i/>
+        <i/><i/><i/>
       </div>
     </div>
 
-    <div :class="['matrix-field', success && 'success']">
+    <div :class="['matrix-field', minigameControls.result]">
       <div v-for="field in fields" :key="field.key" class="field" :style="{'--row': field.row, '--col': field.col}">
-        <label :class="matrixValue[field.key] && 'selected'">
-          <input type="checkbox" v-model="matrixValue[field.key]">
-<!--          <span>{{ field.label }}</span>-->
+        <label :class="minigameState.value.toggled[field.key] && 'selected'">
+          <input type="checkbox" v-model="minigameState.value.toggled[field.key]">
+          <i class="symbol"/>
         </label>
       </div>
       <div class="field"></div>
@@ -22,64 +26,62 @@
       <div class="field"></div>
     </div>
 
-    <div class="matrix-controls">
-      <button @click="checkAnswer" :class="['btn', success ? 'btn-success' : 'btn-vivid']">Test</button>
-    </div>
+    <MinigameControls :check-solution="checkAnswer" :reset="minigameState.reset" :success="minigameControls.result === 'success'"/>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
-import {Field} from "./Model/ToggleMatrix";
+import {computed, defineComponent} from "vue"
 
+import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
+import MinigameControls from "@/modules/SotW/components/MinigameControls.vue"
+import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
+
+type ToggleMatrixViewData = {
+  fields: {row: number, col: number, label: string, key: string}[],
+}
+type ToggleMatrixState = {
+  toggled: {[name: string]: string},
+}
 
 export default defineComponent({
+  components: {MinigameControls},
   props: {
     width: {type: Number, default: 3},
     height: {type: Number, default: 3},
   },
-  data() {
-    return {
-      fields: [
-        {row: 1, col: 1, label: 'A', key: 'albatros'},
-        {row: 2, col: 1, label: 'B', key: 'boar'},
-        {row: 1, col: 2, label: 'C', key: 'cicada'},
-        {row: 3, col: 1, label: 'D', key: 'deer'},
-        {row: 3, col: 3, label: 'E', key: 'emu'},
-      ],
-      matrixValue: {},
-      success: false,
-    };
-  },
-  computed: {
-    matrixCss(): object {
-      return {
-        '--matrix-width': this.width,
-        '--matrix-height': this.height,
-      };
-    },
-  },
-  methods: {
-    checkAnswer(): void {
-      let fields = this.fields as Field[];
-      let value = this.matrixValue as { [key: string]: boolean };
+  setup(props) {
+    const minigameData = useViewData<ToggleMatrixViewData>()
+    const fields = computed(() => minigameData.value.fields)
 
-      let serialized = fields
-          .filter((field) => value[field.key])
+    const minigameState = useViewState<ToggleMatrixState>(() => ({
+      toggled: {},
+    }))
+    const solution = computed(() => {
+      return fields.value
+          .filter((field) => minigameState.value.toggled[field.key])
           .map((field) => field.key)
           .join('-');
+    })
 
-      if (serialized === 'boar-cicada-emu') {
-        this.success = true;
-        this.$emit('minigameSignal', {
-          type: 'success',
-        });
-      } else {
-        this.$emit('minigameSignal', {
-          type: 'error',
-        });
-      }
-    },
+    const minigameControls = useMinigameControls()
+
+    const matrixCss = computed(() => ({
+      '--matrix-width': props.width,
+      '--matrix-height': props.height,
+    }))
+    
+    return {
+      fields,
+      minigameState,
+
+      matrixCss,
+
+      minigameControls,
+      checkAnswer() {
+        minigameControls.checkSolution(solution.value)
+      },
+    }
   },
 });
 
@@ -89,6 +91,8 @@ export default defineComponent({
 @import "~@/sass/vars/colors";
 
 .mg-toggle-matrix {
+  --symbol-size: 4em;
+
   .guide {
     display: flex;
     flex-direction: row;
@@ -142,25 +146,30 @@ export default defineComponent({
     justify-content: center;
     align-items: center;
 
+    .symbol {
+      cursor: pointer;
+      width: var(--symbol-size);
+      height: var(--symbol-size);
+      display: block;
+      mask-size: contain;
+      mask-image: url("./resources/star.svg");
+      background: #666;
+
+      transition: background 0.3s ease;
+    }
+
     input[type=checkbox] {
       display: none;
+
+      &:checked + .symbol {
+        background: $vivid;
+      }
     }
 
     > label {
-      padding: 12px;
-      border-top-left-radius: 4px;
-      border-bottom-right-radius: 4px;
-      background: $dim;
-
-      font-weight: bold;
-      border: 2px solid;
-
+      --color: #ccc;
       &.selected {
-        border-color: $vivid;
-      }
-
-      &:not(.selected) {
-        border-color: #ccc;
+        --color: #{$vivid}
       }
     }
   }
@@ -169,13 +178,6 @@ export default defineComponent({
     .field > label.selected {
       border-color: $earth;
     }
-  }
-
-  .matrix-controls {
-    margin-block-start: 1em;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
   }
 }
 </style>

@@ -2,6 +2,7 @@ import {inject} from "vue";
 
 export type MinigameControls = {
     checkSolution: (solution: string) => Promise<boolean>,
+    result?: string,
 }
 
 export const useMinigameControls = (): MinigameControls => {

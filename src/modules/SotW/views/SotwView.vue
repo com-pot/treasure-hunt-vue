@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, h, PropType, provide, ref, watch} from "vue";
+import {computed, defineComponent, h, PropType, provide, reactive, ref, watch} from "vue";
 import {useRouter} from "vue-router";
 
 import {ViewState} from "../types/views";
@@ -194,14 +194,25 @@ export default defineComponent({
       }
     }
 
-    const minigameControls: MinigameControls = {
+    const minigameControls: MinigameControls = reactive({
       checkSolution(value) {
-        console.log("Todo: compare value to view data check", value)
-        const success = Math.random() < 0.5
+        const nodeData = loadedNode.value?.nodeData
+        const check = nodeData?.check
+
+        let success
+        if (!check) {
+          console.warn("No check in loadedNode.nodeData")
+          success = false
+        } else {
+          success = value === check
+        }
+
+        minigameControls.result = success ? 'success' : 'error'
         sotwAudio.play(success ? 'minigameOk' : 'minigameKo')
         return Promise.resolve(success)
-      }
-    }
+      },
+    })
+
     provide('sotw.minigameControls', minigameControls)
 
     function handleMinigameSignal(signal: any) {

@@ -5,6 +5,7 @@ import {StoryNode} from "./model/SotwModel";
 const storyNodes: StoryNode[] = [
     {nodeId: 's-prolog', type: "story", storyPartId: 'story-prolog', nodeStatus: "visited"},
     {nodeId: 's-a', type: "story", storyPartId: 'story-anagram', nodeStatus: "visited", minigameId: 'm-a'},
+    {nodeId: 's-c', type: "story", storyPartId: 'story-dreamcatcher', nodeStatus: "visited", minigameId: 'm-c'},
     {nodeId: 's-b', type: "story", storyPartId: 'story-remedy', nodeStatus: "visited", minigameId: 'm-b'},
     {nodeId: 's-d', type: "story", storyPartId: 'story-drums', nodeStatus: "visited", minigameId: 'm-d'},
     {nodeId: 's-m', type: "story", storyPartId: 'story-totem', nodeStatus: "visited", minigameId: 'm-m'},
@@ -18,6 +19,7 @@ const progression = ref<SotwModel.PlayerProgression>({
     revealedNodes: [
         ...storyNodes,
         {nodeId: 'm-a', type: "minigame", nodeStatus: 'active', minigameId: 'anagram'},
+        {nodeId: 'm-c', type: "minigame", nodeStatus: 'active', minigameId: 'comboPick'},
         {nodeId: 'm-b', type: "minigame", nodeStatus: 'active', minigameId: 'bpc'},
         {nodeId: 'm-d', type: "minigame", nodeStatus: 'active', minigameId: 'drums'},
         {nodeId: 'm-m', type: "minigame", nodeStatus: 'active', minigameId: 'mixMatch'},

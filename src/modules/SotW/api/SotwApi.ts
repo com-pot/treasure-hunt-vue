@@ -13,6 +13,11 @@ const storyParts: PartOfStory[] = [
         storyContent: "",
     },
     {
+        storyPartId: 'story-dreamcatcher',
+        storyTitle: 'Lapače',
+        storyContent: "",
+    },
+    {
         storyPartId: 'story-remedy',
         storyTitle: 'Auvej',
         storyContent: '<p>Šaman se na  %characters.protagonist.name% díval překvapeně a pak mu ukázal, že na výrobu léčivé' +
@@ -109,6 +114,22 @@ const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
     anagram: () => Promise.resolve({inputText: 'srics srsoc', check: '28f185a6'}),
     zebraFoal: () => Promise.resolve({ zebras, check: 'aaaa'}),
     mixMatch: () => import("./mixMatchMinigameData.json"),
+    comboPick: () => Promise.resolve({
+        options: [
+            {value: 'bear'},
+            {value: 'bison'},
+            {value: 'cougar'},
+            {value: 'deer'},
+            {value: 'fox'},
+            {value: 'owl'},
+            {value: 'wolf'},
+        ],
+        prompts: [
+            {img: 'bear.png', options: ['bear', 'fox', 'wolf']},
+            {img: 'deer.png', options: ['fox', 'deer', 'cougar', 'wolf']},
+            {img: 'owl.png', options: ['wolf', 'bison', 'fox', 'cougar', 'bear', 'deer']},
+        ],
+    })
 }
 
 export default class SotwApi {

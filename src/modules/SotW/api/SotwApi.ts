@@ -1,5 +1,6 @@
 import {PartOfStory} from "../model/SotwModel";
 import {Zebra} from "@/modules/Minigames/components/ZebraFoal/Model/ZebraFoalModel";
+import CircularDominoApi from "@/modules/Minigames/components/CircularDomino/CircularDominoApi";
 
 const storyParts: PartOfStory[] = [
     {
@@ -113,6 +114,11 @@ const zebras: Zebra[] = [
 const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
     anagram: () => Promise.resolve({inputText: 'srics srsoc', check: '28f185a6'}),
     zebraFoal: () => Promise.resolve({ zebras, check: 'aaaa'}),
+    rings: async () => {
+        return {
+            rings: await CircularDominoApi.loadRings(),
+        }
+    },
     mixMatch: () => import("./mixMatchMinigameData.json"),
     comboPick: () => Promise.resolve({
         options: [

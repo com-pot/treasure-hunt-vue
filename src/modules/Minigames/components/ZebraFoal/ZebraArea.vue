@@ -1,7 +1,7 @@
 <template>
   <ul :class="['zebra-area', arrangement, displayMode, pipeRewind && 'pipe-rewind']" :style="areaStyles">
     <li v-for="(slot, i) in slots" :key="i" @click="$emit('slotClicked', i)"
-        :style="{'--order': i, '--image': getImage(slot)}"
+        :style="{'--order': i}"
     >
       <div :class="[
           'zebra-slot',
@@ -12,6 +12,7 @@
         ]">
         <span class="name" v-if="!slot.zebra">---</span>
         <span class="name" v-else>{{ slot.zebra.name }}</span>
+        <img v-if="displayMode === 'images' && slotImages[i]" :src="slotImages[i]">
       </div>
     </li>
     <li v-if="showPipe" class="pipe" :style="'--position:' + pipePosition">
@@ -52,15 +53,9 @@ export default defineComponent({
     },
     showPipe(): boolean {
       return typeof this.pipePosition === "number"
-    }
-  },
-  methods: {
-    getImage(slot: ZebraSlot): string|undefined {
-      if (this.displayMode !== 'images' || !slot.zebra) {
-        return
-      }
-
-      return 'url("/minigames/shamans/' + slot.zebra.name + '.png")';
+    },
+    slotImages(): (string|undefined)[] {
+      return this.slots.map((s) => s.zebra && '/minigames/shamans/' + s.zebra.name + '.png')
     },
   },
 });
@@ -89,7 +84,7 @@ export default defineComponent({
     width: 64px;
     height: 32px;
 
-    display: flex;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
     border-radius: 8px;
@@ -116,6 +111,8 @@ export default defineComponent({
     li {
       --angle: calc(var(--slice-angle) * var(--order));
 
+      text-align: right;
+
       position: absolute;
       top: calc(50% - 16px);
       left: 50%;
@@ -127,17 +124,17 @@ export default defineComponent({
     }
 
     .zebra-slot {
-      margin-inline-start: auto;
       transform: rotate(calc(-1 * var(--angle, 0deg)));
     }
 
     .pipe {
+      pointer-events: none;
       --angle: calc(var(--slice-angle) * var(--position));
 
       transition: all var(--pipe-animation-time) ease;
 
       div {
-        display: flex;
+        display: inline-flex;
         box-shadow: #42b983 4px 4px 4px 2px;
 
         transition: all var(--pipe-animation-time) ease;
@@ -168,15 +165,9 @@ export default defineComponent({
         display: none;
       }
 
-      &:before {
-        content: '';
-        display: block;
-        width: 100%;
-        height: 100%;
-        background-image: var(--image);
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
+      img {
+        max-width: 100%;
+        max-height: 100%;
       }
     }
   }

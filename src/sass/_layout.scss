@@ -19,11 +19,12 @@ body {
 
 #sotw {
   padding-top: 5vh;
+  padding-bottom: 5vh;
 }
 .root-container {
   max-width: 60ch;
   width: 80vw;
-  margin: 0 auto;
+  margin: 0 auto 5vh;
   padding: 40px 8px 60px;
 
   border-radius: 2rem;
@@ -36,8 +37,8 @@ body {
   position: fixed;
   z-index: -1;
   top: 0;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   pointer-events: none;
   overflow: hidden;
 }

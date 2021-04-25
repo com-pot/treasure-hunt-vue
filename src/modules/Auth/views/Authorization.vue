@@ -21,11 +21,17 @@ type AvailableForm = {
 
 const availableForms: AvailableForm[] = [
   {
-    spec: {id: 'TZ-017-U', title: 'Uvítací formulář'},
+    spec: {
+      id: 'TZ-017-U', title: 'Uvítací formulář',
+      description: 'Vyplněním unikátních údajů získáváte přístup do kůry "Na vlastní srst" která vás vezme do jiného světa.',
+    },
     component: WelcomeForm,
   },
   {
-    spec: {id: 'TZ-017-N', title: 'Návratový formulář'},
+    spec: {
+      id: 'TZ-017-N', title: 'Návratový formulář',
+      description: 'Vyplněním správných údajů získáte zpět přístup do kůry "Na vlastní srst".'
+    },
     component: WelcomeForm,
   },
 ];

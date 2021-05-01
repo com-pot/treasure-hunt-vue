@@ -15,28 +15,30 @@ export default class CircularDominoApi {
     public static async loadRings(): Promise<Model.Ring[]> {
         let innerRing: Model.Ring = {
             stones: [
-                new Stone().addTile("red", "A").addTile("red", "B"),
-                new Stone().addTile("deeppink", "G"),
-                new Stone().addTile("blue", "B"),
-                new Stone().addTile("red", "G").addTile("blue", "B").addTile("red", "G"),
-                new Stone().addTile("blue", "A").addTile("deeppink", "A"),
-                new Stone().addTile("blue", "G").addTile("blue", "B").addTile("deeppink", "B"),
+                new Stone().addTile("red", "0"),
+                new Stone().addTile("deeppink", "1"),
+                new Stone().addTile("blue", "2"),
+                new Stone().addTile("red", "3"),
+                new Stone().addTile("blue", "4"),
+                new Stone().addTile("blue", "5"),
             ]
         };
         let midRing: Model.Ring = {
             stones: [
-                new Stone().addTile("yellow", '#').addTile('sandybrown', '@'),
+                new Stone().addTile("yellow", 'R'),
+                new Stone().addTile("green", 'B'),
+                new Stone().addTile("dodgerblue", 'L'),
             ],
         };
 
         let outerRing: Model.Ring = {
             stones: [
-                new Stone().addTile("blue", "G").addTile("blue", "B").addTile("deeppink", "B"),
-                new Stone().addTile("blue", "A").addTile("deeppink", "A"),
-                new Stone().addTile("red", "G").addTile("blue", "B").addTile("red", "G"),
+                new Stone().addTile("blue", "G"),
+                new Stone().addTile("blue", "A"),
+                new Stone().addTile("red", "G"),
                 new Stone().addTile("blue", "B"),
                 new Stone().addTile("deeppink", "G"),
-                new Stone().addTile("red", "A").addTile("red", "B"),
+                new Stone().addTile("red", "A"),
             ],
         };
 

@@ -22,7 +22,7 @@
 
 <script lang="ts">
 
-import {defineComponent, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue"
+import {defineComponent, onBeforeUnmount, onMounted, reactive, ref} from "vue"
 
 import * as touchUtils from "@/utils/touchUtils"
 
@@ -56,9 +56,9 @@ export default defineComponent({
       clientSize: props.renderSize,
 
       dimensions: {
-        innerRadius: 70,
-        ringHeightRampStart: 35,
-        ringHeightRampTrend: -2,
+        innerRadius: 40,
+        ringHeightRampStart: 50,
+        ringHeightRampTrend: -10,
       },
       ringAngularVelocity: minigameData.value.rings.map(() => 0),
     })
@@ -66,7 +66,7 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement|null>(null)
 
     const board = useAngularBoard(minigameDataReactive, minigameStateReactive, ui)
-    const gameLoop = useGameLoop(() => board.update(), () => {
+    const gameLoop = useGameLoop(board.update, () => {
       if (!canvas.value) {
         console.warn("No canvas initialized")
         return
@@ -78,7 +78,7 @@ export default defineComponent({
       }
 
       board.draw.frame(g)
-    })
+    }, 60)
 
     const updateClientSize = () => {
       ui.clientSize = canvas.value!.clientWidth
@@ -113,7 +113,6 @@ export default defineComponent({
       })
 
       window.addEventListener('resize', updateClientSize)
-      updateClientSize()
       updateClientSize()
     })
 

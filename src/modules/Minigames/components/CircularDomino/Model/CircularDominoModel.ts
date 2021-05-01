@@ -1,4 +1,4 @@
-import {Degrees} from "@/utils/trigonometry"
+import {Radians} from "@/utils/trigonometry"
 
 export interface Tile {
     bgColor: string,
@@ -17,5 +17,5 @@ export type CircularDominoData = {
     rings: Ring[],
 }
 export type CircularDominoState = {
-    ringsAngles: Degrees[],
+    ringsAngles: Radians[],
 }

@@ -1,8 +1,9 @@
-import {computed, reactive} from "vue"
+import {computed, reactive, watch} from "vue"
 
 import trigonometry, {Degrees, Point2D, PointRad2D, Radians} from "@/utils/trigonometry"
 import * as Model from "./Model/CircularDominoModel"
 import velocityUtils from "@/utils/velocityUtils"
+import {minIndexBy} from "@/utils/arrays";
 
 export type UiConfig = {
     debug: boolean,
@@ -16,7 +17,7 @@ export type UiConfig = {
         ringHeightRampStart: number,
         ringHeightRampTrend: number,
     },
-    ringAngularVelocity: Degrees[],
+    ringAngularVelocity: Radians[],
 }
 
 type RingDimensions = {
@@ -67,25 +68,57 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         return ringsDimensions
     })
     const renderScale = computed(() => ui.renderSize / ui.clientSize)
+    const speedLimit = Math.PI * 0.75
 
-    const updateRings = (): boolean => {
-        for (let iRing = 0; iRing < minigameData.rings.length; iRing++) {
-            const angularVelocity = ui.ringAngularVelocity[iRing]
+    const ringsSnapPoints = computed<Degrees[][]>(() => {
+        return minigameData.rings.map((ring, iRing) => {
+            const snapPoints: Radians[] = []
+            let stoneOffset = 0
+            ring.stones.forEach((stone) => {
+                const stoneWidth = stone.tiles.length * ringsDimensions.value[iRing].tileWidth
+                snapPoints.push(stoneOffset + stoneWidth * 0.5)
+                stoneOffset += stoneWidth
+            })
+            return snapPoints
+        })
+    })
 
-            state.ringsAngles[iRing] = normalizeAngle(state.ringsAngles[iRing] + angularVelocity)
-            let momentum = 0.8 + iRing * 0.05
+    const ringsSnaps = computed(() => {
+        return minigameData.rings.map((_, i) => {
+            const angleTarget = Math.PI * -0.5 - state.ringsAngles[i]
+            const ringSnapPoints = ringsSnapPoints.value[i]
 
-            let newVelocity: number
-            if (iRing === drag.iRing && drag.currentPosition && drag.holdOffset) {
-                let currentPosition = drag.currentPosition.angle - drag.holdOffset.angle
-                let targetVelocity = velocityUtils.angleToVelocity(currentPosition - state.ringsAngles[iRing])
-
-                newVelocity = velocityUtils.interpolateVelocity(angularVelocity, targetVelocity, momentum)
-            } else {
-                newVelocity = velocityUtils.interpolateVelocity(angularVelocity, 0, momentum)
+            let snapIndex = 0
+            let snapAngleDiff = Math.abs(trigonometry.minAngleDiff(angleTarget, ringSnapPoints[0]))
+            for (let iSnap = 1; iSnap < ringSnapPoints.length; iSnap++) {
+                const diff = Math.abs(trigonometry.minAngleDiff(angleTarget, ringSnapPoints[iSnap]))
+                if (diff < snapAngleDiff) {
+                    snapIndex = iSnap
+                    snapAngleDiff = diff
+                }
             }
 
-            ui.ringAngularVelocity[iRing] = Math.abs(newVelocity) < 0.005 ? 0 : newVelocity
+            return {snapIndex, snapAngle: normalizeAngle(Math.PI * -0.5 - ringSnapPoints[snapIndex])}
+        })
+    })
+
+    const updateRings = (t: number, dt: number): boolean => {
+        const speedLimitCurrent = dt * 0.001 * speedLimit
+        let updated = false
+
+        for (let iRing = 0; iRing < minigameData.rings.length; iRing++) {
+            const ringIsDragged = iRing === drag.iRing && drag.currentPosition && drag.holdOffset
+            const targetAngle = ringIsDragged
+                ? drag.currentPosition!.angle - drag.holdOffset!.angle
+                : ringsSnaps.value[iRing].snapAngle
+
+            const speedLimitRing = speedLimitCurrent - iRing * 0.01
+            ui.ringAngularVelocity[iRing] = velocityUtils.angleToVelocity(targetAngle - state.ringsAngles[iRing], speedLimitRing)
+            if (ui.ringAngularVelocity[iRing] === 0) {
+                continue
+            }
+            state.ringsAngles[iRing] = normalizeAngle(state.ringsAngles[iRing] + ui.ringAngularVelocity[iRing])
+            updated = true
         }
 
         // TODO: return false when nothing was updated..
@@ -199,7 +232,7 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
                 let stone = ring.stones[iStone]
                 let stoneTileStart = renderedTiles
 
-                let highlight = false // iRing === select.selectedPiece.iRing && iStone === this.selectedPiece.iStone
+                let highlight = ringsSnaps.value[iRing].snapIndex === iStone // iRing === select.selectedPiece.iRing && iStone === this.selectedPiece.iStone
                 for (let iTile = 0; iTile < stone.tiles.length; iTile++) {
                     this.renderTile(g, stone.tiles[iTile], state.ringsAngles[iRing] + renderedTiles * ringDimensions.tileWidth, ringDimensions, highlight)
                     renderedTiles++
@@ -260,6 +293,8 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
 
     const board = reactive({
         ringTileCounts,
+        ringsSnapPoints,
+        ringsSnaps,
 
         center: computed<Point2D>(() => ({x: ui.renderSize * 0.5, y: ui.renderSize * 0.5})),
         drag,

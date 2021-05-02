@@ -13,7 +13,6 @@ export type UiConfig = {
     clientSize: number,
 
     dimensions: {
-        innerRadius: number,
         ringHeightRampStart: number,
         ringHeightRampTrend: number,
     },
@@ -49,13 +48,21 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         }
         return tiles
     }))
+
     const ringsDimensions = computed<RingDimensions[]>(() => {
-        let innerRadius = ui.dimensions.innerRadius
+        let innerRadius = ui.renderSize / 2 - 10
+        let ringHeight = ui.dimensions.ringHeightRampStart
+        let ringHeights = []
+        for (let i = 0; i < minigameData.rings.length; i++) {
+            ringHeights.push(ringHeight)
+            innerRadius -= ringHeight
+            ringHeight = ringHeight + ui.dimensions.ringHeightRampTrend;
+        }
 
         let ringsDimensions: RingDimensions[] = []
         for (let iRing = 0; iRing < ringTileCounts.value.length; iRing++) {
             let tileWidth = pi2 / ringTileCounts.value[iRing]
-            let ringHeight = ui.dimensions.ringHeightRampStart + iRing * ui.dimensions.ringHeightRampTrend
+            let ringHeight =ringHeights[iRing]
             ringsDimensions.push({
                 tileWidth,
                 radius: innerRadius + ringHeight / 2,
@@ -250,15 +257,25 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
             g.fillStyle = tile.bgColor
             g.fill()
 
-            draw.renderPieceText(g, tile, angle, dimensions, highlight)
+            if (highlight) {
+                draw.renderPieceText(g, tile, angle, dimensions, true)
+            }
+            draw.renderPieceText(g, tile, angle, dimensions, false)
         },
         renderPieceText(g: CanvasRenderingContext2D, piece: Model.Tile, angle: Radians, dimensions: RingDimensions, highlight: boolean) {
+            g.font = '16pt Sans-Serif'
             g.strokeStyle = highlight ? 'white' : 'black'
 
             let textAngle = angle + dimensions.tileWidth * 0.5
             let p = board.circuitPosition(textAngle, dimensions.radius)
             g.translate(p.x, p.y)
             g.rotate(textAngle + Math.PI / 2)
+
+            let tm = g.measureText(piece.symbol)
+            g.translate(-tm.width / 2, (tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent) * 0.3)
+            if (highlight) {
+                g.translate(3, 1)
+            }
             g.strokeText(piece.symbol, 0, 0)
             g.resetTransform()
 

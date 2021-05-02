@@ -117,6 +117,7 @@ const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
     rings: async () => {
         return {
             rings: await CircularDominoApi.loadRings(),
+            check: '44c0d8f7',
         }
     },
     mixMatch: () => import("./mixMatchMinigameData.json"),

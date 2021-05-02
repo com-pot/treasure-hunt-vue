@@ -17,10 +17,10 @@ export default class CircularDominoApi {
             stones: [
                 new Stone().addTile("red", "0"),
                 new Stone().addTile("deeppink", "1"),
-                new Stone().addTile("blue", "2"),
+                new Stone().addTile("dodgerblue", "2"),
                 new Stone().addTile("red", "3"),
-                new Stone().addTile("blue", "4"),
-                new Stone().addTile("blue", "5"),
+                new Stone().addTile("yellow", "4"),
+                new Stone().addTile("dodgerblue", "5"),
             ]
         };
         let midRing: Model.Ring = {
@@ -33,10 +33,10 @@ export default class CircularDominoApi {
 
         let outerRing: Model.Ring = {
             stones: [
-                new Stone().addTile("blue", "G"),
-                new Stone().addTile("blue", "A"),
+                new Stone().addTile("green", "G"),
+                new Stone().addTile("dodgerblue", "A"),
                 new Stone().addTile("red", "G"),
-                new Stone().addTile("blue", "B"),
+                new Stone().addTile("dodgerblue", "B"),
                 new Stone().addTile("deeppink", "G"),
                 new Stone().addTile("red", "A"),
             ],

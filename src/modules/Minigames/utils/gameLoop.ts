@@ -1,36 +1,49 @@
 type UpdateFn = (t: number, dt: number) => boolean
+type RenderFn = (g: CanvasRenderingContext2D) => void
 
-export function useGameLoop(update: UpdateFn, render: () => void, targetTicksPerSecond: number) {
+export function useGameLoop(update: UpdateFn, render: RenderFn, targetTicksPerSecond: number) {
     const tickTimeout = Math.round(1000 / targetTicksPerSecond)
-    let animationFrameRequest: number|undefined = undefined
+    let animationFrameRequest: number | undefined = undefined
 
-    let lastUpdate: number
+    let t: number
+
+    const enqueueRender = () => {
+        if (animationFrameRequest) {
+            console.log("Render frame skipped")
+            return
+        }
+
+        animationFrameRequest = window.requestAnimationFrame(consumeRequestedAnimationFrame)
+    }
+    const consumeRequestedAnimationFrame = () => {
+        if (!gameLoop.g) {
+            console.warn("Could not get graphics context")
+        } else {
+            render(gameLoop.g)
+        }
+        animationFrameRequest = 0
+    }
+
     const tick = () => {
-        const t = Date.now()
-        const dt = t - lastUpdate
-        lastUpdate = t
+        let dt = Date.now() - t
+        t = t+ dt
 
         if (!update(t, dt)) {
             return
         }
 
-        if (animationFrameRequest) {
-            console.log("Render frame skipped")
-            return
-        }
-        animationFrameRequest = window.requestAnimationFrame(() => {
-            render()
-            animationFrameRequest = 0
-        })
+        enqueueRender()
     }
 
     const gameLoop = {
+        g: null as CanvasRenderingContext2D | null,
+
         redrawInterval: null as number | null,
-        animationFrameRequest: 0,
 
         start() {
-            lastUpdate = Date.now()
+            t = Date.now()
             gameLoop.redrawInterval = setInterval(tick, tickTimeout)
+            consumeRequestedAnimationFrame()
         },
         stop() {
             if (gameLoop.redrawInterval) {

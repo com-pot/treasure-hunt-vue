@@ -66,19 +66,7 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement|null>(null)
 
     const board = useAngularBoard(minigameDataReactive, minigameStateReactive, ui)
-    const gameLoop = useGameLoop(board.update, () => {
-      if (!canvas.value) {
-        console.warn("No canvas initialized")
-        return
-      }
-      let g = canvas.value.getContext("2d")
-      if (!g) {
-        console.warn("Could not get graphics context")
-        return
-      }
-
-      board.draw.frame(g)
-    }, 60)
+    const gameLoop = useGameLoop(board.update, board.draw.frame, 60)
 
     const updateClientSize = () => {
       ui.clientSize = canvas.value!.clientWidth
@@ -92,6 +80,7 @@ export default defineComponent({
       let c = canvas.value!
       c.width = ui.renderSize
       c.height = ui.renderSize
+      gameLoop.g = c.getContext('2d')
 
       gameLoop.start()
 

@@ -121,8 +121,7 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
             updated = true
         }
 
-        // TODO: return false when nothing was updated..
-        return true
+        return updated
     }
 
     /*const select = reactive({
@@ -220,7 +219,7 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
             g.clearRect(0, 0, ui.renderSize, ui.renderSize)
 
             for (let iRing = 0; iRing < minigameData.rings.length; iRing++) {
-                this.renderRing(g, iRing)
+                draw.renderRing(g, iRing)
             }
         },
         renderRing(g: CanvasRenderingContext2D, iRing: number) {
@@ -234,7 +233,7 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
 
                 let highlight = ringsSnaps.value[iRing].snapIndex === iStone // iRing === select.selectedPiece.iRing && iStone === this.selectedPiece.iStone
                 for (let iTile = 0; iTile < stone.tiles.length; iTile++) {
-                    this.renderTile(g, stone.tiles[iTile], state.ringsAngles[iRing] + renderedTiles * ringDimensions.tileWidth, ringDimensions, highlight)
+                    draw.renderTile(g, stone.tiles[iTile], state.ringsAngles[iRing] + renderedTiles * ringDimensions.tileWidth, ringDimensions, highlight)
                     renderedTiles++
                 }
 
@@ -242,16 +241,16 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
                 let stoneWidth = stone.tiles.length * ringDimensions.tileWidth
                 g.strokeStyle = highlight ? "white" : "black"
                 g.lineWidth = 2
-                this.pathBlock(g, ringDimensions.outerRadius, ringDimensions.innerRadius, stoneAngleStart, stoneAngleStart + stoneWidth)
+                draw.pathBlock(g, ringDimensions.outerRadius, ringDimensions.innerRadius, stoneAngleStart, stoneAngleStart + stoneWidth)
                 g.stroke()
             }
         },
         renderTile(g: CanvasRenderingContext2D, tile: Model.Tile, angle: Radians, dimensions: RingDimensions, highlight: boolean) {
-            this.pathBlock(g, dimensions.outerRadius, dimensions.innerRadius, angle, angle + dimensions.tileWidth)
+            draw.pathBlock(g, dimensions.outerRadius, dimensions.innerRadius, angle, angle + dimensions.tileWidth)
             g.fillStyle = tile.bgColor
             g.fill()
 
-            this.renderPieceText(g, tile, angle, dimensions, highlight)
+            draw.renderPieceText(g, tile, angle, dimensions, highlight)
         },
         renderPieceText(g: CanvasRenderingContext2D, piece: Model.Tile, angle: Radians, dimensions: RingDimensions, highlight: boolean) {
             g.strokeStyle = highlight ? 'white' : 'black'

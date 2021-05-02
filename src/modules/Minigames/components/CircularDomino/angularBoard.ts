@@ -1,9 +1,8 @@
-import {computed, reactive, watch} from "vue"
+import {computed, reactive} from "vue"
 
 import trigonometry, {Degrees, Point2D, PointRad2D, Radians} from "@/utils/trigonometry"
 import * as Model from "./Model/CircularDominoModel"
 import velocityUtils from "@/utils/velocityUtils"
-import {minIndexBy} from "@/utils/arrays";
 
 export type UiConfig = {
     debug: boolean,
@@ -62,7 +61,7 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         let ringsDimensions: RingDimensions[] = []
         for (let iRing = 0; iRing < ringTileCounts.value.length; iRing++) {
             let tileWidth = pi2 / ringTileCounts.value[iRing]
-            let ringHeight =ringHeights[iRing]
+            let ringHeight = ringHeights[iRing]
             ringsDimensions.push({
                 tileWidth,
                 radius: innerRadius + ringHeight / 2,
@@ -75,7 +74,7 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         return ringsDimensions
     })
     const renderScale = computed(() => ui.renderSize / ui.clientSize)
-    const speedLimit = Math.PI * 0.75
+    const speedLimit = Math.PI * 1.5
 
     const ringsSnapPoints = computed<Degrees[][]>(() => {
         return minigameData.rings.map((ring, iRing) => {
@@ -109,22 +108,44 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         })
     })
 
+    const getRingDragForce = (iRing: number): Radians | undefined => {
+        if (drag.iRing === -1) {
+            return undefined
+        }
+        const dragForce = velocityUtils.angleToVelocity(drag.currentPosition!.angle - drag.holdOffset!.angle - state.ringsAngles[drag.iRing])
+
+        if (iRing === drag.iRing) {
+            return dragForce
+        }
+
+        if (drag.sideDrag && iRing in drag.sideDrag) {
+            return drag.sideDrag[iRing] * dragForce
+        }
+
+        return undefined
+    }
+
+    const getRingTargetVelocity = (iRing: number): Radians => {
+        const dragForce = getRingDragForce(iRing)
+        const snapForce = velocityUtils.angleToVelocity(ringsSnaps.value[iRing].snapAngle - state.ringsAngles[iRing])
+        if (dragForce !== undefined) {
+            return dragForce * 0.65 + snapForce * 0.35
+        }
+        return snapForce
+    }
+
     const updateRings = (t: number, dt: number): boolean => {
-        const speedLimitCurrent = dt * 0.001 * speedLimit
         let updated = false
 
         for (let iRing = 0; iRing < minigameData.rings.length; iRing++) {
-            const ringIsDragged = iRing === drag.iRing && drag.currentPosition && drag.holdOffset
-            const targetAngle = ringIsDragged
-                ? drag.currentPosition!.angle - drag.holdOffset!.angle
-                : ringsSnaps.value[iRing].snapAngle
+            const speedLimitRing = speedLimit - iRing
+            const targetVelocity = getRingTargetVelocity(iRing)
 
-            const speedLimitRing = speedLimitCurrent - iRing * 0.01
-            ui.ringAngularVelocity[iRing] = velocityUtils.angleToVelocity(targetAngle - state.ringsAngles[iRing], speedLimitRing)
+            ui.ringAngularVelocity[iRing] = velocityUtils.smoothenVelocity(ui.ringAngularVelocity[iRing], targetVelocity, speedLimitRing)
             if (ui.ringAngularVelocity[iRing] === 0) {
                 continue
             }
-            state.ringsAngles[iRing] = normalizeAngle(state.ringsAngles[iRing] + ui.ringAngularVelocity[iRing])
+            state.ringsAngles[iRing] = normalizeAngle(state.ringsAngles[iRing] + ui.ringAngularVelocity[iRing] * (dt * 0.001))
             updated = true
         }
 
@@ -195,6 +216,8 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         holdOffset: null as PointRad2D | null,
         currentPosition: null as PointRad2D | null,
 
+        sideDrag: undefined as Model.RingSideDrag | undefined,
+
         start(x: number, y: number) {
             let pos = board.angularPosition(x * renderScale.value, y * renderScale.value)
             let iRing = board.getRingIndex(pos)
@@ -206,6 +229,7 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
                     radius: pos.radius,
                     angle: pos.angle - state.ringsAngles[iRing],
                 }
+                drag.sideDrag = minigameData.rings[iRing].sideDrag
             }
         },
         end() {
@@ -213,6 +237,8 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
                 drag.iRing = -1
                 drag.holdOffset = drag.currentPosition = null
             }
+
+            drag.sideDrag = undefined
         },
         move(x: number, y: number) {
             if (drag.iRing !== -1) {

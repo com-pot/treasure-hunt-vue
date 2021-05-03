@@ -5,8 +5,8 @@ class Stone implements Model.Stone {
     constructor() {
         this.tiles = [];
     }
-    addTile(bgColor: string, symbol: string): Stone {
-        this.tiles.push({bgColor, symbol});
+    addTile(bgColor: string, symbol: string, fgColor?: string): Stone {
+        this.tiles.push({bgColor, symbol, fgColor});
         return this;
     }
 }
@@ -15,22 +15,22 @@ export default class CircularDominoApi {
     public static async loadRings(): Promise<Model.Ring[]> {
         let innerRing: Model.Ring = {
             stones: [
-                new Stone().addTile("red", "0"),
-                new Stone().addTile("deeppink", "1"),
-                new Stone().addTile("dodgerblue", "2"),
-                new Stone().addTile("red", "3"),
-                new Stone().addTile("yellow", "4"),
-                new Stone().addTile("dodgerblue", "5"),
+                new Stone().addTile("red", "crow"),
+                new Stone().addTile("deeppink", "goat", "yellow"),
+                new Stone().addTile("dodgerblue", "sun"),
+                new Stone().addTile("red", "shaman"),
+                new Stone().addTile("yellow", "swallow"),
+                new Stone().addTile("dodgerblue", "bird"),
             ],
             sideDrag: {
-                2: -0.6,
+                2: -0.85,
             },
         };
         let midRing: Model.Ring = {
             stones: [
-                new Stone().addTile("yellow", 'R'),
-                new Stone().addTile("green", 'B'),
-                new Stone().addTile("dodgerblue", 'L'),
+                new Stone().addTile("yellow", 'kakadu', "yellow"),
+                new Stone().addTile("green", 'kakadu2'),
+                new Stone().addTile("dodgerblue", 'turkey'),
             ],
             sideDrag: {
                 0: 1.4,
@@ -39,13 +39,17 @@ export default class CircularDominoApi {
 
         let outerRing: Model.Ring = {
             stones: [
-                new Stone().addTile("green", "G"),
-                new Stone().addTile("dodgerblue", "A"),
-                new Stone().addTile("red", "G"),
-                new Stone().addTile("dodgerblue", "B"),
-                new Stone().addTile("deeppink", "G"),
-                new Stone().addTile("red", "A"),
+                new Stone().addTile("green", "goat"),
+                new Stone().addTile("dodgerblue", "moose"),
+                new Stone().addTile("red", "turkey2"),
+                new Stone().addTile("dodgerblue", "turtle", "yellow"),
+                new Stone().addTile("deeppink", "sun"),
+                new Stone().addTile("red", "turtle"),
             ],
+            sideDrag: {
+                0: 0.2,
+                1: -0.9,
+            },
         };
 
         return [ innerRing, midRing, outerRing ];

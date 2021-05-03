@@ -3,6 +3,7 @@ import {computed, reactive} from "vue"
 import trigonometry, {Degrees, Point2D, PointRad2D, Radians} from "@/utils/trigonometry"
 import * as Model from "./Model/CircularDominoModel"
 import velocityUtils from "@/utils/velocityUtils"
+import Resources from "@/utils/Resources"
 
 export type UiConfig = {
     debug: boolean,
@@ -16,6 +17,10 @@ export type UiConfig = {
         ringHeightRampTrend: number,
     },
     ringAngularVelocity: Radians[],
+    resources: {
+        ringBg: HTMLImageElement | string,
+        [name: string]: HTMLImageElement | string,
+    },
 }
 
 type RingDimensions = {
@@ -125,27 +130,45 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         return undefined
     }
 
-    const getRingTargetVelocity = (iRing: number): Radians => {
-        const dragForce = getRingDragForce(iRing)
+    const getRingCombinedForce = (iRing: number): Radians => {
+        let debugForce = (window as any).debugForce as Radians
+        if (debugForce) {
+            return debugForce
+        }
+
+        const dragForce = debugForce || getRingDragForce(iRing)
         const snapForce = velocityUtils.angleToVelocity(ringsSnaps.value[iRing].snapAngle - state.ringsAngles[iRing])
         if (dragForce !== undefined) {
-            return dragForce * 0.65 + snapForce * 0.35
+            return dragForce * 0.85 + snapForce * 0.15
         }
         return snapForce
     }
 
     const updateRings = (t: number, dt: number): boolean => {
+        const dts = dt * 0.001
         let updated = false
+        const momentum = 0.4
+        const friction = 0.2
 
         for (let iRing = 0; iRing < minigameData.rings.length; iRing++) {
             const speedLimitRing = speedLimit - iRing
-            const targetVelocity = getRingTargetVelocity(iRing)
+            const combinedForce = getRingCombinedForce(iRing)
+            let dVel = combinedForce * (1 - momentum)
 
-            ui.ringAngularVelocity[iRing] = velocityUtils.smoothenVelocity(ui.ringAngularVelocity[iRing], targetVelocity, speedLimitRing)
-            if (ui.ringAngularVelocity[iRing] === 0) {
+            let newVel = ui.ringAngularVelocity[iRing] + (dVel * dts)
+            let newVelAbs = Math.abs(newVel)
+            if (newVelAbs <= 0.01 * dts) {
+                ui.ringAngularVelocity[iRing] = 0
                 continue
+            } else if (newVelAbs > speedLimitRing) {
+                newVelAbs = speedLimitRing
+                newVel = Math.sign(newVel) * newVelAbs
             }
-            state.ringsAngles[iRing] = normalizeAngle(state.ringsAngles[iRing] + ui.ringAngularVelocity[iRing] * (dt * 0.001))
+            let ringFriction = newVel * friction
+            ui.ringAngularVelocity[iRing] = newVel - ringFriction * dts
+
+            const dRad = ui.ringAngularVelocity[iRing] * (dt * 0.001)
+            state.ringsAngles[iRing] = normalizeAngle(state.ringsAngles[iRing] + dRad)
             updated = true
         }
 
@@ -248,14 +271,15 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
     })
 
     const draw = {
-        frame(g: CanvasRenderingContext2D) {
-            g.clearRect(0, 0, ui.renderSize, ui.renderSize)
+        frame([gBackground, gSymbols]: [CanvasRenderingContext2D, CanvasRenderingContext2D]) {
+            gBackground.clearRect(0, 0, ui.renderSize, ui.renderSize)
+            gSymbols.clearRect(0, 0, ui.renderSize, ui.renderSize)
 
             for (let iRing = 0; iRing < minigameData.rings.length; iRing++) {
-                draw.renderRing(g, iRing)
+                draw.renderRing(gBackground, gSymbols, iRing)
             }
         },
-        renderRing(g: CanvasRenderingContext2D, iRing: number) {
+        renderRing(g: CanvasRenderingContext2D, gSymbols: CanvasRenderingContext2D, iRing: number) {
             let ring = minigameData.rings[iRing]
             let ringDimensions: RingDimensions = ringsDimensions.value[iRing]
 
@@ -264,45 +288,66 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
                 let stone = ring.stones[iStone]
                 let stoneTileStart = renderedTiles
 
-                let highlight = ringsSnaps.value[iRing].snapIndex === iStone // iRing === select.selectedPiece.iRing && iStone === this.selectedPiece.iStone
                 for (let iTile = 0; iTile < stone.tiles.length; iTile++) {
-                    draw.renderTile(g, stone.tiles[iTile], state.ringsAngles[iRing] + renderedTiles * ringDimensions.tileWidth, ringDimensions, highlight)
+                    const tile = stone.tiles[iTile]
+                    const angle = state.ringsAngles[iRing] + renderedTiles * ringDimensions.tileWidth
+                    draw.renderTile(g, tile, angle, ringDimensions, iStone * 7 + iTile * 11, iRing * 3)
+                    draw.renderPieceSymbol(gSymbols, tile, angle, ringDimensions, tile.fgColor || "black")
                     renderedTiles++
                 }
 
                 let stoneAngleStart = state.ringsAngles[iRing] + stoneTileStart * ringDimensions.tileWidth
                 let stoneWidth = stone.tiles.length * ringDimensions.tileWidth
-                g.strokeStyle = highlight ? "white" : "black"
-                g.lineWidth = 2
+                g.strokeStyle = "black"
+                g.lineWidth = 1
                 draw.pathBlock(g, ringDimensions.outerRadius, ringDimensions.innerRadius, stoneAngleStart, stoneAngleStart + stoneWidth)
                 g.stroke()
             }
+
+            const distanceToSnap = trigonometry.minAngleDiff(state.ringsAngles[iRing], ringsSnaps.value[iRing].snapAngle)
+            let snapPrecision = (ringDimensions.tileWidth - Math.abs(distanceToSnap * 2)) / (ringDimensions.tileWidth)
+            g.globalAlpha = Math.max((snapPrecision - 0.5) * 2, 0)
+            let snappedStone = minigameData.rings[iRing].stones[ringsSnaps.value[iRing].snapIndex]
+            draw.strokeTarget(g, ringDimensions.radius, (ringDimensions.outerRadius - ringDimensions.innerRadius - 10) * 0.5, snappedStone.tiles[0].fgColor || "")
+            g.globalAlpha = 1
         },
-        renderTile(g: CanvasRenderingContext2D, tile: Model.Tile, angle: Radians, dimensions: RingDimensions, highlight: boolean) {
+        renderTile(g: CanvasRenderingContext2D, tile: Model.Tile, angle: Radians, dimensions: RingDimensions, xRand: number, yRand: number) {
             draw.pathBlock(g, dimensions.outerRadius, dimensions.innerRadius, angle, angle + dimensions.tileWidth)
+
+            const p = board.circuitPosition(angle, dimensions.radius)
+            g.translate(p.x, p.y)
+            g.rotate(angle + (xRand + yRand) * 0.2)
+            g.fillStyle = g.createPattern(board.resources.get("ringBg"), "repeat")!
+            g.fill()
+            g.globalAlpha = 0.325
+            g.fillStyle = 'chocolate'
+            g.fill()
+            g.globalAlpha = 0.025
             g.fillStyle = tile.bgColor
             g.fill()
+            g.globalAlpha = 1
 
-            if (highlight) {
-                draw.renderPieceText(g, tile, angle, dimensions, true)
-            }
-            draw.renderPieceText(g, tile, angle, dimensions, false)
+            g.resetTransform()
         },
-        renderPieceText(g: CanvasRenderingContext2D, piece: Model.Tile, angle: Radians, dimensions: RingDimensions, highlight: boolean) {
+        renderPieceSymbol(g: CanvasRenderingContext2D, piece: Model.Tile, angle: Radians, dimensions: RingDimensions, fgColor: string) {
             g.font = '16pt Sans-Serif'
-            g.strokeStyle = highlight ? 'white' : 'black'
+            g.fillStyle = fgColor
 
             let textAngle = angle + dimensions.tileWidth * 0.5
             let p = board.circuitPosition(textAngle, dimensions.radius)
             g.translate(p.x, p.y)
-            g.rotate(textAngle + Math.PI / 2)
+            g.rotate(textAngle + Math.PI * 0.5)
 
-            let tm = g.measureText(piece.symbol)
-            g.translate(-tm.width / 2, (tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent) * 0.3)
-            if (highlight) {
-                g.translate(3, 1)
-            }
-            g.strokeText(piece.symbol, 0, 0)
+            let tm = (dimensions.outerRadius - dimensions.innerRadius) * 0.5
+            const img = board.resources.get(piece.symbol)
+            g.drawImage(img, tm * -0.5, tm * -0.5, tm, tm)
+
+            g.globalCompositeOperation = "source-atop"
+            g.fillStyle = fgColor
+            g.fillRect(tm * -0.5, tm * -0.5, tm, tm)
+
+            g.globalCompositeOperation = "source-over"
+
             g.resetTransform()
 
             if (ui.debug) {
@@ -331,9 +376,33 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
 
             g.closePath()
         },
+        strokeTarget(g: CanvasRenderingContext2D, rRing: number, rTarget: number, color: string) {
+            const targetPos = board.circuitPosition(Math.PI * -0.5, rRing)
+            g.translate(targetPos.x, targetPos.y)
+
+            g.strokeStyle = color
+            g.lineWidth = 2
+            g.beginPath()
+            g.ellipse(0, 0, rTarget, rTarget, 0, 0, 360)
+            g.closePath()
+            g.stroke()
+
+            g.resetTransform()
+        },
     }
 
+    const resPrepared: { [name: string]: HTMLImageElement } = Object.fromEntries(Object.entries(ui.resources).map((entry) => {
+        if (entry[1] instanceof HTMLImageElement) {
+            return entry as [string, HTMLImageElement]
+        }
+        const image = new Image()
+        image.src = entry[1]
+        return [entry[0], image]
+    }))
+
     const board = reactive({
+        resources: new Resources(resPrepared),
+
         ringTileCounts,
         ringsSnapPoints,
         ringsSnaps,

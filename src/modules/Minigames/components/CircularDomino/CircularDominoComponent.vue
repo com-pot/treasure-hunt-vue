@@ -1,10 +1,8 @@
 <template>
   <div :class="['mg-rings', ui.debug && 'debug']">
-    <canvas ref="canvas" class="circular-domino"
-            @mousedown="(e) => board.drag.start(e.offsetX, e.offsetY)"
-            @mousemove="(e) => board.drag.move(e.offsetX, e.offsetY)"
-            @mouseup="() => board.drag.end()"
-    />
+    <canvas ref="canvas" class="layer-bg"/>
+    <canvas ref="canvasFg" class="layer-fg"/>
+
 
     <MinigameControls :check-solution="checkSolution"/>
     <div class="debug-view" v-if="ui.debug">
@@ -35,6 +33,7 @@ import {UiConfig, useAngularBoard} from "@/modules/Minigames/components/Circular
 import MinigameControls from "@/modules/SotW/components/MinigameControls.vue";
 import {hashCode} from "@/utils/stringUtils";
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils";
+import {useRoute} from "vue-router";
 
 
 export default defineComponent({
@@ -46,6 +45,7 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const route = useRoute()
     const minigameData = useViewData<Model.CircularDominoData>()
     const minigameState = useViewState<Model.CircularDominoState>(() => ({
       ringsAngles: minigameData.value.rings.map(() => 0),
@@ -66,15 +66,69 @@ export default defineComponent({
         ringHeightRampTrend: -6,
       },
       ringAngularVelocity: minigameData.value.rings.map(() => 0),
+
+      resources: {
+        ringBg: "/minigames/circular/wood.jpg",
+        turkey2: '/minigames/circular/turkey2.png',
+        sun: '/minigames/circular/sun.png',
+        goat: '/minigames/circular/goat.png',
+        shaman: '/minigames/circular/shaman.png',
+        turtle: '/minigames/circular/turtle.png',
+        turkey: '/minigames/circular/turkey.png',
+        kakadu: '/minigames/circular/kakadu.png',
+        bird: '/minigames/circular/bird.png',
+        crow: '/minigames/circular/crow.png',
+        swallow: '/minigames/circular/swallow.png',
+        kakadu2: '/minigames/circular/kakadu2.png',
+        moose: '/minigames/circular/moose.png',
+        tongue: '/minigames/circular/tongue.png',
+      },
     })
 
     const canvas = ref<HTMLCanvasElement | null>(null)
+    const canvasFg = ref<HTMLCanvasElement | null>(null)
 
     const board = useAngularBoard(minigameDataReactive, minigameStateReactive, ui)
-    const gameLoop = useGameLoop(board.update, board.draw.frame, 60)
+    const fps = route.query.fps ? Number(route.query.fps) : 60
+    const gameLoop = useGameLoop<[CanvasRenderingContext2D, CanvasRenderingContext2D]>(board.update, board.draw.frame, fps)
 
     const updateClientSize = () => {
       ui.clientSize = canvas.value!.clientWidth
+    }
+    const onVisibleChanged: EventListener = () => {
+      if (!document.hidden) {
+        gameLoop.start()
+      } else {
+        gameLoop.stop()
+      }
+    }
+
+    const bindCanvasControls = (canvas: HTMLCanvasElement) => {
+      canvas.addEventListener('touchstart', (e) => {
+        let p = touchUtils.getOffsetPosition(e)
+        e.preventDefault()
+        board.drag.start(p.offsetX, p.offsetY)
+      })
+
+      canvas.addEventListener('touchmove', (e) => {
+        let p = touchUtils.getOffsetPosition(e)
+        e.preventDefault()
+        board.drag.move(p.offsetX, p.offsetY)
+      })
+
+      canvas.addEventListener('touchend', (e) => {
+        e.preventDefault()
+        board.drag.end()
+      })
+      canvas.addEventListener("mousedown", (e) => {
+        e.preventDefault()
+        board.drag.start(e.offsetX, e.offsetY);
+      })
+      canvas.addEventListener("mousemove", (e) => {
+        e.preventDefault()
+        board.drag.move(e.offsetX, e.offsetY)
+      })
+      canvas.addEventListener("mouseup", () => board.drag.end())
     }
 
     onMounted(() => {
@@ -82,37 +136,27 @@ export default defineComponent({
       // let direction = Math.sign(Math.random() - 0.5) * 2
       // return ({rotation: 0, rotationVelocity: direction * speed, ring})
 
-      let c = canvas.value!
-      c.width = ui.renderSize
-      c.height = ui.renderSize
-      gameLoop.g = c.getContext('2d')
+      const cBg = canvas.value!
+      const cFg = canvasFg.value!
+      cFg.width = cBg.width = ui.renderSize
+      cFg.height = cBg.height = ui.renderSize
 
-      gameLoop.start()
+      gameLoop.g = [cBg.getContext('2d')!, cFg.getContext('2d')!]
 
-      c.addEventListener('touchstart', (e) => {
-        let p = touchUtils.getOffsetPosition(e)
-        e.preventDefault()
-        board.drag.start(p.offsetX, p.offsetY)
-      })
+      board.resources.whenReady()
+          .then(() => gameLoop.start())
 
-      c.addEventListener('touchmove', (e) => {
-        let p = touchUtils.getOffsetPosition(e)
-        e.preventDefault()
-        board.drag.move(p.offsetX, p.offsetY)
-      })
-
-      c.addEventListener('touchend', (e) => {
-        e.preventDefault()
-        board.drag.end()
-      })
+      bindCanvasControls(cFg)
 
       window.addEventListener('resize', updateClientSize)
+      document.addEventListener("visibilitychange", onVisibleChanged)
       updateClientSize()
     })
 
     onBeforeUnmount(() => {
       gameLoop.stop()
       window.removeEventListener('resize', updateClientSize)
+      document.removeEventListener("visibilitychange", onVisibleChanged)
     })
 
     return {
@@ -124,6 +168,7 @@ export default defineComponent({
       gameLoop,
 
       canvas,
+      canvasFg,
 
       checkSolution() {
         let snapStones = board.ringsSnaps
@@ -140,12 +185,18 @@ export default defineComponent({
 
 <style lang="scss">
 .mg-rings {
-  display: flex;
+  display: grid;
   flex-direction: column;
 
-  .circular-domino {
-    flex: 1;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto;
+  grid-template-areas: "canvas";
+
+  canvas {
+    grid-area: canvas;
+    width: 100%;
   }
+
 
   &.debug {
     .debug-view {

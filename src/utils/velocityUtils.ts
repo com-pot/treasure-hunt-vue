@@ -12,13 +12,9 @@ export function angleToVelocity(angle: number): number {
     return angle
 }
 
-export function smoothenVelocity(velocity: Radians, targetVelocity: Radians, speedLimit: Radians): Radians {
-    const momentum = 0.975
+export function smoothenVelocity(velocity: Radians, combinedForce: Radians, speedLimit: Radians, momentum: number): Radians {
+    const resultVelocity = momentum * velocity + (1-momentum) * combinedForce
 
-    const resultVelocity = momentum * velocity + (1-momentum) * targetVelocity
-    if (Math.abs(resultVelocity) > speedLimit) {
-        return Math.sign(resultVelocity) * speedLimit
-    }
 
     return resultVelocity
 }

@@ -3,6 +3,7 @@ import {Radians} from "@/utils/trigonometry"
 export interface Tile {
     bgColor: string,
     symbol: string,
+    fgColor?: string,
 }
 
 export interface Stone {

@@ -1,7 +1,7 @@
 type UpdateFn = (t: number, dt: number) => boolean
-type RenderFn = (g: CanvasRenderingContext2D) => void
+type RenderFn<G> = (g: G) => void
 
-export function useGameLoop(update: UpdateFn, render: RenderFn, targetTicksPerSecond: number) {
+export function useGameLoop<G = CanvasRenderingContext2D>(update: UpdateFn, render: RenderFn<G>, targetTicksPerSecond: number) {
     const tickTimeout = Math.round(1000 / targetTicksPerSecond)
     let animationFrameRequest: number | undefined = undefined
 
@@ -26,7 +26,7 @@ export function useGameLoop(update: UpdateFn, render: RenderFn, targetTicksPerSe
 
     const tick = () => {
         let dt = Date.now() - t
-        t = t+ dt
+        t = t + dt
 
         if (!update(t, dt)) {
             return
@@ -36,7 +36,7 @@ export function useGameLoop(update: UpdateFn, render: RenderFn, targetTicksPerSe
     }
 
     const gameLoop = {
-        g: null as CanvasRenderingContext2D | null,
+        g: null as G | null,
 
         redrawInterval: null as number | null,
 

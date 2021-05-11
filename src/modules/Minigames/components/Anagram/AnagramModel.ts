@@ -5,6 +5,7 @@ export type OutputLetter = LetterSelection | FreeLetter;
 
 export type AnagramMinigameData = {
     inputText: string,
+    outputLength: number,
     check: string,
 };
 

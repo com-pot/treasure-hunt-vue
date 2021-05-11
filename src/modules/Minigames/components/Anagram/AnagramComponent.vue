@@ -6,7 +6,9 @@
     </div>
     <button :class="['btn', spaceAvailable ? 'btn-vivid' : 'btn-bland']" @click="addSpace">Mezera</button>
     <div :class="['letters', 'output']">
-      <i v-for="(letter, i) in minigameState.value.outputLetters" @click="clearLetter(i)" :key="i">{{ getOutputChar(letter) }}</i>
+      <i v-for="(letter, i) in outputTextPadded" :key="i"
+         @click="clearLetter(i)" :class="i >= outputText.length && 'disabled'"
+      >{{ letter }}</i>
     </div>
 
     <MinigameControls :check-solution="checkSolution" :reset="minigameState.reset"/>
@@ -14,15 +16,14 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, computed} from "vue"
+import {computed, defineComponent} from "vue"
 
 
-import {AnagramMinigameData, AnagramMinigameState} from "./AnagramModel";
 import * as Model from "./AnagramModel";
+import {AnagramMinigameData, AnagramMinigameState} from "./AnagramModel";
 import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState";
 import MinigameControls from "@/modules/SotW/components/MinigameControls.vue";
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils";
-
 
 
 export default defineComponent({
@@ -54,7 +55,11 @@ export default defineComponent({
       return ''
     }
 
-    let outputText = computed(() => minigameState.value.outputLetters.map(getOutputChar).join(''));
+    const outputText = computed(() => minigameState.value.outputLetters.map(getOutputChar).join(''));
+    const outputTextPadded = computed(() => {
+      const padLength = minigameData.value.outputLength - outputText.value.length
+      return outputText.value + ' '.repeat(padLength > 0 ? padLength : 0)
+    })
 
     const spaceAvailable = computed(() => outputText.value.length && outputText.value.charAt(outputText.value.length - 1) !== ' ');
 
@@ -62,7 +67,8 @@ export default defineComponent({
       inputLetters,
       minigameState,
       spaceAvailable,
-      getOutputChar,
+      outputText,
+      outputTextPadded,
 
       pickLetter(i: number) {
         let letter = inputLetters.value[i];
@@ -132,6 +138,7 @@ export default defineComponent({
         border-color: deeppink;
         color: deeppink;
       }
+
       &.picked, &.disabled {
         filter: opacity(0.75);
         border-color: #ccc;

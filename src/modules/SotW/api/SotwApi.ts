@@ -1,5 +1,4 @@
 import {PartOfStory} from "../model/SotwModel";
-import {Zebra} from "@/modules/Minigames/components/ZebraFoal/Model/ZebraFoalModel";
 import CircularDominoApi from "@/modules/Minigames/components/CircularDomino/CircularDominoApi";
 
 const storyParts: PartOfStory[] = [
@@ -59,61 +58,13 @@ const storyParts: PartOfStory[] = [
     }
 ];
 
-const zebras: Zebra[] = [
-    {name: 'deer', helpText: '', rules: []},
-    {
-        name: 'bear',
-        helpText: '',
-        rules: [
-            ["within", 1, ["includes", "wolf"]],
-            ['within', 1, ["!includes", "cougar"]],
-            ['within', 1, ["!includes", "bison"]],
-        ],
-    },
-    {
-        name: 'owl',
-        helpText: '',
-        rules: [
-            ["within", 1, ["includes", "deer"]],
-            ["within", 1, ["!includes", "bear"]],
-            ["within", 1, ["!includes", "fox"]],
-        ],
-    },
-    {
-        name: 'cougar',
-        helpText: '',
-        rules: [
-            ["within", 1, ["!includes", "fox"]],
-            ["within", 1, ["!includes", "owl"]],
-        ],
-    },
-    {name: 'fox', rules: []},
-    {
-        name: 'wolf',
-        helpText: '',
-        rules: [
-            ["within", 1, ["includes", "cougar"]],
-            ["within", 1, ["!includes", "deer"]],
-            ["within", 1, ["!includes", "bison"]],
-        ],
-    },
-    {
-        name: 'bison',
-        helpText: '',
-        rules: [
-            ["within", 1, ["!includes", "wolf"]],
-            ["within", 1, ["!includes", "cougar"]],
-            ["within", 1, ["includes", "owl"]],
-            ["before", ["!includes", "bear"]],
-        ],
-    },
-
-
-]
-
 const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
-    anagram: () => Promise.resolve({inputText: 'srics srsoc', check: '28f185a6'}),
-    zebraFoal: () => Promise.resolve({ zebras, check: 'aaaa'}),
+    anagram: () => Promise.resolve({inputText: 'srics srsoc', outputLength: 'srics srsoc'.length,  check: '28f185a6'}),
+    password: () => Promise.resolve({prompt: "WHAT is your favourite colour?"}),
+    zebraFoal: async () => ({
+        zebras: await import("./zebraFoalData.json"),
+        check: 'aaaa'
+    }),
     rings: async () => {
         return {
             rings: await CircularDominoApi.loadRings(),
@@ -146,6 +97,14 @@ const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
             {row: 3, col: 3, label: 'E', key: 'emu'},
         ],
         check: 'boar-cicada-emu',
+    }),
+    bpc: () => Promise.resolve({
+        inputs: [
+            {name: 'bark', caption: 'Množství kůry'},
+            {name: 'petals', caption: "Počet květů"},
+            {name: 'moss', caption: "Kousků lišejníku"},
+        ],
+        check: '744b18',
     })
 }
 
@@ -173,17 +132,6 @@ export default class SotwApi {
     async loadMinigameData(minigameId: string): Promise<any> {
         if (minigameId in minigameDataLoaders) {
             return minigameDataLoaders[minigameId]()
-        }
-
-        if (minigameId === 'bpc') {
-            return {
-                inputs: [
-                    {name: 'bark', caption: 'Množství kůry'},
-                    {name: 'petals', caption: "Počet květů"},
-                    {name: 'moss', caption: "Kousků lišejníku"},
-                ],
-                check: '744b18',
-            }
         }
 
         console.debug("Minigame", minigameId, "does not have data")

@@ -1,6 +1,7 @@
 
 const minigameModuleLoaders: {[minigameId: string]: () => Promise<any>} =  {
     anagram: () => import('./components/Anagram/AnagramComponent.vue'),
+    password: () => import('./components/Password/PasswordComponent.vue'),
     bpc: () => import('./components/Bpc/BpcComponent.vue'),
     drums: () => import('./components/Drums/DrumsComponent.vue'),
     rings: () => import('./components/CircularDomino/CircularDominoComponent.vue'),

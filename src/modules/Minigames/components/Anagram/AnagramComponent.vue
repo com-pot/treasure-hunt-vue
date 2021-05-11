@@ -5,41 +5,41 @@
          :class="[letter.picked && 'picked', letter.char === ' ' && 'disabled']" @click="pickLetter(i)">{{ letter.char }}</i>
     </div>
     <button :class="['btn', spaceAvailable ? 'btn-vivid' : 'btn-bland']" @click="addSpace">Mezera</button>
-    <div :class="['letters', 'output', outputSuccess && 'success']">
-      <i v-for="(letter, i) in outputLetters" @click="clearLetter(i)" :key="i">{{ getOutputChar(letter) }}</i>
+    <div :class="['letters', 'output']">
+      <i v-for="(letter, i) in minigameState.value.outputLetters" @click="clearLetter(i)" :key="i">{{ getOutputChar(letter) }}</i>
     </div>
+
+    <MinigameControls :check-solution="checkSolution" :reset="minigameState.reset"/>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, computed, PropType, watch, toRef} from "vue";
-import {hashCode} from "@/utils/stringUtils"
+import {defineComponent, computed} from "vue"
 
 
 import {AnagramMinigameData, AnagramMinigameState} from "./AnagramModel";
 import * as Model from "./AnagramModel";
-import {useViewStateFromProps} from "@/modules/SotW/utils/useViewState";
+import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState";
+import MinigameControls from "@/modules/SotW/components/MinigameControls.vue";
+import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils";
 
 
 
 export default defineComponent({
-  props: {
-    minigameData: {type: Object as PropType<AnagramMinigameData>, required: true},
-    minigameState: {type: Object as PropType<AnagramMinigameState>},
-  },
-
-  setup(props, {emit}) {
-    const minigameState: AnagramMinigameState = useViewStateFromProps(props, 'minigameState', () => ({
+  components: {MinigameControls},
+  setup() {
+    const minigameData = useViewData<AnagramMinigameData>()
+    const minigameState = useViewState<AnagramMinigameState>(() => ({
       outputLetters: [],
     }))
-    emit('change:minigameState', minigameState)
+    const controls = useMinigameControls()
 
-    const inputText = computed<string>(() => props.minigameData.inputText);
     const inputLetters = computed<Model.InputLetter[]>(() => {
-      return inputText.value.split('')
+
+      return minigameData.value.inputText.split('')
           .map((char, i) => ({
             char,
-            picked: minigameState.outputLetters.some((letter) => Model.isLetterSelection(letter) && letter.sourceIndex === i)
+            picked: minigameState.value.outputLetters.some((letter) => Model.isLetterSelection(letter) && letter.sourceIndex === i)
           }));
     });
 
@@ -54,25 +54,14 @@ export default defineComponent({
       return ''
     }
 
-    let outputLetters = toRef(minigameState, 'outputLetters');
-    let outputText = computed(() => outputLetters.value.map(getOutputChar).join(''));
-    let outputSuccess = computed(() => hashCode(outputText.value) === props.minigameData.check);
-
-    watch(outputSuccess, (val) => {
-      if (val) {
-        emit('minigameSignal', {
-          type: 'success',
-        });
-      }
-    })
+    let outputText = computed(() => minigameState.value.outputLetters.map(getOutputChar).join(''));
 
     const spaceAvailable = computed(() => outputText.value.length && outputText.value.charAt(outputText.value.length - 1) !== ' ');
 
     return {
       inputLetters,
-      outputLetters,
+      minigameState,
       spaceAvailable,
-      outputSuccess,
       getOutputChar,
 
       pickLetter(i: number) {
@@ -81,29 +70,33 @@ export default defineComponent({
           console.warn("Letter index out of bounds", i);
           return;
         }
-        if (letter.picked) {
+        if (letter.picked || letter.char === ' ') {
           return;
         }
         letter.picked = true;
-        outputLetters.value.push({char: letter.char, sourceIndex: i})
+        minigameState.value.outputLetters.push({char: letter.char, sourceIndex: i})
       },
       addSpace() {
         if (!spaceAvailable.value) {
           return;
         }
 
-        outputLetters.value.push({char: ' '});
+        minigameState.value.outputLetters.push({char: ' '});
       },
       clearLetter(i: number) {
-        let letter = outputLetters.value[i];
+        let letter = minigameState.value.outputLetters[i];
         if (!letter) {
           return;
         }
         if (Model.isLetterSelection(letter)) {
           inputLetters.value[letter.sourceIndex].picked = false;
         }
-        outputLetters.value.splice(i, 1);
-      }
+        minigameState.value.outputLetters.splice(i, 1);
+      },
+
+      checkSolution() {
+        controls.checkSolution(controls.serializeSolution(outputText.value))
+      },
     };
   },
 });

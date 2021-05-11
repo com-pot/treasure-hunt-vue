@@ -18,45 +18,32 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, PropType, ref, toRef} from "vue";
+import {defineComponent, toRef} from "vue"
 import {hashCode} from "@/utils/stringUtils";
-import {useViewStateFromProps} from "@/modules/SotW/utils/useViewState";
+import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
 
 import * as Model from "./BpcModel"
+import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
 
 export default defineComponent({
-  props: {
-    minigameData: {type: Object as PropType<Model.BpcMinigameData>, required: true},
-    minigameState: {type: Object as PropType<Model.BpcViewState>},
-  },
-  setup(props, {emit}) {
-    const inputs = computed(() => props.minigameData.inputs);
-    const minigameState: Model.BpcViewState = useViewStateFromProps(props, 'minigameState', () => ({
+  setup() {
+    const minigameData = useViewData<Model.BpcMinigameData>()
+    const inputs = toRef(minigameData.value, 'inputs')
+
+    const minigameState = useViewState<Model.BpcViewState>(() => ({
       inputsModel: Object.fromEntries(inputs.value.map((input) => [input.name, 0])),
     }))
-    emit('change:minigameState', minigameState)
 
-    const inputsModel = toRef(minigameState, 'inputsModel');
-
-    function checkValues() {
-      let valueSerialized = Object.values(inputsModel.value).map((v) => 's4lty' + v + 'p3pp3ry').join('-');
-      let hash = hashCode(valueSerialized).substr(0, 6);
-
-      if (hash === props.minigameData.check) {
-        emit('minigameSignal', {
-          type: 'success',
-        });
-      } else {
-        emit('minigameSignal', {
-          type: 'error',
-        })
-      }
-    }
+    const inputsModel = toRef(minigameState.value, 'inputsModel')
+    const controls = useMinigameControls()
 
     return {
       inputs,
       inputsModel,
-      checkValues,
+      checkValues() {
+        let valueSerialized = Object.values(inputsModel.value).map((v) => 's4lty' + v + 'p3pp3ry').join('-');
+        controls.checkSolution(hashCode(valueSerialized).substr(0, 6))
+      },
     };
   },
 });

@@ -37,7 +37,7 @@ export default defineComponent({
     },
     optionsPerWord: {
       type: Number,
-      default: 6,
+      default: 4,
     },
     stepTimeLimit: {
       type: Number,

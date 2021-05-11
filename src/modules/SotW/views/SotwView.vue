@@ -57,6 +57,7 @@ import {SotwSignal} from "../types/game";
 import AudioService from "@/modules/SotW/services/AudioService";
 import {log} from "tone/build/esm/core/util/Debug";
 import {MinigameControls} from "@/modules/SotW/utils/minigameUtils";
+import {hashCode} from "@/utils/stringUtils";
 
 type LoadedNode = {
   node: KnownSotwNode,
@@ -211,6 +212,7 @@ export default defineComponent({
         sotwAudio.play(success ? 'minigameOk' : 'minigameKo')
         return Promise.resolve(success)
       },
+      serializeSolution: (value) => hashCode(value),
     })
 
     provide('sotw.minigameControls', minigameControls)

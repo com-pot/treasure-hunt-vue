@@ -1,4 +1,4 @@
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import * as SotwModel from "./model/SotwModel";
 
 import storyNodes from "./api/storyNodes"
@@ -9,8 +9,8 @@ const progression = ref<SotwModel.PlayerProgression>({
         ...storyNodes,
         ...minigameNodes,
     ],
-    storyNodes,
 });
+export const revealedStoryNodes = computed(() => progression.value.revealedNodes.filter(SotwModel.isStoryNode))
 
 const getNode = (nodeId: string, offset: number = 0): SotwModel.KnownSotwNode | null => {
     const foundNodeIndex = progression.value.revealedNodes
@@ -39,6 +39,7 @@ const getNodeChild = (nodeId: string): SotwModel.KnownSotwNode | null => {
 
 export default {
     progression,
+    revealedStoryNodes,
     getNode,
     getNodeParent,
     getNodeChild,

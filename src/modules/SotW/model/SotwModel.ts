@@ -32,9 +32,9 @@ export interface PartOfStory {
 
 export type PlayerProgression = {
     revealedNodes: KnownSotwNode[],
-    storyNodes: StoryNode[],
 }
 
+export const isStoryNode = (node: SotwNode): node is StoryNode => node.type === "story"
 
 export function nodeHasName(node: SotwNode): node is KnownSotwNode {
     return 'nodeId' in node;

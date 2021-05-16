@@ -54,7 +54,7 @@ export default {
     sotwApi.loadStoryTitles().then((titles) => storyPartTitles.value = titles);
 
     const storyLinks = computed<StoryLink[]>(() => {
-      return playerStore.progression.value.storyNodes.map((node) => {
+      return playerStore.revealedStoryNodes.value.map((node) => {
         const link: StoryLink =  {
           text: storyPartTitles.value[node.storyPartId] || 'Neznámá část příběhu - ' + node.storyPartId,
           to: {name: 'sotw.NodeView', params: {nodeId: node.nodeId}},

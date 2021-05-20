@@ -62,7 +62,7 @@ const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
     anagram: () => Promise.resolve({inputText: 'srics srsoc', outputLength: 'srics srsoc'.length,  check: '28f185a6'}),
     password: () => Promise.resolve({prompt: "WHAT is your favourite colour?"}),
     zebraFoal: async () => ({
-        zebras: await import("./zebraFoalData.json"),
+        zebras: (await import("./zebraFoalData.json")).zebras,
         check: 'aaaa'
     }),
     rings: async () => {

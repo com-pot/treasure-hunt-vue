@@ -12,7 +12,7 @@
         ]">
         <span class="name" v-if="!slot.zebra">---</span>
         <span class="name" v-else>{{ slot.zebra.name }}</span>
-        <img v-if="displayMode === 'images' && slotImages[i]" :src="slotImages[i]">
+        <img v-if="displayMode === 'images' && slot.zebra" :src="getSlotImage(slot.zebra)">
       </div>
     </li>
     <li v-if="showPipe" class="pipe" :style="'--position:' + pipePosition">
@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from "vue";
-import {ZebraSlot} from "./Model/ZebraFoalModel";
+import {Zebra, ZebraSlot} from "./Model/ZebraFoalModel";
 
 export default defineComponent({
   emits: {
@@ -54,9 +54,9 @@ export default defineComponent({
     showPipe(): boolean {
       return typeof this.pipePosition === "number"
     },
-    slotImages(): (string|undefined)[] {
-      return this.slots.map((s) => s.zebra && '/minigames/shamans/' + s.zebra.name + '.png')
-    },
+  },
+  methods: {
+    getSlotImage: (zebra?: Zebra): string | undefined => zebra && '/minigames/shamans/' + zebra.name + '.png'
   },
 });
 </script>

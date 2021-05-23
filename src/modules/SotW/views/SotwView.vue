@@ -13,14 +13,12 @@
 
     <SotwViewLoading v-if="viewState === 'loading'"></SotwViewLoading>
 
-    <SotwViewStory v-else-if="viewState === 'ready' && loadedNode.node.type === 'story'"
+    <SotwViewStory v-else-if="viewState === 'ready' && loadedNode.node.type === 'story'" :key="nodeId"
                    :story-data="loadedNode.nodeData"
                    @sotwSignal="handleSignal"
     />
 
-    <SotwViewMinigame v-else-if="viewState === 'ready' && loadedNode.node.type === 'minigame'"
-                      :viewStateData="viewStateData"
-                      @change:viewStateData="viewStateData = $event"
+    <SotwViewMinigame v-else-if="viewState === 'ready' && loadedNode.node.type === 'minigame'" :key="nodeId"
                       :minigame-id="loadedNode.node.minigameId" :minigame-data="loadedNode.nodeData"
                       @sotwSignal="handleMinigameSignal"
     />
@@ -55,7 +53,6 @@ import SotwViewMinigame from "@/modules/SotW/views/SotwViewMinigame.vue";
 import SotwApi from "@/modules/SotW/api/SotwApi.ts";
 import {SotwSignal} from "../types/game";
 import AudioService from "@/modules/SotW/services/AudioService";
-import {log} from "tone/build/esm/core/util/Debug";
 import {MinigameControls} from "@/modules/SotW/utils/minigameUtils";
 import {hashCode} from "@/utils/stringUtils";
 
@@ -106,7 +103,7 @@ export default defineComponent({
       }
     }
 
-    watch(viewStateData, (value) => console.log("View state data: ", value), {immediate: true})
+    // watch(viewStateData, (value) => console.log("View state data: ", value), {immediate: true})
 
     watch(node, async (nodeSpec) => {
       saveNodeViewStateData()
@@ -202,7 +199,7 @@ export default defineComponent({
 
         let success
         if (!check) {
-          console.warn("No check in loadedNode.nodeData")
+          console.warn("No check in loadedNode.nodeData", value)
           success = false
         } else {
           success = value === check

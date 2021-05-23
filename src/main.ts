@@ -10,4 +10,5 @@ authStore.actions._initUserData();
 createApp(App)
     .use(router)
     .use(require("./routing/titleRouting").default, {router})
+    .use(require('@/modules/Typeful').plugin)
     .mount('#sotw');

@@ -1,0 +1,31 @@
+@import "./vars/breakpoints";
+
+@mixin breakpoint($value, $mode: 'gte') {
+  @if ($mode == 'lt') {
+    @media (max-width: $value - 1) {
+      @content;
+    }
+  } @else {
+    @media (min-width: $value) {
+      @content;
+    }
+  }
+}
+
+@mixin sm($mode: 'gte') {
+  @include breakpoint($sm, $mode) {
+    @content;
+  }
+}
+
+@mixin md($mode: 'gte') {
+  @include breakpoint($md, $mode) {
+    @content;
+  }
+}
+
+@mixin lg($mode: 'gte') {
+  @include breakpoint($lg, $mode) {
+    @content;
+  }
+}

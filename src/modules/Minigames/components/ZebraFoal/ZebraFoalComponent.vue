@@ -190,7 +190,7 @@ export default defineComponent({
       clickSlot: (group: keyof typeof zebras, index: number) => swapping.pickItem(group, index),
       checkValid,
       resetState: () => {
-        minigameState.reset()
+        minigameState.reset(minigameData)
         initUiState()
       },
     };

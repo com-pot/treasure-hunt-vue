@@ -59,7 +59,7 @@ const storyParts: PartOfStory[] = [
 ];
 
 const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
-    anagram: () => Promise.resolve({inputText: 'srics srsoc', outputLength: 'srics srsoc'.length,  check: '28f185a6'}),
+    anagram: () => Promise.resolve({inputText: 'byl naprdlo', outputLength: 'byl naprdlo '.length,  check: '28f185a6'}),
     password: () => Promise.resolve({prompt: "WHAT is your favourite colour?"}),
     zebraFoal: async () => ({
         zebras: (await import("./zebraFoalData.json")).zebras,
@@ -73,20 +73,35 @@ const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
     },
     mixMatch: () => import("./mixMatchMinigameData.json"),
     comboPick: () => Promise.resolve({
-        options: [
-            {value: 'bear'},
-            {value: 'bison'},
-            {value: 'cougar'},
-            {value: 'deer'},
-            {value: 'fox'},
-            {value: 'owl'},
-            {value: 'wolf'},
-        ],
+        check: '1995fa77',
+
         prompts: [
-            {img: 'bear.png', options: ['bear', 'fox', 'wolf']},
-            {img: 'deer.png', options: ['fox', 'deer', 'cougar', 'wolf']},
-            {img: 'owl.png', options: ['wolf', 'bison', 'fox', 'cougar', 'bear', 'deer']},
+            {color: 'red'},
+            {color: 'white'},
+            {color: 'yellow'},
+            {color: 'green'},
+            {color: 'blue'},
+            {color: '#808'},
         ],
+        options: {
+            default: [
+                {value: 'n/a', label: 'žádný význam'},
+                {value: 'shr', label: 'sdílení'},
+                {value: 'mag', label: 'magie'},
+                {value: 'int', label: 'intuice'},
+                {value: 'rlg', label: 'víra'},
+                {value: 'hea', label: 'léčení'},
+                {value: 'itl', label: 'intelekt'},
+            ],
+            war: [
+                {value: 'n/a', label: 'žádný význam'},
+                {value: 'cnf', label: 'sebevědomí'},
+                {value: 'enr', label: 'energie'},
+                {value: 'end', label: 'vytrvalost'},
+                {value: 'det', label: 'odhodlání'},
+                {value: 'sor', label: 'smutek'},
+            ],
+        },
     }),
     toggleMatrix: () => Promise.resolve({
         fields: [

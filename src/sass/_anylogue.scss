@@ -1,0 +1,30 @@
+.logue {
+  .msg {
+    display: block;
+    color: var(--log-col);
+
+    &[style*="--glow"] {
+      text-shadow:
+              0 0 0.05em var(--glow-accent, transparent),
+              0 0 0.05em var(--glow-effect, transparent),
+              0 0 0.2em var(--glow),
+              0 0 0.5em var(--glow),
+    }
+
+
+    &.breathe {
+      animation: glow-breathe 1s alternate infinite;
+    }
+  }
+}
+
+@keyframes glow-breathe {
+
+  @for $i from 1 through 10 {
+    $pct: $i * 10;
+    #{$pct}% {
+      --glow-effect: #{rgba(black, $i * 0.1)};
+    }
+  }
+
+}

@@ -5,13 +5,7 @@
   </template>
 
   <template v-else-if="viewState === 'ready' && componentSpec">
-    <component
-        :is="componentSpec"
-        :minigameData="minigameData"
-        :minigameState="viewStateData"
-        @change:minigameState="console.log('change:viewStateData', $event) || $emit('change:viewStateData', $event)"
-        @minigameSignal="$emit('sotwSignal', $event)"
-    />
+    <component :is="componentSpec" @minigameSignal="$emit('sotwSignal', $event)"/>
   </template>
 
   <template v-else>
@@ -26,7 +20,7 @@ import {loadMinigameComponent} from "@/modules/Minigames/minigameUtils";
 import {ViewState} from "../types/views";
 
 export default defineComponent({
-  emits: ['sotwSignal', 'change:viewStateData'],
+  emits: ['sotwSignal'],
   props: {
     minigameId: {type: String, required: true},
     minigameData: {type: Object, required: true},

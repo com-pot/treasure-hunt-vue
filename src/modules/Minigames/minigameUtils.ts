@@ -1,5 +1,5 @@
 
-const minigameModuleLoaders: {[minigameId: string]: () => Promise<any>} =  {
+const minigameModuleLoaders: {[challengeType: string]: () => Promise<any>} =  {
     anagram: () => import('./components/Anagram/AnagramComponent.vue'),
     password: () => import('./components/Password/PasswordComponent.vue'),
     bpc: () => import('./components/Bpc/BpcComponent.vue'),
@@ -7,15 +7,15 @@ const minigameModuleLoaders: {[minigameId: string]: () => Promise<any>} =  {
     rings: () => import('./components/CircularDomino/CircularDominoComponent.vue'),
     mixMatch: () => import('./components/MixMatch/MixMatchComponent.vue'),
     toggleMatrix: () => import('./components/ToggleMatrix/ToggleMatrixComponent.vue'),
-    understand: () => import("./components/Understand/UnderstandComponent.vue"),
+    'quick-pick': () => import("./components/Understand/UnderstandComponent.vue"),
     comboPick: () => import("./components/ComboPick/ComboPick.vue"),
     zebraFoal: () => import('./components/ZebraFoal/ZebraFoalComponent.vue'),
 };
 
-export function loadMinigameComponent(minigameId: string): Promise<any> {
-    if (!(minigameId in minigameModuleLoaders)) {
-        throw new Error(`No minigame with id '${minigameId}'`);
+export function loadMinigameComponent(challengeType: string): Promise<any> {
+    if (!(challengeType in minigameModuleLoaders)) {
+        throw new Error(`No minigame with id '${challengeType}'`);
     }
 
-    return minigameModuleLoaders[minigameId]();
+    return minigameModuleLoaders[challengeType]();
 }

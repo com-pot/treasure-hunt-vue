@@ -17,7 +17,7 @@
     </div>
   </Navigation>
 
-  <router-view></router-view>
+  <router-view v-if="viewState === 'ready'"></router-view>
 </template>
 
 <script lang="ts">
@@ -27,9 +27,8 @@ import authStore from "@/modules/Auth/authStore";
 import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
 
 import playerStore from "@/modules/SotW/playerStore";
-import serviceContainer from "@/modules/SotW/serviceContainer";
-import SotwApi from "@/modules/SotW/api/SotwApi";
-import AudioService from "@/modules/SotW/services/AudioService";
+import {useSotwApi, useSotwAudio} from "@/modules/SotW/services"
+import {ViewState} from "@/modules/SotW/types/views";
 
 type StoryLink = {
   text: string,
@@ -44,8 +43,10 @@ export default {
   setup() {
     const $router = useRouter();
     const $route = useRoute();
-    const sotwApi = serviceContainer.getService<SotwApi>('sotwApi');
-    const sotwAudio = serviceContainer.getService<AudioService>('sotwAudio');
+    const sotwApi = useSotwApi()
+    const sotwAudio = useSotwAudio()
+
+    const viewState = ref<ViewState>('loading')
 
     sotwAudio.preloadFiles()
       .then(() => console.log("Audio ready"));
@@ -68,12 +69,23 @@ export default {
       $router.replace(storyLinks.value[0].to)
     }
 
+    sotwApi.loadPlayerProgression()
+      .then((nodes) => {
+        playerStore.progression.value.revealedNodes = nodes
+        viewState.value = 'ready'
+      })
+      .catch((err) => {
+        viewState.value = 'error'
+        throw err
+      })
+
     return {
       storyLinks,
       signOut: () => {
         authStore.actions.signOut()
         $router.push({name: 'Landing.welcome'})
       },
+      viewState,
     }
   },
 }

@@ -22,20 +22,18 @@ import {ViewState} from "../types/views";
 export default defineComponent({
   emits: ['sotwSignal'],
   props: {
-    minigameId: {type: String, required: true},
-    minigameData: {type: Object, required: true},
-    viewStateData: {type: Object},
+    challengeType: {type: String, required: true},
   },
   setup(props) {
     const viewState = ref<ViewState>('loading');
     const componentSpec = shallowRef<any>(null);
 
-    async function loadMinigame(minigameId: string) {
+    async function loadMinigame(challengeType: string) {
       viewState.value = "loading";
 
       let minigameModule;
       try {
-        minigameModule = await loadMinigameComponent(minigameId);
+        minigameModule = await loadMinigameComponent(challengeType);
       } catch (e) {
         console.error(e);
         viewState.value = "error";
@@ -46,7 +44,7 @@ export default defineComponent({
       viewState.value = "ready";
     }
 
-    watch(() => props.minigameId, loadMinigame, {immediate: true});
+    watch(() => props.challengeType, loadMinigame, {immediate: true});
 
     return {
       viewState,

@@ -1,27 +1,19 @@
-export type KnownNodeStatus = 'visited' | 'active';
-
 export interface StoryNode {
     nodeId: string,
     type: 'story',
-    nodeStatus: KnownNodeStatus,
-    storyPartId:  string,
-    minigameId?: string,
+    storyPartId: string,
+    challenge?: string,
 }
 
-export interface MinigameNode {
+export interface ChallengeNode {
     nodeId: string,
-    type: 'minigame',
-    nodeStatus: KnownNodeStatus,
-    minigameId: string,
+    storyNodeId: string,
+    type: 'challenge',
+    challengeType: string,
 }
 
-export interface UnknownNode {
-    type: 'unknown',
-    nodeStatus: 'unknown',
-}
-
-export type KnownSotwNode = StoryNode | MinigameNode;
-export type SotwNode = KnownSotwNode | UnknownNode;
+export type KnownSotwNode = StoryNode | ChallengeNode;
+export type SotwNode = KnownSotwNode;
 
 export interface PartOfStory {
     storyPartId: string,
@@ -35,14 +27,15 @@ export type PlayerProgression = {
 }
 
 export const isStoryNode = (node: SotwNode): node is StoryNode => node.type === "story"
+export const isChallengeNode = (node: SotwNode): node is ChallengeNode => node.type === "challenge"
 
 export function nodeHasName(node: SotwNode): node is KnownSotwNode {
     return 'nodeId' in node;
 }
 
 export function getNodeName(node: KnownSotwNode): string {
-    if (node.type === 'minigame') {
-        return "Minigame node: " + node.minigameId;
+    if (isChallengeNode(node)) {
+        return "Minigame node: " + node.challengeType;
     }
 
     return "Story node: " + node.storyPartId;

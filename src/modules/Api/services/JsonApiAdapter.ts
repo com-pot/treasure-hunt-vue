@@ -8,25 +8,28 @@ export default class JsonApiAdapter {
         }
     }
 
-    public get<T>(path: string, query?: SearchParams): Promise<T> {
+    public get<T=Object>(path: string, query?: SearchParams): Promise<T> {
         return this.makeRequest('get', path, undefined, query);
     }
 
-    public post<T>(path: string, data?: object, query?: SearchParams): Promise<T> {
+    public post<T=Object>(path: string, data?: object, query?: SearchParams): Promise<T> {
         return this.makeRequest('post', path, data, query);
     }
 
-    public put<T>(path: string, data?: object, query?: SearchParams): Promise<T> {
+    public put<T=Object>(path: string, data?: object, query?: SearchParams): Promise<T> {
         return this.makeRequest('put', path, data, query);
     }
 
-    public delete<T>(path: string, data?: object, query?: SearchParams): Promise<T> {
+    public delete<T=Object>(path: string, data?: object, query?: SearchParams): Promise<T> {
         return this.makeRequest('delete', path, data, query);
     }
 
     public makeRequest<T extends Object>(method: HttpMethod, path: string, data?: object, query?: SearchParams): Promise<T> {
         const requestInit: RequestInit = {
             method,
+            headers: {
+                Authorization: 'Bearer ' + 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjIyMzc2Mjk5LCJleHAiOjE2MjQ5NjgyOTl9.uhuni1DYyKysfEMtqe0rehWDPSaw9KTRxmfCy2n42kk'
+            },
         }
         if (data) {
             if (method === 'get') {
@@ -39,7 +42,8 @@ export default class JsonApiAdapter {
         const url = this.createFullUrl(path, query);
         return fetch(url, requestInit)
             .then((response) => {
-                if (response.headers.get('Content-Type') !== 'application/json') {
+                let contentType = response.headers.get('Content-Type') || ''
+                if (!contentType.includes('application/json')) {
                     throw new Error("Invalid response content type");
                 }
 

@@ -21,13 +21,13 @@
 
 <script lang="ts">
 import {computed, defineComponent} from "vue";
-import container from "../serviceContainer"
-import TextsService from "@/modules/SotW/services/TextsService";
+
 import authStore from "@/modules/Auth/authStore";
+import {useTextsService} from "@/modules/SotW/services"
 
 export default defineComponent({
   setup() {
-    const textsService = container.getService<TextsService>('textsService');
+    const textsService = useTextsService()
     const user = computed(() => authStore.state.user.value)
 
     return {

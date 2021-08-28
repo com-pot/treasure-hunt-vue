@@ -1,47 +1,43 @@
 import {computed, ref} from "vue";
 import * as SotwModel from "./model/SotwModel";
-
-import storyNodes from "./api/storyNodes"
-import minigameNodes from "./api/minigameNodes"
+import {KnownSotwNode} from "./model/SotwModel"
 
 const progression = ref<SotwModel.PlayerProgression>({
-    revealedNodes: [
-        ...storyNodes,
-        ...minigameNodes,
-    ],
+    revealedNodes: [],
 });
 export const revealedStoryNodes = computed(() => progression.value.revealedNodes.filter(SotwModel.isStoryNode))
 
-const getNode = (nodeId: string, offset: number = 0): SotwModel.KnownSotwNode | null => {
-    const foundNodeIndex = progression.value.revealedNodes
-        .findIndex((n) => 'nodeId' in n && n.nodeId === nodeId);
+const getNode = (nodeId: string, offset: number = 0, type?: KnownSotwNode["type"]): SotwModel.KnownSotwNode | null => {
+    let nodes = progression.value.revealedNodes
+    if (type) {
+        nodes = nodes.filter((n) => n.type === type)
+    }
+
+    const foundNodeIndex = nodes.findIndex((n) => 'nodeId' in n && n.nodeId === nodeId);
     const requestedNodeIndex = foundNodeIndex + offset;
 
-    if (foundNodeIndex === -1 || requestedNodeIndex < 0 || requestedNodeIndex >= progression.value.revealedNodes.length) {
+    if (foundNodeIndex === -1 || requestedNodeIndex < 0 || requestedNodeIndex >= nodes.length) {
         return null;
     }
 
-    return progression.value.revealedNodes[requestedNodeIndex];
+    return nodes[requestedNodeIndex];
 }
 
-const getNodeParent = (nodeId: string): SotwModel.KnownSotwNode | null => {
-    let parentNode = progression.value.revealedNodes.find((node) => node.minigameId === nodeId)
-    return parentNode || null
-}
 const getNodeChild = (nodeId: string): SotwModel.KnownSotwNode | null => {
-    let node = progression.value.revealedNodes.find((node) => node.nodeId === nodeId)
-    if (!node || node.type !== 'story' || !node.minigameId) {
-        return null
-    }
+    console.log(nodeId)
+    let node = progression.value.revealedNodes
+        .find((node) => {
+            console.log(node.type, SotwModel.isChallengeNode(node))
+            return SotwModel.isChallengeNode(node) && node.storyNodeId === nodeId;
+        })
 
-    return getNode(node.minigameId)
+    return node || null
 }
 
 export default {
     progression,
     revealedStoryNodes,
     getNode,
-    getNodeParent,
     getNodeChild,
 
 };

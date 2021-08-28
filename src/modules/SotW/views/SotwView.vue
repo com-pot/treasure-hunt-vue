@@ -19,7 +19,7 @@
     />
 
     <SotwViewMinigame v-else-if="viewState === 'ready' && loadedNode.node.type === 'minigame'" :key="nodeId"
-                      :minigame-id="loadedNode.node.minigameId" :minigame-data="loadedNode.nodeData"
+                      :minigame-id="loadedNode.node.minigameId" :challenge-type="loadedNode.node.challengeType"
                       @sotwSignal="handleMinigameSignal"
     />
 
@@ -43,18 +43,17 @@ import {useRouter} from "vue-router";
 
 import {ViewState} from "../types/views";
 import playerStore from "@/modules/SotW/playerStore";
-import {KnownSotwNode} from "../model/SotwModel";
+import {isChallengeNode, isStoryNode, KnownSotwNode} from "../model/SotwModel";
 import SotwViewLoading from "@/modules/SotW/views/SotwViewLoading.vue";
 
-import serviceContainer from "@/modules/SotW/serviceContainer.ts";
 import * as viewStateStore from "@/modules/SotW/viewStateStore.ts";
 import SotwViewStory from "@/modules/SotW/views/SotwViewStory.vue";
 import SotwViewMinigame from "@/modules/SotW/views/SotwViewMinigame.vue";
-import SotwApi from "@/modules/SotW/api/SotwApi.ts";
 import {SotwSignal} from "../types/game";
 import AudioService from "@/modules/SotW/services/AudioService";
 import {MinigameControls} from "@/modules/SotW/utils/minigameUtils";
 import {hashCode} from "@/utils/stringUtils";
+import {useSotwApi, useSotwAudio} from "@/modules/SotW/services"
 
 type LoadedNode = {
   node: KnownSotwNode,
@@ -70,9 +69,9 @@ export default defineComponent({
     node: {type: Object as PropType<KnownSotwNode>},
   },
   setup(props) {
-    const sotwApi = serviceContainer.getService<SotwApi>('sotwApi');
+    const sotwApi = useSotwApi()
     const $router = useRouter();
-    const sotwAudio = serviceContainer.getService<AudioService>('sotwAudio');
+    const sotwAudio = useSotwAudio()
 
     const viewState = ref<ViewState>('loading');
     const node = ref<KnownSotwNode|null>(props.node || null);
@@ -86,10 +85,10 @@ export default defineComponent({
 
     async function loadNode(node: KnownSotwNode): Promise<LoadedNode|null> {
       let nodeData = {};
-      if (node.type === "story") {
+      if (isStoryNode(node)) {
         nodeData = await sotwApi.loadStoryPart(node.storyPartId);
-      } else if (node.type === "minigame") {
-        nodeData = await sotwApi.loadMinigameData(node.minigameId);
+      } else if (isChallengeNode(node)) {
+        nodeData = await sotwApi.loadMinigameData(node.storyNodeId, node.challengeType);
       }
 
       return { node, nodeData };
@@ -105,10 +104,18 @@ export default defineComponent({
 
     // watch(viewStateData, (value) => console.log("View state data: ", value), {immediate: true})
 
+    watch(() => props.nodeId, (nodeId) => {
+      if (!nodeId) {
+        return
+      }
+      node.value = playerStore.getNode(nodeId)
+    }, {immediate: true})
+
     watch(node, async (nodeSpec) => {
       saveNodeViewStateData()
 
       if (!nodeSpec) {
+        console.warn("No nodeSpec")
         viewState.value = 'error';
         return;
       }
@@ -124,20 +131,13 @@ export default defineComponent({
       }
 
       if (!node) {
+        console.warn("No node")
         viewState.value = 'error';
         return;
       }
 
       loadedNode.value = node;
       viewState.value = "ready";
-    }, {immediate: true});
-
-    watch(() => props.nodeId, (nodeId) => {
-      if (!nodeId) {
-        return
-      }
-
-      node.value = playerStore.getNode(nodeId);
     }, {immediate: true});
 
     const nodeLinks = computed(() => {
@@ -151,13 +151,12 @@ export default defineComponent({
       const currentNode = node.value;
       if (currentNode) {
         if (currentNode.type === 'story') {
-          const next = playerStore.getNode(currentNode.nodeId, 1);
-          navItems.previous = playerStore.getNode(currentNode.nodeId, -1)
-          navItems.next = next?.type === 'story' ? next : null;
+          navItems.previous = playerStore.getNode(currentNode.nodeId, -1, 'story')
+          navItems.next = playerStore.getNode(currentNode.nodeId, 1, 'story')
 
           navItems.child = playerStore.getNodeChild(currentNode.nodeId)
         } else {
-          navItems.parent = playerStore.getNodeParent(currentNode.nodeId)
+          navItems.parent = playerStore.getNode(currentNode.storyNodeId)
         }
       }
 

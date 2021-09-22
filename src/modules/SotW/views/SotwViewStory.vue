@@ -18,8 +18,8 @@ export default defineComponent({
   setup(props) {
     const textsService = useTextsService()
 
-    const title = computed(() => props.storyData.storyTitle || 'Nadpis');
-    const preparedHtml = computed(() => textsService.replaceTerms(props.storyData.storyContent));
+    const title = computed(() => props.storyData.title || 'Nadpis');
+    const preparedHtml = computed(() => textsService.replaceTerms(props.storyData.contentHtml));
 
     return {
       title,

@@ -20,34 +20,56 @@ export default class JsonApiAdapter {
         return this.makeRequest('put', path, data, query);
     }
 
+    public patch<T=Object>(path: string, data: object, query?: SearchParams): Promise<T> {
+        return this.makeRequest('patch', path, data, query)
+    }
+
     public delete<T=Object>(path: string, data?: object, query?: SearchParams): Promise<T> {
         return this.makeRequest('delete', path, data, query);
     }
 
     public makeRequest<T extends Object>(method: HttpMethod, path: string, data?: object, query?: SearchParams): Promise<T> {
+        const headers: Record<string, string> = {}
+        if (localStorage.getItem('sotw.authToken')) {
+            headers.Authorization = 'Bearer ' + localStorage.getItem('sotw.authToken')
+        }
+
         const requestInit: RequestInit = {
             method,
-            headers: {
-                Authorization: 'Bearer ' + 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjIyMzc2Mjk5LCJleHAiOjE2MjQ5NjgyOTl9.uhuni1DYyKysfEMtqe0rehWDPSaw9KTRxmfCy2n42kk'
-            },
+            headers,
         }
         if (data) {
             if (method === 'get') {
                 console.warn("Passed data to a 'get' method. Omitting");
             } else {
                 requestInit.body = JSON.stringify(data);
+                headers['Content-Type'] = 'application/json; charset=utf-8'
             }
         }
 
         const url = this.createFullUrl(path, query);
         return fetch(url, requestInit)
-            .then((response) => {
+            .then(async (response) => {
+                const bodyStr = await response.text()
+
                 let contentType = response.headers.get('Content-Type') || ''
                 if (!contentType.includes('application/json')) {
-                    throw new Error("Invalid response content type");
+                    let error = new Error("Invalid response content type") as any;
+                    error.response = response
+                    error.body = bodyStr
+                    throw error;
                 }
 
-                return response.json() as Promise<T>;
+                const body = JSON.parse(bodyStr)
+
+                if (response.status >= 400) {
+                    const e = new Error("Erroneous response") as any
+                    e.response = response
+                    e.body = body
+                    throw e
+                }
+
+                return body as T
             });
     }
 

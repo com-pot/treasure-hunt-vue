@@ -8,6 +8,13 @@ let routes: RouteRecordRaw[] = [
     ...minigamesDebugRoutes,
     ...sotwRoutes,
     {
+        path: '/story-editor',
+        component: () => import('@/modules/StoryEditor/StoryEditor.vue'),
+        props(match) {
+            return {activePart: match.query.part}
+        },
+    },
+    {
         path: '/:path(.+)',
         component: {
             template: "<p>uh oh, '{{$route.params.path}}'</p>"

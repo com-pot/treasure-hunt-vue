@@ -6,68 +6,11 @@ const storyParts: PartOfStory[] = []
 let storyPartsPromise: Promise<void>
 
 const minigameDataLoaders: {[loader: string]: () => Promise<any>} = {
-    anagram: () => Promise.resolve({inputText: 'byl naprdlo', outputLength: 'byl naprdlo '.length,  check: '28f185a6'}),
-    password: () => Promise.resolve({prompt: "WHAT is your favourite colour?"}),
-    zebraFoal: async () => ({
-        zebras: (await import("./zebraFoalData.json")).zebras,
-        check: 'aaaa'
-    }),
     rings: async () => {
         return {
             rings: await CircularDominoApi.loadRings(),
-            check: '4fad461c',
         }
     },
-    mixMatch: () => import("./mixMatchMinigameData.json"),
-    comboPick: () => Promise.resolve({
-        check: '1995fa77',
-
-        prompts: [
-            {color: 'red'},
-            {color: 'white'},
-            {color: 'yellow'},
-            {color: 'green'},
-            {color: 'blue'},
-            {color: '#808'},
-        ],
-        options: {
-            default: [
-                {value: 'n/a', label: 'žádný význam'},
-                {value: 'shr', label: 'sdílení'},
-                {value: 'mag', label: 'magie'},
-                {value: 'int', label: 'intuice'},
-                {value: 'rlg', label: 'víra'},
-                {value: 'hea', label: 'léčení'},
-                {value: 'itl', label: 'intelekt'},
-            ],
-            war: [
-                {value: 'n/a', label: 'žádný význam'},
-                {value: 'cnf', label: 'sebevědomí'},
-                {value: 'enr', label: 'energie'},
-                {value: 'end', label: 'vytrvalost'},
-                {value: 'det', label: 'odhodlání'},
-                {value: 'sor', label: 'smutek'},
-            ],
-        },
-    }),
-    toggleMatrix: () => Promise.resolve({
-        fields: [
-            {row: 1, col: 1, label: 'A', key: 'albatros'},
-            {row: 2, col: 1, label: 'B', key: 'boar'},
-            {row: 1, col: 2, label: 'C', key: 'cicada'},
-            {row: 3, col: 1, label: 'D', key: 'deer'},
-            {row: 3, col: 3, label: 'E', key: 'emu'},
-        ],
-        check: 'boar-cicada-emu',
-    }),
-    bpc: () => Promise.resolve({
-        inputs: [
-            {name: 'bark', caption: 'Množství kůry'},
-            {name: 'petals', caption: "Počet květů"},
-            {name: 'moss', caption: "Kousků lišejníku"},
-        ],
-        check: '744b18',
-    })
 }
 
 export default class SotwApi {
@@ -83,12 +26,13 @@ export default class SotwApi {
             return storyPartsPromise
         }
 
-        return storyPartsPromise = this.apiAdapter.get("/treasure-hunt-story-parts")
+        return storyPartsPromise = this.apiAdapter.get("/treasure-hunt/story-parts")
             .then((apiModel) => {
                 const localModel = (apiModel as any[]).map((part) => ({
                     storyPartId: part.storyPartId,
-                    storyTitle: part.name,
-                    storyContent: part.content,
+                    title: part.title || part.name, // TODO: remove this backward compatibility OR clause
+                    contentHtml: part.contentHtml,
+                    contentBlocks: part.contentBlocks,
                 } as PartOfStory))
 
                 storyParts.push(...localModel)
@@ -97,7 +41,7 @@ export default class SotwApi {
 
     async loadStoryTitles() {
         await this.ensureStoryPartsLoaded()
-        return Object.fromEntries(storyParts.map((part) => [part.storyPartId, part.storyTitle]))
+        return Object.fromEntries(storyParts.map((part) => [part.storyPartId, part.title]))
     }
 
     async loadStoryPart(storyPartId: string): Promise<PartOfStory> {
@@ -108,14 +52,18 @@ export default class SotwApi {
             console.error(`Story ${storyPartId} has no content`);
             return {
                 storyPartId,
-                storyTitle: storyPartId,
-                storyContent: "Story content for " + storyPartId,
+                title: 'story part #' + storyPartId,
+                contentHtml: "Story content for " + storyPartId,
             }
 
             // return Promise.reject(`Story part '${storyPartId}' could not be found`);
         }
 
         return Promise.resolve(part);
+    }
+
+    async saveStoryPart(id: string|null, storyPart: object): Promise<any> {
+        return this.apiAdapter.put('/treasure-hunt/story-part/' + id, storyPart)
     }
 
     async loadPlayerProgression(): Promise<KnownSotwNode[]> {

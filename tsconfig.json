@@ -18,9 +18,13 @@
       "mocha",
       "chai"
     ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ],
     "paths": {
       "@/*": [
-        "src/*"
+        "src/*",
       ]
     },
     "lib": [
@@ -35,7 +39,9 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx",
+
+    "types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"

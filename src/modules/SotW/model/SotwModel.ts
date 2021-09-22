@@ -1,3 +1,5 @@
+import {OutputBlockData} from "@editorjs/editorjs"
+
 export interface StoryNode {
     nodeId: string,
     type: 'story',
@@ -17,9 +19,9 @@ export type SotwNode = KnownSotwNode;
 
 export interface PartOfStory {
     storyPartId: string,
-    storyTitle: string,
-    /** HTML structure representing the part of story */
-    storyContent: string,
+    title: string,
+    contentBlocks?: OutputBlockData[],
+    contentHtml: string,
 }
 
 export type PlayerProgression = {

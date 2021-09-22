@@ -8,8 +8,9 @@ let apiAdapterInstance: JsonApiAdapter
 export const useApiAdapter = () => {
     if (!apiAdapterInstance) {
         const host = new URL(window.location.toString())
+        host.search = ''
         host.pathname = ''
-        host.port = '1337'
+        host.port = '8000'
         apiAdapterInstance = new JsonApiAdapter(host.toString())
     }
     return apiAdapterInstance

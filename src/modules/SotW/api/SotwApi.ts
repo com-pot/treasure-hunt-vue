@@ -29,7 +29,7 @@ export default class SotwApi {
         return storyPartsPromise = this.apiAdapter.get("/treasure-hunt/story-parts")
             .then((apiModel) => {
                 const localModel = (apiModel as any[]).map((part) => ({
-                    storyPartId: part.storyPartId,
+                    slug: part.slug,
                     title: part.title || part.name, // TODO: remove this backward compatibility OR clause
                     contentHtml: part.contentHtml,
                     contentBlocks: part.contentBlocks,
@@ -39,31 +39,26 @@ export default class SotwApi {
             })
     }
 
-    async loadStoryTitles() {
-        await this.ensureStoryPartsLoaded()
-        return Object.fromEntries(storyParts.map((part) => [part.storyPartId, part.title]))
+    async listStoryParts(story: string): Promise<PartOfStory[]> {
+        return this.apiAdapter.get('/treasure-hunt/progression', {story})
     }
 
-    async loadStoryPart(storyPartId: string): Promise<PartOfStory> {
+    async loadStoryPart(slug: string): Promise<PartOfStory> {
         await this.ensureStoryPartsLoaded()
 
-        const part = storyParts.find((p) => p.storyPartId === storyPartId);
+        const part = storyParts.find((p) => p.slug === slug);
         if (!part) {
-            console.error(`Story ${storyPartId} has no content`);
+            console.error(`Story ${slug} has no content`);
             return {
-                storyPartId,
-                title: 'story part #' + storyPartId,
-                contentHtml: "Story content for " + storyPartId,
+                slug,
+                title: 'story part #' + slug,
+                contentHtml: "Story content for " + slug,
             }
 
-            // return Promise.reject(`Story part '${storyPartId}' could not be found`);
+            // return Promise.reject(`Story part '${slug}' could not be found`);
         }
 
         return Promise.resolve(part);
-    }
-
-    async saveStoryPart(id: string|null, storyPart: object): Promise<any> {
-        return this.apiAdapter.put('/treasure-hunt/story-part/' + id, storyPart)
     }
 
     async loadPlayerProgression(): Promise<KnownSotwNode[]> {

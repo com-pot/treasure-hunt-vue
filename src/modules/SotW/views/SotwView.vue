@@ -86,7 +86,7 @@ export default defineComponent({
     async function loadNode(node: KnownSotwNode): Promise<LoadedNode|null> {
       let nodeData = {};
       if (isStoryNode(node)) {
-        nodeData = await sotwApi.loadStoryPart(node.storyPartId);
+        nodeData = await sotwApi.loadStoryPart(node.slug);
       } else if (isChallengeNode(node)) {
         nodeData = await sotwApi.loadMinigameData(node.storyNodeId, node.challengeType);
       }

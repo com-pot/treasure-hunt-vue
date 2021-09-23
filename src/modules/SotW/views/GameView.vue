@@ -29,6 +29,7 @@ import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
 import playerStore from "@/modules/SotW/playerStore";
 import {useSotwApi, useSotwAudio} from "@/modules/SotW/services"
 import {ViewState} from "@/modules/SotW/types/views";
+import {PartOfStory} from "@/modules/SotW/model/SotwModel"
 
 type StoryLink = {
   text: string,
@@ -51,13 +52,19 @@ export default {
     sotwAudio.preloadFiles()
       .then(() => console.log("Audio ready"));
 
-    const storyPartTitles = ref<{[key: string]: string}>({});
-    sotwApi.loadStoryTitles().then((titles) => storyPartTitles.value = titles);
+    const storyParts = ref<Record<string, PartOfStory>>({});
+    sotwApi.listStoryParts('sotw')
+        .then((parts) => storyParts.value = Object.fromEntries(parts.map((part) => [part.slug, part])))
+        .catch((err) => {
+          $router.replace({name: 'Landing.welcome'})
+          throw err
+        })
 
     const storyLinks = computed<StoryLink[]>(() => {
       return playerStore.revealedStoryNodes.value.map((node) => {
+        const partOfStory = storyParts.value[node.slug]
         const link: StoryLink =  {
-          text: storyPartTitles.value[node.storyPartId] || 'Neznámá část příběhu - ' + node.storyPartId,
+          text: (partOfStory && partOfStory.title) || 'Neznámá část příběhu - ' + node.slug,
           to: {name: 'sotw.NodeView', params: {nodeId: node.nodeId}},
         }
 

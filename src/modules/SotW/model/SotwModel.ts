@@ -3,7 +3,7 @@ import {OutputBlockData} from "@editorjs/editorjs"
 export interface StoryNode {
     nodeId: string,
     type: 'story',
-    storyPartId: string,
+    slug: string,
     challenge?: string,
 }
 
@@ -18,10 +18,11 @@ export type KnownSotwNode = StoryNode | ChallengeNode;
 export type SotwNode = KnownSotwNode;
 
 export interface PartOfStory {
-    storyPartId: string,
+    slug: string,
     title: string,
     contentBlocks?: OutputBlockData[],
     contentHtml: string,
+    challenge?: string,
 }
 
 export type PlayerProgression = {
@@ -40,5 +41,5 @@ export function getNodeName(node: KnownSotwNode): string {
         return "Minigame node: " + node.challengeType;
     }
 
-    return "Story node: " + node.storyPartId;
+    return "Story node: " + node.slug;
 }

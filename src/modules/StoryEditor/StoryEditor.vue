@@ -7,7 +7,8 @@
         <div class="part" :class="id === activePart && 'active'" v-for="[id, part] in storyParts" :key="id"
              @click="selectPart(id)"
         >
-          <span class="name">{{ part }}</span>
+          <div class="name">{{ part }}</div>
+          <small>/{{ id }}</small>
         </div>
       </div>
       </template>
@@ -17,19 +18,33 @@
       <div class="controls">
         <button class="btn btn-vivid" @click="savePart">Uložit</button>
         <button class="btn" :class="viewMode === 'preview' ? 'btn-success' : 'btn-vivid'" @click="toggleViewMode">Náhled</button>
+        <span>Stav: {{ viewState }}</span>
       </div>
 
-      <div class="story-meta">
+      <div class="story-meta" style="margin-top: 0.5rem">
         <div class="pair">
           <label for="title">Název části</label>
-          <input type="text" v-model="activePartData.title">
+          <input type="text" id="title" v-model="activePartData.title">
+        </div>
+        <div class="pair">
+          <label for="slug">Hezké url</label>
+          <input type="text" id="slug" v-model="activePartData.slug"/>
+        </div>
+        <div class="pair">
+          <label for="challenge">Výzva</label>
+          <TypefulInput type="select" v-model="activePartData.challenge"
+                        id="challenge"
+
+                        :options="challenges"
+                        value-prop="id" track-by="id"
+                        placeholder="Bez výzvy"
+          >
+            <template v-slot:singlelabel="{value}">{{ value.name }} - ({{ value.id }})</template>
+            <template v-slot:option="{option}">{{ option.name }} - ({{ option.id }})</template>
+          </TypefulInput>
         </div>
       </div>
     </form>
-
-
-
-
 
     <div class="content" :class="'view-mode-' + viewMode">
       <div class="editor" ref="elEditor"></div>
@@ -48,32 +63,49 @@ import Header from "@editorjs/header"
 import EditorColorPlugin from "editorjs-text-color-plugin";
 import {debounce} from "@/utils/timingUtils";
 
-import {useSotwApi} from "@/modules/SotW/services";
+import {useApiAdapter} from "@/modules/SotW/services";
 import {useRouter} from "vue-router";
 import {PartOfStory} from "@/modules/SotW/model/SotwModel";
 import editorJsToHtml from "./editorJsToHtml"
+import TypefulInput from "@/modules/Typeful/components/TypefulInput"
 
 
 export default defineComponent({
+  components: {
+    TypefulInput,
+  },
+
   props: {
     activePart: {type: String},
   },
+
   setup(props) {
-    const api = useSotwApi()
+    const api = useApiAdapter()
     const router = useRouter()
 
     const elEditor = ref<null | HTMLElement>(null)
     let editorJs: EditorJS
+    const viewState = ref('idle')
 
     const storyParts = ref<[string, string][]|null>(null)
+    const challenges = ref<any[]>([])
+
     const activePartData = ref<PartOfStory | null>(null)
     const previewHtml = ref('')
     const viewMode = ref('editor')
 
-    api.loadStoryTitles()
-        .then((parts) => {
-          storyParts.value = Object.entries(parts)
-        })
+    const reloadStoryParts = () => {
+      api.get<PartOfStory[]>('treasure-hunt/story-parts')
+          .then((parts) => {
+            storyParts.value = parts.map((part) => [part.slug, part.title])
+          })
+    }
+    reloadStoryParts()
+
+    api.get<any[]>('treasure-hunt/challenges')
+      .then((result) => {
+        challenges.value = result
+      })
 
     function selectPart(part: string) {
       router.push({...router.currentRoute.value, query: {part}})
@@ -85,7 +117,7 @@ export default defineComponent({
     const renderPreview = debounce(() => {
       editorJs.save()
           .then((data) => previewHtml.value = renderBlocks(data.blocks))
-    }, 500)
+    }, 750)
 
     async function savePart() {
       const data = activePartData.value ? {...activePartData.value} : null
@@ -96,9 +128,19 @@ export default defineComponent({
       data.contentBlocks = (await editorJs.save()).blocks
       data.contentHtml = renderBlocks(data.contentBlocks)
 
-      const result = await api.saveStoryPart(props.activePart!, data)
-
-      console.log(result)
+      viewState.value = 'saving'
+      try {
+        await api.put('/treasure-hunt/story-part/' + props.activePart!, data)
+        viewState.value = 'ok'
+        if (props.activePart !== data.slug) {
+          const route = router.currentRoute.value
+          reloadStoryParts()
+          router.replace({...route, query: {...route.query, part: data.slug}})
+        }
+      } catch (e) {
+        viewState.value = 'error'
+        throw e
+      }
     }
     function toggleViewMode() {
       viewMode.value = viewMode.value === 'editor' ? 'preview' : 'editor'
@@ -110,8 +152,10 @@ export default defineComponent({
         return
       }
 
-      api.loadStoryPart(part)
+      viewState.value = 'loading'
+      api.get<PartOfStory>('treasure-hunt/story-part/' + part)
           .then((partData) => activePartData.value = partData)
+          .finally(() => viewState.value = 'idle')
     }, {immediate: true})
 
     const initPartDataBinding = () => {
@@ -123,23 +167,22 @@ export default defineComponent({
           return
         }
 
+        console.log(data.slug)
         let blocks = data.contentBlocks
         if (!blocks || !blocks.length) {
-          debugger
+          console.warn("Parsing content into blocks from", data)
+          let content: string = data.contentHtml || (data as any).content
           blocks = [
             {
               type: 'paragraph',
               data: {
-                text: data.contentHtml.replaceAll('--glow', 'background-color'),
+                text: content.replaceAll('--glow', 'background-color'),
               },
             }
           ]
         }
 
-        blocks.forEach((block) => {
-          console.log("insert block", block.type, block.data)
-          editorJs.blocks.insert(block.type, block.data)
-        })
+        blocks.forEach((block) => editorJs.blocks.insert(block.type, block.data))
 
         editorJs.blocks.delete(0) // splice first blank block inserted by clear()
       }, {immediate: true})
@@ -183,8 +226,10 @@ export default defineComponent({
     })
 
     return {
+      viewState,
       elEditor,
       storyParts,
+      challenges,
       activePartData,
       previewHtml,
       viewMode,

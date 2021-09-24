@@ -10,7 +10,17 @@ const gameRoutes: RouteRecordRaw[] = [
         name: 'sotw.NodeView',
         path: 'part/:nodeId',
         component: SotwView,
-        props: true,
+        props(match) {
+            return {nodeId: match.params.nodeId, mode: 'story'}
+        },
+    },
+    {
+        name: 'sotw.NodeView.challenge',
+        path: 'part/:nodeId/challenge',
+        component: SotwView,
+        props(match) {
+            return {nodeId: match.params.nodeId, mode: 'challenge'}
+        },
     },
 ];
 

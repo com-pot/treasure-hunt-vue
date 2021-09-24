@@ -1,25 +1,25 @@
 <template>
   <div class="sotw-view">
 
-    <div class="node-navigation node-navigation-story" v-if="loadedNode && loadedNode.node.type === 'story'">
+    <div class="node-navigation node-navigation-story" v-if="loadedNode && mode === 'story'">
       <nav>
-        <router-link v-if="nodeLinks.previous" :to="{name: 'sotw.NodeView', params: {nodeId: nodeLinks.previous.nodeId}}">&lt;</router-link>
+        <router-link v-if="nodeLinks.previous" :to="nodeLinks.previous">&lt;</router-link>
       </nav>
       <nav>
-        <router-link v-if="nodeLinks.next" :to="{name: 'sotw.NodeView', params: {nodeId: nodeLinks.next.nodeId}}">&gt;</router-link>
+        <router-link v-if="nodeLinks.next" :to="nodeLinks.next">&gt;</router-link>
         <span v-else-if="!nodeLinks.parent">{{direction}}</span>
       </nav>
     </div>
 
     <SotwViewLoading v-if="viewState === 'loading'"></SotwViewLoading>
 
-    <SotwViewStory v-else-if="viewState === 'ready' && loadedNode.node.type === 'story'" :key="nodeId"
+    <SotwViewStory v-else-if="viewState === 'ready' && mode === 'story'" :key="nodeId + '-story'"
                    :story-data="loadedNode.nodeData"
                    @sotwSignal="handleSignal"
     />
 
-    <SotwViewMinigame v-else-if="viewState === 'ready' && loadedNode.node.type === 'minigame'" :key="nodeId"
-                      :minigame-id="loadedNode.node.minigameId" :challenge-type="loadedNode.node.challengeType"
+    <SotwViewMinigame v-else-if="viewState === 'ready' && mode === 'challenge'" :key="nodeId + '-challenge'"
+                      :challenge-type="loadedNode.nodeData.type"
                       @sotwSignal="handleMinigameSignal"
     />
 
@@ -30,34 +30,31 @@
 
     <div class="node-navigation node-navigation-detail">
       <nav>
-        <router-link v-if="nodeLinks.child" :to="{name: 'sotw.NodeView', params: {nodeId: nodeLinks.child.nodeId}}">Detail</router-link>
-        <router-link v-if="nodeLinks.parent" :to="{name: 'sotw.NodeView', params: {nodeId: nodeLinks.parent.nodeId}}">Pryč</router-link>
+        <router-link v-if="nodeLinks.child" :to="nodeLinks.child">Detail</router-link>
+        <router-link v-if="nodeLinks.parent" :to="nodeLinks.parent">Pryč</router-link>
       </nav>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, h, PropType, provide, reactive, ref, watch} from "vue";
-import {useRouter} from "vue-router";
+import {computed, defineComponent, onBeforeUnmount, onMounted, provide, reactive, ref, watch} from "vue";
+import {RouteLocationRaw, useRouter} from "vue-router";
 
 import {ViewState} from "../types/views";
-import playerStore from "@/modules/SotW/playerStore";
-import {isChallengeNode, isStoryNode, KnownSotwNode} from "../model/SotwModel";
 import SotwViewLoading from "@/modules/SotW/views/SotwViewLoading.vue";
 
 import * as viewStateStore from "@/modules/SotW/viewStateStore.ts";
 import SotwViewStory from "@/modules/SotW/views/SotwViewStory.vue";
 import SotwViewMinigame from "@/modules/SotW/views/SotwViewMinigame.vue";
 import {SotwSignal} from "../types/game";
-import AudioService from "@/modules/SotW/services/AudioService";
 import {MinigameControls} from "@/modules/SotW/utils/minigameUtils";
 import {hashCode} from "@/utils/stringUtils";
 import {useSotwApi, useSotwAudio} from "@/modules/SotW/services"
 
 type LoadedNode = {
-  node: KnownSotwNode,
-  nodeData: {[field: string]: any},
+  storeKey: string,
+  nodeData: Record<string, any>,
 }
 
 type GenericSignalHandler = ((...args: any) => void);
@@ -65,8 +62,8 @@ type GenericSignalHandler = ((...args: any) => void);
 export default defineComponent({
   components: {SotwViewMinigame, SotwViewStory, SotwViewLoading},
   props: {
+    mode: {type: String, required: true},
     nodeId: {type: String},
-    node: {type: Object as PropType<KnownSotwNode>},
   },
   setup(props) {
     const sotwApi = useSotwApi()
@@ -74,8 +71,9 @@ export default defineComponent({
     const sotwAudio = useSotwAudio()
 
     const viewState = ref<ViewState>('loading');
-    const node = ref<KnownSotwNode|null>(props.node || null);
+
     const loadedNode = ref<LoadedNode|null>(null);
+
     const viewData = computed(() => loadedNode.value?.nodeData)
     provide('sotw.viewData', viewData)
 
@@ -83,48 +81,46 @@ export default defineComponent({
     provide('sotw.viewStateData', viewStateData)
 
 
-    async function loadNode(node: KnownSotwNode): Promise<LoadedNode|null> {
+    async function loadNode(mode: string, slug: string): Promise<LoadedNode> {
       let nodeData = {};
-      if (isStoryNode(node)) {
-        nodeData = await sotwApi.loadStoryPart(node.slug);
-      } else if (isChallengeNode(node)) {
-        nodeData = await sotwApi.loadMinigameData(node.storyNodeId, node.challengeType);
+      if (mode === 'story') {
+        nodeData = await sotwApi.loadStoryPart(slug);
+      } else if (mode === 'challenge') {
+        nodeData = await sotwApi.loadMinigameData(slug);
+      } else {
+        console.warn("Unknown node mode", mode)
       }
 
-      return { node, nodeData };
+      return { storeKey: slug + '.' + mode, nodeData };
     }
-    function loadNodeViewStateData(node: KnownSotwNode): void {
-      viewStateData.value = viewStateStore.actions.loadState(node.nodeId)
+    function loadNodeViewStateData(node: LoadedNode): void {
+      viewStateData.value = viewStateStore.actions.loadState(node.storeKey)
     }
     function saveNodeViewStateData(): void {
       if (loadedNode.value && viewStateData.value) {
-        viewStateStore.actions.saveState(loadedNode.value.node.nodeId, viewStateData.value)
+        viewStateStore.actions.saveState(loadedNode.value.storeKey, viewStateData.value)
       }
     }
 
     // watch(viewStateData, (value) => console.log("View state data: ", value), {immediate: true})
 
-    watch(() => props.nodeId, (nodeId) => {
-      if (!nodeId) {
-        return
-      }
-      node.value = playerStore.getNode(nodeId)
-    }, {immediate: true})
-
-    watch(node, async (nodeSpec) => {
+    watch(() => [props.nodeId, props.mode], async ([nodeId]) => {
       saveNodeViewStateData()
 
-      if (!nodeSpec) {
-        console.warn("No nodeSpec")
+      if (!nodeId) {
+        console.warn("No nodeId")
         viewState.value = 'error';
         return;
       }
 
       viewState.value = 'loading';
+      loadedNode.value = null
+
       let node: LoadedNode|null;
       try {
-        node = await loadNode(nodeSpec);
-        loadNodeViewStateData(nodeSpec);
+        node = await loadNode(props.mode, nodeId);
+        console.log(node)
+        loadNodeViewStateData(node);
       } catch (error) {
         console.error(error);
         node = null;
@@ -141,23 +137,20 @@ export default defineComponent({
     }, {immediate: true});
 
     const nodeLinks = computed(() => {
-      const navItems: {[direction: string]: KnownSotwNode|null} = {
-        previous: null,
-        next: null,
-        parent: null,
-        child: null,
-      };
+      const navItems: Record<string, RouteLocationRaw> = {};
 
-      const currentNode = node.value;
-      if (currentNode) {
-        if (currentNode.type === 'story') {
-          navItems.previous = playerStore.getNode(currentNode.nodeId, -1, 'story')
-          navItems.next = playerStore.getNode(currentNode.nodeId, 1, 'story')
-
-          navItems.child = playerStore.getNodeChild(currentNode.nodeId)
-        } else {
-          navItems.parent = playerStore.getNode(currentNode.storyNodeId)
+      const ln = loadedNode.value
+      if (ln) {
+        if (props.mode === 'challenge') {
+          navItems.parent = {name: 'sotw.NodeView', params: {nodeId: props.nodeId!}}
         }
+        if (props.mode === 'story' && ln.nodeData.challenge) {
+          navItems.child = {name: 'sotw.NodeView.challenge', params: {nodeId: props.nodeId!}}
+        }
+
+        // todo: reimplement navigation
+        // {name: 'sotw.NodeView', params: {nodeId: nodeLinks.next.nodeId}}
+
       }
 
       return navItems
@@ -192,17 +185,11 @@ export default defineComponent({
     }
 
     const minigameControls: MinigameControls = reactive({
-      checkSolution(value) {
-        const nodeData = loadedNode.value?.nodeData
-        const check = nodeData?.check
+      async checkSolution(value: any) {
+        const result = await sotwApi.checkAnswer(props.nodeId!, {checkSum: value})
+        console.log(result)
+        let success = result.status === 'new'
 
-        let success
-        if (!check) {
-          console.warn("No check in loadedNode.nodeData", value)
-          success = false
-        } else {
-          success = value === check
-        }
 
         minigameControls.result = success ? 'success' : 'error'
         sotwAudio.play(success ? 'minigameOk' : 'minigameKo')
@@ -221,6 +208,13 @@ export default defineComponent({
       }
     }
 
+    onMounted(() => {
+      window.addEventListener('beforeunload', saveNodeViewStateData)
+    })
+    onBeforeUnmount(() => {
+      window.removeEventListener('beforeunload', saveNodeViewStateData)
+    })
+
     return {
       viewState,
       viewStateData,
@@ -231,12 +225,6 @@ export default defineComponent({
       saveNodeViewStateData,
     };
   },
-  mounted() {
-    window.addEventListener('beforeunload', this.saveNodeViewStateData)
-  },
-  beforeUnmount() {
-    window.removeEventListener('beforeunload', this.saveNodeViewStateData)
-  }
 });
 </script>
 

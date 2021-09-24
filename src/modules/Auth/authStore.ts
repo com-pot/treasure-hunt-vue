@@ -1,29 +1,33 @@
 import {ref} from "vue";
+import JsonApiAdapter from "@/modules/Api/services/JsonApiAdapter"
 
 type UserData = {
     login: string,
+    token: string,
 }
 
 const state = {
     user: ref<UserData | null>(null),
-    authToken: ref<string | null>(null),
 }
 
+let apiAdapter: JsonApiAdapter
 const actions = {
-    signUp(login: string, password: string) {
-        return Promise.resolve({login} as UserData)
-            // return serviceContainer.getService<JsonApiAdapter>('apiAdapter')
-            //     .post<UserData>('/user', {login, password})
-            .then((userData) => {
-                actions._setUserData(userData, 'yes')
-            })
+    bindApiAdapter(api: JsonApiAdapter) {
+        if (apiAdapter) {
+            throw new Error('adapter-already-bound')
+        }
+        apiAdapter = api
     },
-    signIn(login: string, password: string) {
-        return Promise.resolve({login} as UserData)
-            // return serviceContainer.getService<JsonApiAdapter>('apiAdapter')
-            //     .post<UserData>('/user/login', {login, password})
+
+    signUp(login: string, pass: string) {
+        return apiAdapter.post<UserData>('/auth/account', {login, pass})
+            .then(() => (actions.signIn(login, pass)))
+    },
+    signIn(login: string, pass: string) {
+        return apiAdapter.post<UserData>('/auth/auth-token', {login, pass})
             .then((userData) => {
-                actions._setUserData(userData, 'good')
+                actions._setUserData({login, token: userData.token})
+                return userData
             })
     },
     signOut() {
@@ -35,7 +39,7 @@ const actions = {
         if (!authDataSerialized || !(authData = JSON.parse(authDataSerialized))) {
             return
         }
-        const {userData, authToken} = authData
+        const {userData} = authData
 
         if (!userData || !userData.login) {
             console.warn("Invalid values");
@@ -44,18 +48,16 @@ const actions = {
 
         state.user.value = {
             login: userData.login,
+            token: userData.token,
         }
-        state.authToken.value = authToken
     },
-    _setUserData(userData: UserData, authToken: string) {
+    _setUserData(userData: UserData) {
         state.user.value = userData
-        state.authToken.value = authToken
-        const authDataSerialized = JSON.stringify({userData, authToken});
+        const authDataSerialized = JSON.stringify({userData});
         localStorage.setItem('authData', authDataSerialized)
     },
     _clearUserData() {
         state.user.value = null;
-        state.authToken.value = null;
         localStorage.removeItem('authData');
     }
 };

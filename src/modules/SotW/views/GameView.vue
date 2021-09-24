@@ -26,7 +26,6 @@ import Navigation from "@/modules/Layout/components/Navigation.vue";
 import authStore from "@/modules/Auth/authStore";
 import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
 
-import playerStore from "@/modules/SotW/playerStore";
 import {useSotwApi, useSotwAudio} from "@/modules/SotW/services"
 import {ViewState} from "@/modules/SotW/types/views";
 import {PartOfStory} from "@/modules/SotW/model/SotwModel"
@@ -52,39 +51,32 @@ export default {
     sotwAudio.preloadFiles()
       .then(() => console.log("Audio ready"));
 
-    const storyParts = ref<Record<string, PartOfStory>>({});
-    sotwApi.listStoryParts('sotw')
-        .then((parts) => storyParts.value = Object.fromEntries(parts.map((part) => [part.slug, part])))
-        .catch((err) => {
-          $router.replace({name: 'Landing.welcome'})
-          throw err
-        })
+    const storyParts = ref<PartOfStory[]>([]);
 
     const storyLinks = computed<StoryLink[]>(() => {
-      return playerStore.revealedStoryNodes.value.map((node) => {
-        const partOfStory = storyParts.value[node.slug]
+      return storyParts.value.map((partOfStory) => {
         const link: StoryLink =  {
-          text: (partOfStory && partOfStory.title) || 'Neznámá část příběhu - ' + node.slug,
-          to: {name: 'sotw.NodeView', params: {nodeId: node.nodeId}},
+          text: partOfStory.title,
+          to: {name: 'sotw.NodeView', params: {nodeId: partOfStory.slug}},
         }
 
         return link
       })
     });
 
-    if ($route.name === 'sotw.Game') {
-      $router.replace(storyLinks.value[0].to)
-    }
-
-    sotwApi.loadPlayerProgression()
-      .then((nodes) => {
-        playerStore.progression.value.revealedNodes = nodes
-        viewState.value = 'ready'
-      })
-      .catch((err) => {
-        viewState.value = 'error'
-        throw err
-      })
+    sotwApi.listStoryParts('sotw')
+        .then((parts) => storyParts.value = parts)
+        .then(() => {
+          viewState.value = 'ready'
+          if ($route.name === 'sotw.Game') {
+            $router.replace(storyLinks.value[0].to)
+          }
+        })
+        .catch((err) => {
+          viewState.value = 'error'
+          $router.replace({name: 'Landing.welcome'})
+          throw err
+        })
 
     return {
       storyLinks,

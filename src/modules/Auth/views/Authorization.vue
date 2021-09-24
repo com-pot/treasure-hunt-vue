@@ -51,7 +51,7 @@ export default defineComponent({
     return {
       currentForm,
       submitSignIn: (authValues: { login: string, password: string }) => {
-        const loginPromise = currentForm.value!.spec.id === 'TZ-017-U'
+        const loginPromise = currentForm.value!.spec.id === 'TZ-017-N'
             ? authStore.actions.signIn(authValues.login, authValues.password)
             : authStore.actions.signUp(authValues.login, authValues.password);
 

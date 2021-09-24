@@ -2,10 +2,11 @@ type HttpMethod = 'get' | 'post' | 'put' | 'delete' | string;
 type SearchParams = { [name: string]: string|number };
 
 export default class JsonApiAdapter {
-    constructor(private readonly baseUrl: string) {
+    constructor(private readonly baseUrl: string, private readonly store: any) {
         if (!this.baseUrl.endsWith('/')) {
             this.baseUrl += '/';
         }
+        store.actions.bindApiAdapter(this)
     }
 
     public get<T=Object>(path: string, query?: SearchParams): Promise<T> {
@@ -30,8 +31,10 @@ export default class JsonApiAdapter {
 
     public makeRequest<T extends Object>(method: HttpMethod, path: string, data?: object, query?: SearchParams): Promise<T> {
         const headers: Record<string, string> = {}
-        if (localStorage.getItem('sotw.authToken')) {
-            headers.Authorization = 'Bearer ' + localStorage.getItem('sotw.authToken')
+        const user = this.store.state.user.value
+        const token = user && user.token
+        if (token) {
+            headers.Authorization = 'Bearer ' + token
         }
 
         const requestInit: RequestInit = {

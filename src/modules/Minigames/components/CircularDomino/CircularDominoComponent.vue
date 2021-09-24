@@ -90,7 +90,14 @@ export default defineComponent({
 
     const board = useAngularBoard(minigameDataReactive, minigameStateReactive, ui)
     const fps = route.query.fps ? Number(route.query.fps) : 60
-    const gameLoop = useGameLoop<[CanvasRenderingContext2D, CanvasRenderingContext2D]>(board.update, board.draw.frame, fps)
+    const render = () => {
+      if (!g) {
+        console.warn("Could not get graphics context")
+      } else {
+        board.draw.frame(g)
+      }
+    }
+    const gameLoop = useGameLoop(board.update, render, fps)
 
     const updateClientSize = () => {
       ui.clientSize = canvas.value!.clientWidth
@@ -131,6 +138,7 @@ export default defineComponent({
       canvas.addEventListener("mouseup", () => board.drag.end())
     }
 
+    let g: [CanvasRenderingContext2D, CanvasRenderingContext2D]
     onMounted(() => {
       // let speed = (0.05 + Math.random() * 0.05) * Math.PI
       // let direction = Math.sign(Math.random() - 0.5) * 2
@@ -141,7 +149,7 @@ export default defineComponent({
       cFg.width = cBg.width = ui.renderSize
       cFg.height = cBg.height = ui.renderSize
 
-      gameLoop.g = [cBg.getContext('2d')!, cFg.getContext('2d')!]
+      g = [cBg.getContext('2d')!, cFg.getContext('2d')!]
 
       board.resources.whenReady()
           .then(() => gameLoop.start())

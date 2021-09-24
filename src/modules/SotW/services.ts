@@ -3,16 +3,10 @@ import TextsService from "@/modules/SotW/services/TextsService"
 import JsonApiAdapter from "@/modules/Api/services/JsonApiAdapter"
 import SotwApi from "@/modules/SotW/api/SotwApi";
 import AudioService from "@/modules/SotW/services/AudioService";
+import authStore from "@/modules/Auth/authStore"
 
-let apiAdapterInstance: JsonApiAdapter
+let apiAdapterInstance= new JsonApiAdapter(process.env.VUE_APP_API_BASE, authStore)
 export const useApiAdapter = () => {
-    if (!apiAdapterInstance) {
-        const host = new URL(window.location.toString())
-        host.search = ''
-        host.pathname = ''
-        host.port = '8000'
-        apiAdapterInstance = new JsonApiAdapter(host.toString())
-    }
     return apiAdapterInstance
 }
 let sotwApiInstance: SotwApi

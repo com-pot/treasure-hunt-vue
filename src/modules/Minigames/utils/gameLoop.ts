@@ -1,7 +1,6 @@
 type UpdateFn = (t: number, dt: number) => boolean
-type RenderFn<G> = (g: G) => void
 
-export function useGameLoop<G = CanvasRenderingContext2D>(update: UpdateFn, render: RenderFn<G>, targetTicksPerSecond: number) {
+export function useGameLoop(update: UpdateFn, render: () => void, targetTicksPerSecond: number) {
     const tickTimeout = Math.round(1000 / targetTicksPerSecond)
     let animationFrameRequest: number | undefined = undefined
 
@@ -16,11 +15,7 @@ export function useGameLoop<G = CanvasRenderingContext2D>(update: UpdateFn, rend
         animationFrameRequest = window.requestAnimationFrame(consumeRequestedAnimationFrame)
     }
     const consumeRequestedAnimationFrame = () => {
-        if (!gameLoop.g) {
-            console.warn("Could not get graphics context")
-        } else {
-            render(gameLoop.g)
-        }
+        render()
         animationFrameRequest = 0
     }
 
@@ -36,11 +31,13 @@ export function useGameLoop<G = CanvasRenderingContext2D>(update: UpdateFn, rend
     }
 
     const gameLoop = {
-        g: null as G | null,
-
         redrawInterval: null as number | null,
 
         start() {
+            if (gameLoop.redrawInterval !== null) {
+                console.warn("Attempted to start gameLoop while it's already running")
+                return
+            }
             t = Date.now()
             gameLoop.redrawInterval = setInterval(tick, tickTimeout)
             consumeRequestedAnimationFrame()

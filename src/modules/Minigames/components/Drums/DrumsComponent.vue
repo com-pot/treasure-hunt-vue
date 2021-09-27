@@ -1,5 +1,5 @@
 <template>
-  <p v-if="!loaded">Zde budou bubny</p>
+  <p v-if="!loaded">Probíhá příprava obřadu</p>
 
   <div v-else class="mg-drums" :style="'--strike-duration: ' + strikeAnimationDuration + 'ms'">
 
@@ -9,7 +9,7 @@
     </div>
 
     <div class="guide" v-else>
-      All done!
+      Hotovo
     </div>
 
     <div class="drums" v-if="loaded">
@@ -23,14 +23,18 @@
 
 <script lang="ts">
 import * as Tone from "tone";
-import {computed, defineComponent, ref} from "vue";
+import {computed, defineComponent, onBeforeUnmount, onMounted, ref} from "vue";
+import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
+import {resolveAfter} from "@/utils/promiseUtils"
 
 type Drum = {
   note: string,
 };
 
 export default defineComponent({
-  setup(props, {emit}) {
+  setup() {
+    const controls = useMinigameControls()
+
     const drums = ref([
       {note: 'C4'},
       {note: 'G4'},
@@ -67,33 +71,28 @@ export default defineComponent({
       setTimeout(() => strikes.value[i] = false, strikeAnimationDuration)
     }
 
-    function hitDrum(i: number, event?: MouseEvent, when?: number) {
-      const drum = drums.value[i]
-
-      let volume = 0
-      if (event && event.offsetY) {
+    const getVolume = (event?: MouseEvent) => {
+      const hitHeight = event && event.offsetY
+      if (event && typeof hitHeight === "number") {
         const target = event.target as HTMLButtonElement
-        const heightPct = (target.clientHeight - event.offsetY) / target.clientHeight
-        volume = (heightPct - 0.5) * 6
-      } else {
-        volume = (Math.random() - 0.5) * 6
+        const heightPct = (target.clientHeight - hitHeight) / target.clientHeight
+        return (heightPct - 0.5) * 6
       }
 
-      drumAdjuster.set({
-        volume,
-      });
-      synth.triggerAttackRelease(drum.note, "8n", when);
-      if (!when) {
-        animateStrike(i)
-      } else {
-        const timeout = synth.toSeconds(when) - synth.now()
-        setTimeout(() => animateStrike(i), timeout * 1000)
-      }
+      return (Math.random() - 0.5) * 6
+    }
 
-      if (!event) {
-        return;
-      }
+    function hitDrum(i: number, event: MouseEvent) {
+      const drum = drums.value[i]
+      drumAdjuster.set({volume: getVolume(event)})
 
+      synth.triggerAttackRelease(drum.note, "8n");
+      animateStrike(i)
+
+      progressSequence(drum.note)
+    }
+
+    function progressSequence(note: string) {
       let pattern = currentPattern.value;
       if (!pattern) {
         return
@@ -102,34 +101,62 @@ export default defineComponent({
       let nextNoteIndex = pattern[currentAttemptStep.value];
       let nextNote = drums.value[nextNoteIndex].note;
 
-      if (nextNote && drum.note === nextNote) {
+      if (nextNote && note === nextNote) {
         currentAttemptStep.value++;
         if (currentAttemptStep.value === currentPattern.value.length) {
           correctPatterns.value++;
           currentAttemptStep.value = 0;
+          playSamplePattern(750)
         }
+
         if (correctPatterns.value === patterns.value.length) {
-          emit('minigameSignal', {
-            type: 'success',
-          });
+          controls.checkSolution(controls.serializeSolution('' + (69713 + correctPatterns.value * 48213 )))
         }
+
       } else {
         currentAttemptStep.value = 0;
       }
     }
 
-    let isPlaying = ref(false);
+    let isPlaying = ref(true);
 
-    async function playSamplePattern() {
-      let now = Tone.now();
+    async function playSamplePattern(after?: number) {
+      if (!currentPattern.value) {
+        return
+      }
 
       isPlaying.value = true;
-      currentPattern.value.forEach((drumIndex, i) => {
-        hitDrum(drumIndex, undefined, now + i * 0.66);
-      });
+      if (after) {
+        await resolveAfter(after)
+      }
+
+      const notes = currentPattern.value.map((drumIndex) => drums.value[drumIndex].note)
+      let i = 0
+
+      await new Promise((res) => {
+        const sequence = new Tone.Sequence(function (time, note) {
+          animateStrike(currentPattern.value[i])
+          synth.triggerAttackRelease(note, "8n")
+          i++
+          if (i === sequence.length) {
+            sequence.stop()
+            res()
+          }
+        }, notes)
+        sequence.start()
+      })
 
       isPlaying.value = false;
     }
+
+    onMounted(() => {
+      Tone.Transport.start()
+      playSamplePattern(750)
+    })
+
+    onBeforeUnmount(() => {
+      Tone.Transport.stop()
+    })
 
     return {
       drums,

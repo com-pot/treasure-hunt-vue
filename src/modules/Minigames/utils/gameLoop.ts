@@ -1,49 +1,45 @@
-type UpdateFn = (t: number, dt: number) => boolean
-type RenderFn<G> = (g: G) => void
+type UpdateFn = (t: number, dt: number) => any
+type RenderFn = () => void
 
-export function useGameLoop<G = CanvasRenderingContext2D>(update: UpdateFn, render: RenderFn<G>, targetTicksPerSecond: number) {
+export function useGameLoop(targetTicksPerSecond: number, update: UpdateFn, render?: RenderFn) {
     const tickTimeout = Math.round(1000 / targetTicksPerSecond)
     let animationFrameRequest: number | undefined = undefined
 
     let t: number
 
-    const enqueueRender = () => {
+    const tick = () => {
+        let dt = Date.now() - t
+        t = t + dt
+
+        const shouldRender = update(t, dt)
+        if (!shouldRender || !render) {
+            return
+        }
+
         if (animationFrameRequest) {
             console.log("Render frame skipped")
             return
         }
 
-        animationFrameRequest = window.requestAnimationFrame(consumeRequestedAnimationFrame)
-    }
-    const consumeRequestedAnimationFrame = () => {
-        if (!gameLoop.g) {
-            console.warn("Could not get graphics context")
-        } else {
-            render(gameLoop.g)
-        }
-        animationFrameRequest = 0
-    }
+        animationFrameRequest = window.requestAnimationFrame(() => {
+            render()
+            animationFrameRequest = 0
+        })
 
-    const tick = () => {
-        let dt = Date.now() - t
-        t = t + dt
-
-        if (!update(t, dt)) {
-            return
-        }
-
-        enqueueRender()
     }
 
     const gameLoop = {
-        g: null as G | null,
-
         redrawInterval: null as number | null,
 
         start() {
+            if (gameLoop.redrawInterval !== null) {
+                console.warn("Attempted to start gameLoop while it's already running")
+                return
+            }
             t = Date.now()
             gameLoop.redrawInterval = setInterval(tick, tickTimeout)
-            consumeRequestedAnimationFrame()
+            tick()
+            render && render()
         },
         stop() {
             if (gameLoop.redrawInterval) {

@@ -3,8 +3,6 @@
     <canvas ref="canvas" class="layer-bg"/>
     <canvas ref="canvasFg" class="layer-fg"/>
 
-
-    <MinigameControls :check-solution="checkSolution"/>
     <div class="debug-view" v-if="ui.debug">
       Debug yo
       <ul v-if="board.drag.iRing !== -1">
@@ -21,23 +19,20 @@
 
 <script lang="ts">
 
-import {defineComponent, onBeforeUnmount, onMounted, reactive, ref} from "vue"
+import {computed, defineComponent, onBeforeUnmount, onMounted, reactive, ref} from "vue"
 
 import * as touchUtils from "@/utils/touchUtils"
 
 import * as Model from "./Model/CircularDominoModel"
 
-import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
+import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 import {useGameLoop} from "../../utils/gameLoop"
 import {UiConfig, useAngularBoard} from "@/modules/Minigames/components/CircularDomino/angularBoard"
-import MinigameControls from "@/modules/SotW/components/MinigameControls.vue";
-import {hashCode} from "@/utils/stringUtils";
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils";
 import {useRoute} from "vue-router";
 
 
 export default defineComponent({
-  components: {MinigameControls},
   props: {
     renderSize: {
       type: Number,
@@ -46,18 +41,24 @@ export default defineComponent({
   },
   setup(props) {
     const route = useRoute()
-    const minigameData = useViewData<Model.CircularDominoData>()
+    const minigameData = useMinigameData<Model.CircularDominoData>()
     const minigameState = useViewState<Model.CircularDominoState>(() => ({
       ringsAngles: minigameData.value.rings.map(() => 0),
     }))
-    const controls = useMinigameControls()
+    useMinigameControls({
+      getValue: () => solution.value,
+      reset: () => {
+        minigameState.reset(minigameData.value)
+        Object.assign(minigameStateReactive, minigameState.value)
+      },
+    })
 
     const minigameDataReactive = reactive(minigameData.value)
     const minigameStateReactive = reactive(minigameState.value)
 
     const ui = reactive<UiConfig>({
       debug: false,
-      dominoCircle: {radius: 420 / 2 - 80},
+      dominoCircle: {radius: props.renderSize / 2 - 80},
       renderSize: props.renderSize,
       clientSize: props.renderSize,
 
@@ -90,7 +91,14 @@ export default defineComponent({
 
     const board = useAngularBoard(minigameDataReactive, minigameStateReactive, ui)
     const fps = route.query.fps ? Number(route.query.fps) : 60
-    const gameLoop = useGameLoop<[CanvasRenderingContext2D, CanvasRenderingContext2D]>(board.update, board.draw.frame, fps)
+    const render = () => {
+      if (!g) {
+        console.warn("Could not get graphics context")
+      } else {
+        board.draw.frame(g)
+      }
+    }
+    const gameLoop = useGameLoop(fps, board.update, render)
 
     const updateClientSize = () => {
       ui.clientSize = canvas.value!.clientWidth
@@ -131,6 +139,12 @@ export default defineComponent({
       canvas.addEventListener("mouseup", () => board.drag.end())
     }
 
+    const solution = computed(() => board.ringsSnaps
+        .map(({snapIndex}, i) => minigameData.value.rings[i].stones[snapIndex].tiles[0])
+        .map((tile) => tile.bgColor + '-' + tile.symbol)
+        .join('--'))
+
+    let g: [CanvasRenderingContext2D, CanvasRenderingContext2D]
     onMounted(() => {
       // let speed = (0.05 + Math.random() * 0.05) * Math.PI
       // let direction = Math.sign(Math.random() - 0.5) * 2
@@ -141,7 +155,7 @@ export default defineComponent({
       cFg.width = cBg.width = ui.renderSize
       cFg.height = cBg.height = ui.renderSize
 
-      gameLoop.g = [cBg.getContext('2d')!, cFg.getContext('2d')!]
+      g = [cBg.getContext('2d')!, cFg.getContext('2d')!]
 
       board.resources.whenReady()
           .then(() => gameLoop.start())
@@ -169,15 +183,6 @@ export default defineComponent({
 
       canvas,
       canvasFg,
-
-      checkSolution() {
-        let snapStones = board.ringsSnaps
-            .map(({snapIndex}, i) => minigameData.value.rings[i].stones[snapIndex].tiles[0])
-            .map((tile) => tile.bgColor + '-' + tile.symbol)
-            .join('--')
-
-        controls.checkSolution(hashCode(snapStones))
-      },
     }
   },
 })

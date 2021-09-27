@@ -1,49 +1,31 @@
-export type KnownNodeStatus = 'visited' | 'active';
-
-export interface StoryNode {
-    nodeId: string,
-    type: 'story',
-    nodeStatus: KnownNodeStatus,
-    storyPartId:  string,
-    minigameId?: string,
-}
-
-export interface MinigameNode {
-    nodeId: string,
-    type: 'minigame',
-    nodeStatus: KnownNodeStatus,
-    minigameId: string,
-}
-
-export interface UnknownNode {
-    type: 'unknown',
-    nodeStatus: 'unknown',
-}
-
-export type KnownSotwNode = StoryNode | MinigameNode;
-export type SotwNode = KnownSotwNode | UnknownNode;
+import {OutputBlockData} from "@editorjs/editorjs"
 
 export interface PartOfStory {
-    storyPartId: string,
-    storyTitle: string,
-    /** HTML structure representing the part of story */
-    storyContent: string,
+    slug: string,
+    title: string,
+    contentBlocks?: OutputBlockData[],
+    contentHtml: string,
+    challenge?: string,
 }
 
-export type PlayerProgression = {
-    revealedNodes: KnownSotwNode[],
+export type TimeoutData = {
+    since?: Date,
+    until?: Date,
+}
+export type ChallengeData = {
+    challengeConfig: Record<string, any>,
+    [prop: string]: any,
+}
+type ProgressionChallengeData = Record<string, any>
+export type TrophyData = {
+    order: number
 }
 
-export const isStoryNode = (node: SotwNode): node is StoryNode => node.type === "story"
-
-export function nodeHasName(node: SotwNode): node is KnownSotwNode {
-    return 'nodeId' in node;
-}
-
-export function getNodeName(node: KnownSotwNode): string {
-    if (node.type === 'minigame') {
-        return "Minigame node: " + node.minigameId;
-    }
-
-    return "Story node: " + node.storyPartId;
+export type ProgressionData = {
+    status: 'new'|'done',
+    timeout: TimeoutData,
+    challenge: ChallengeData,
+    data?: ProgressionChallengeData,
+    storyPart: PartOfStory,
+    trophies: TrophyData[],
 }

@@ -36,6 +36,7 @@ $navOpenTransition: 0.2s ease;
   width: $navigationWidth;
   background: var(--nav-bg);
   border-right: 2px solid var(--nav-border-color);
+  overflow: auto;
 
   display: flex;
   flex-direction: column;
@@ -66,6 +67,34 @@ $navOpenTransition: 0.2s ease;
 
     + .pull-strap {
       left: -2px;
+    }
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .navigation-section.-minor {
+    .section-title {
+      font-size: 1.5rem;
+    }
+    font-size: 0.8em;
+  }
+
+  .story-parts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+  }
+
+  .btn {
+    --fg-color: black;
+    --bg-color: #FFF8;
+    --border-color: var(--nav-border-color);
+
+    &.active {
+      background: #BBB6;
     }
   }
 }

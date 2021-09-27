@@ -1,86 +1,94 @@
 <template>
   <div class="mg-toggle-matrix" :style="matrixCss">
-    <div class="guide">
+    <div class="guide" v-if="false">
       <div class="hint hint-1">
-        <i/><i/><i/>
-        <i/><i/><i/>
-        <i/><i/><i/>
+        <i v-for="i of totalFields" :key="i"/>
       </div>
       <div class="hint hint-2">
-        <i/><i/><i/>
-        <i/><i/><i/>
-        <i/><i/><i/>
+        <i v-for="i of totalFields" :key="i"/>
       </div>
     </div>
 
-    <div :class="['matrix-field', minigameControls.result]">
-      <div v-for="field in fields" :key="field.key" class="field" :style="{'--row': field.row, '--col': field.col}">
+    <div :class="['matrix-field', minigameControls.status]">
+      <div v-for="field in minigameData.fields" :key="field.key" class="field" :style="{'--row': field.row, '--col': field.col}">
         <label :class="minigameState.value.toggled[field.key] && 'selected'">
           <input type="checkbox" v-model="minigameState.value.toggled[field.key]">
           <i class="symbol"/>
         </label>
       </div>
-      <div class="field"></div>
-      <div class="field"></div>
-      <div class="field"></div>
-      <div class="field"></div>
+      <div class="field" v-for="i of emptyFields" :key="i"/>
     </div>
-
-    <MinigameControls :check-solution="checkAnswer" :reset="minigameState.reset" :success="minigameControls.result === 'success'"/>
   </div>
 </template>
 
 <script lang="ts">
 import {computed, defineComponent} from "vue"
 
-import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
-import MinigameControls from "@/modules/SotW/components/MinigameControls.vue"
+import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
+import {shuffleFisherYates} from "@/utils/arrays"
+import {resolveAfter} from "@/utils/promiseUtils"
 
 type ToggleMatrixViewData = {
+  width?: number,
+  height?: number,
   fields: {row: number, col: number, label: string, key: string}[],
 }
 type ToggleMatrixState = {
-  toggled: {[name: string]: string},
+  toggled: Record<string, boolean>,
 }
 
 export default defineComponent({
-  components: {MinigameControls},
-  props: {
-    width: {type: Number, default: 3},
-    height: {type: Number, default: 3},
-  },
-  setup(props) {
-    const minigameData = useViewData<ToggleMatrixViewData>()
-    const fields = computed(() => minigameData.value.fields)
+  setup() {
+    const minigameData = useMinigameData<ToggleMatrixViewData>()
 
     const minigameState = useViewState<ToggleMatrixState>(() => ({
       toggled: {},
     }))
+
+    const clearAll = async () => {
+      const active = Object.entries(minigameState.value.toggled)
+        .filter(([, value]) => value)
+        .map(([name]) => name)
+      shuffleFisherYates(active)
+
+      while (active.length) {
+        const name = active.shift()!
+        delete minigameState.value.toggled[name]
+        await resolveAfter(Math.floor(175 + Math.random() * 100))
+      }
+    }
+
+    const minigameControls = useMinigameControls({
+      reset: () => clearAll(),
+      getValue: () => solution.value,
+    })
+
+    const totalFields = computed(() => (minigameData.value.width || 3) * (minigameData.value.height || 3))
+    const emptyFields = computed(() => totalFields.value - minigameData.value.fields.length)
     const solution = computed(() => {
-      return fields.value
+      return minigameData.value.fields
           .filter((field) => minigameState.value.toggled[field.key])
           .map((field) => field.key)
           .join('-');
     })
 
-    const minigameControls = useMinigameControls()
+
 
     const matrixCss = computed(() => ({
-      '--matrix-width': props.width,
-      '--matrix-height': props.height,
+      '--matrix-width': minigameData.value.width,
+      '--matrix-height': minigameData.value.height,
     }))
     
     return {
-      fields,
+      minigameData,
       minigameState,
 
+      emptyFields,
+      totalFields,
       matrixCss,
 
       minigameControls,
-      checkAnswer() {
-        minigameControls.checkSolution(solution.value)
-      },
     }
   },
 });
@@ -102,7 +110,7 @@ export default defineComponent({
 
     .hint {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(var(--matrix-width), 1fr);
 
       i {
         background: $dim;

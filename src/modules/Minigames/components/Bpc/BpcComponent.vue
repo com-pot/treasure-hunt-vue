@@ -2,9 +2,9 @@
   <div :class="['mg-bpc']">
 
     <form class="bpc-container" @submit.prevent="checkValues">
-      <div class="input-pair" v-for="input in inputs" :key="input.name">
+      <div class="input-pair" v-for="input in minigameData.inputs" :key="input.name">
         <label :for="input.name">{{ input.caption }}</label>
-        <input type="number" inputmode="numeric" v-model.number="inputsModel[input.name]"
+        <input type="number" inputmode="numeric" v-model.number="minigameState.value.inputsModel[input.name]"
                :id="input.name"/>
       </div>
 
@@ -18,30 +18,29 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, toRef} from "vue"
+import {defineComponent} from "vue"
 import {hashCode} from "@/utils/stringUtils";
-import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
+import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 
 import * as Model from "./BpcModel"
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
 
 export default defineComponent({
   setup() {
-    const minigameData = useViewData<Model.BpcMinigameData>()
-    const inputs = toRef(minigameData.value, 'inputs')
+    const minigameData = useMinigameData<Model.BpcMinigameData>()
+    console.log(minigameData)
 
     const minigameState = useViewState<Model.BpcViewState>(() => ({
-      inputsModel: Object.fromEntries(inputs.value.map((input) => [input.name, 0])),
+      inputsModel: Object.fromEntries(minigameData.value.inputs.map((input) => [input.name, 0])),
     }))
 
-    const inputsModel = toRef(minigameState.value, 'inputsModel')
     const controls = useMinigameControls()
 
     return {
-      inputs,
-      inputsModel,
+      minigameData,
+      minigameState,
       checkValues() {
-        let valueSerialized = Object.values(inputsModel.value).map((v) => 's4lty' + v + 'p3pp3ry').join('-');
+        let valueSerialized = Object.values(minigameState.value.inputsModel).map((v) => 's4lty' + v + 'p3pp3ry').join('-');
         controls.checkSolution(hashCode(valueSerialized).substr(0, 6))
       },
     };

@@ -1,4 +1,5 @@
-export type SotwSignal = {
-    signalType: string,
-    signalArguments?: any[],
-};
+import {PartOfStory} from "@/modules/SotW/model/SotwModel"
+
+export type PlayerProgression = {
+    storyParts: PartOfStory[],
+}

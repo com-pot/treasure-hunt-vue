@@ -1,33 +1,41 @@
 <template>
   <div class="sotw-landing">
     <p>
-      Vítejte, vítejte, vítejte. Jmenuji se {{ replaceTerm('characters.guide.name') }}.<br>
-      Jménem společnosti <b>{{ replaceTerm('company.casino.name') }}</b> vás vítám na této posvátné půdě.
+      Vítejte ve hře <b>Spirit of the Wild</b>. Pro pokračování prosím použijte jeden z následujících formulářů:
     </p>
-    <p v-if="!user">
-      Jste tu poprvé anebo se vracíte? Tak či onak se zdá, že nemáte návštěvnickou visačku.
-      Novou vám rádi vydáme až vyplníte <router-link :to="{name: 'Authorization', params: {formId: 'TZ-017-U'}}"><b>Uvítací formulář</b> TZ-017-U</router-link>
-      anebo <router-link :to="{name: 'Authorization', params: {formId: 'TZ-017-N'}}"><b>Návratový formulář</b> TZ-017-N</router-link>.
-    </p>
-    <p v-else>
-      Heleďme se, {{user.login}}.
-      Tady vás již nic nečeká, pokračujte prosím <router-link :to="{name: 'sotw.Game'}">dále</router-link>.
-    </p>
-    <p>
-      Tak šup šup, ať už se můžeme pohnout dál, za zážitkem vašeho života!
-    </p>
+
+    <div class="sign-options" v-if="user">
+      <router-link class="option-link -resume-game" :to="{name: 'sotw.Game'}">
+        <span class="user">{{user.login}}</span>
+        <div class="description">Pokračujte zpět do hry</div>
+      </router-link>
+    </div>
+
+    <div class="sign-options" v-else>
+      <router-link class="option-link -form" :to="{name: 'Authorization', params: {formId: 'TZ-017-U'}}">
+        <span class="title">Uvítací formulář</span>
+        <span class="code">TZ-017-U</span>
+        <span class="description">Formulář je určen pro zájemce o vstup do hry</span>
+      </router-link>
+
+      <router-link class="option-link -form" :to="{name: 'Authorization', params: {formId: 'TZ-017-N'}}">
+        <span class="title">Návratový formulář</span>
+        <span class="code">TZ-017-N</span>
+        <span class="description">Formulář je určen pro stávající členy hry</span>
+      </router-link>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import {computed, defineComponent} from "vue";
-import container from "../serviceContainer"
-import TextsService from "@/modules/SotW/services/TextsService";
+
 import authStore from "@/modules/Auth/authStore";
+import {useTextsService} from "@/modules/SotW/services"
 
 export default defineComponent({
   setup() {
-    const textsService = container.getService<TextsService>('textsService');
+    const textsService = useTextsService()
     const user = computed(() => authStore.state.user.value)
 
     return {
@@ -37,3 +45,41 @@ export default defineComponent({
   },
 })
 </script>
+
+<style lang="scss">
+.sign-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+
+  .option-link {
+    flex: 1 0 45%;
+    display: flex;
+    flex-direction: column;
+
+    padding: 0.5rem;
+
+    &.-form {
+      background: lightpink;
+      border: 2px solid darkgray;
+
+      color: black;
+
+      .title {
+        font-weight: bold;
+      }
+      .code {
+        font-size: 0.8rem;
+      }
+      .description {
+        margin-top: 0.5rem;
+        border-top: 1px solid darkgray;
+        padding-top: 0.5rem;
+      }
+    }
+
+    text-decoration: none;
+  }
+}
+</style>

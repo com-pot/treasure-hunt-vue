@@ -27,8 +27,8 @@
     </div>
 
     <div class="form-group controls">
-      <button type="reset">Vymazat</button>
-      <button type="submit">Předložit</button>
+      <button class="btn -sm" type="reset">Vymazat</button>
+      <button class="btn -sm" type="submit">Předložit</button>
     </div>
   </form>
 </template>

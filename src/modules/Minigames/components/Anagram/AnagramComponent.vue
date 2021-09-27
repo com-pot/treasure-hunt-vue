@@ -4,14 +4,13 @@
       <i v-for="(letter, i) in inputLetters" :key="i"
          :class="[letter.picked && 'picked', letter.char === ' ' && 'disabled']" @click="pickLetter(i)">{{ letter.char }}</i>
     </div>
-    <button :class="['btn', spaceAvailable ? 'btn-vivid' : 'btn-bland']" @click="addSpace">Mezera</button>
+    <button :class="['btn']" :disabled="!spaceAvailable" @click="addSpace">Mezera</button>
     <div :class="['letters', 'output']">
       <i v-for="(letter, i) in outputTextPadded" :key="i"
          @click="clearLetter(i)" :class="i >= outputText.length && 'disabled'"
+         :style="'--order: ' + i + ';'"
       >{{ letter }}</i>
     </div>
-
-    <MinigameControls :check-solution="checkSolution" :reset="minigameState.reset"/>
   </div>
 </template>
 
@@ -21,19 +20,20 @@ import {computed, defineComponent} from "vue"
 
 import * as Model from "./AnagramModel";
 import {AnagramMinigameData, AnagramMinigameState} from "./AnagramModel";
-import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState";
-import MinigameControls from "@/modules/SotW/components/MinigameControls.vue";
+import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState";
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils";
 
 
 export default defineComponent({
-  components: {MinigameControls},
   setup() {
-    const minigameData = useViewData<AnagramMinigameData>()
+    const minigameData = useMinigameData<AnagramMinigameData>()
     const minigameState = useViewState<AnagramMinigameState>(() => ({
       outputLetters: [],
     }))
-    const controls = useMinigameControls()
+    useMinigameControls({
+      reset: () => minigameState.reset(minigameData.value),
+      getValue: () =>  outputText.value,
+    })
 
     const inputLetters = computed<Model.InputLetter[]>(() => {
 
@@ -99,10 +99,6 @@ export default defineComponent({
         }
         minigameState.value.outputLetters.splice(i, 1);
       },
-
-      checkSolution() {
-        controls.checkSolution(controls.serializeSolution(outputText.value))
-      },
     };
   },
 });
@@ -147,11 +143,32 @@ export default defineComponent({
     }
   }
 
-  .output.success {
+  .output {
     i {
-      color: lightgreen !important;
-      border-color: lightgreen !important;
+      &:not(.disabled) {
+        animation: swimmy-letter 3s infinite linear;
+        animation-delay: calc(100ms * var(--order));
+      }
     }
+
+    .success {
+      i {
+        color: lightgreen !important;
+        border-color: lightgreen !important;
+      }
+    }
+  }
+}
+
+@keyframes swimmy-letter {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-2px);
+  }
+  75% {
+    transform: translateY(2px);
   }
 }
 </style>

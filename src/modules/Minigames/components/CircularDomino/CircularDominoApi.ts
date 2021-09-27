@@ -11,6 +11,7 @@ class Stone implements Model.Stone {
     }
 }
 
+// Unused, kept in code for comfort of ring specification
 export default class CircularDominoApi {
     public static async loadRings(): Promise<Model.Ring[]> {
         let innerRing: Model.Ring = {

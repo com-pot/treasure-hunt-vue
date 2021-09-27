@@ -1,12 +1,19 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
-import {debugRoutes as minigamesDebugRoutes} from "@/modules/Minigames/routes";
+// import {debugRoutes as minigamesDebugRoutes} from "@/modules/Minigames/routes";
 import sotwRoutes from "@/modules/SotW/routes.ts";
 
 
 let routes: RouteRecordRaw[] = [
-    ...minigamesDebugRoutes,
+    // ...minigamesDebugRoutes,
     ...sotwRoutes,
+    {
+        path: '/story-editor',
+        component: () => import('@/modules/StoryEditor/StoryEditor.vue'),
+        props(match) {
+            return {activePart: match.query.part}
+        },
+    },
     {
         path: '/:path(.+)',
         component: {

@@ -4,6 +4,8 @@
     <component v-if="currentForm" :is="currentForm.component" :form-spec="currentForm.spec" @submitted="submitSignIn"/>
 
     <p v-else>Jejda</p>
+
+    <router-link class="btn" :to="{name: 'Landing.welcome'}">Zpět</router-link>
   </div>
 </template>
 
@@ -51,7 +53,7 @@ export default defineComponent({
     return {
       currentForm,
       submitSignIn: (authValues: { login: string, password: string }) => {
-        const loginPromise = currentForm.value!.spec.id === 'TZ-017-U'
+        const loginPromise = currentForm.value!.spec.id === 'TZ-017-N'
             ? authStore.actions.signIn(authValues.login, authValues.password)
             : authStore.actions.signUp(authValues.login, authValues.password);
 
@@ -71,9 +73,14 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.sign-in {
+.authorization-page {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5em;
+
+  .btn {
+    align-self: center;
+  }
 }
 </style>

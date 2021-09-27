@@ -1,7 +1,7 @@
 <template>
   <div class="mg-ctrl">
     <button v-if="reset" class="btn btn-bland" @click="reset">Začít znovu</button>
-    <button :class="['btn', success ? 'btn-success' :'btn-vivid']"
+    <button :class="['btn', success ? 'btn-success' :'btn-vivid']" v-if="checkSolution"
             @click="trySolution" :disabled="evaluating"
     >Vyzkoušet řešení</button>
   </div>

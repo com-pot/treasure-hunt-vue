@@ -1,16 +1,16 @@
 <template>
   <div class="mg-password">
-    <p>{{ data.prompt }}</p>
-    <input v-model="state.value.password">
-    <MinigameControls :reset="state.reset" :check-solution="checkSolution"/>
+    <p class="prompt">{{ data.prompt }}</p>
+    <input v-model="state.value.password" name="password" :disabled="status === 'loading'">
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent, reactive} from "vue"
-import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
+import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
-import MinigameControls from "@/modules/SotW/components/MinigameControls.vue"
+import {hasComponentStatus} from "@/modules/SotW/utils/componentHelpers"
+import {resolveAfter} from "@/utils/promiseUtils"
 
 type PasswordViewData = {
   prompt: string,
@@ -20,23 +20,36 @@ type PasswordViewState = {
 }
 
 export default defineComponent({
-  components: {
-    MinigameControls,
-  },
+
   setup() {
-    const data = useViewData<PasswordViewData>()
+    const data = useMinigameData<PasswordViewData>()
     const state = reactive(useViewState<PasswordViewState>(() => ({
       password: '',
     })))
-    const controls = useMinigameControls()
+    const status = hasComponentStatus('ready')
+
+    useMinigameControls({
+      reset: () => untype(),
+      getValue: () => state.value.password,
+    })
+
+    const untype = async () => {
+      status.value = 'loading'
+
+      let val = state.value.password
+      while (val.length) {
+        val = val.substr(0, val.length - 1)
+        state.value.password = val
+        await resolveAfter(Math.round(25 + Math.random() * 50))
+      }
+
+      status.value = 'ready'
+    }
 
     return {
       data,
       state,
-
-      checkSolution() {
-        controls.checkSolution(controls.serializeSolution(state.value.password))
-      },
+      status,
     }
   },
 })

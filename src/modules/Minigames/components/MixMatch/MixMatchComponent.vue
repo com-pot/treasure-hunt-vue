@@ -25,26 +25,21 @@
         </div>
       </template>
     </div>
-
-    <MinigameControls :check-solution="checkTotem" :reset="internalState.reset"/>
   </div>
 </template>
 
 <script lang="ts">
 import {computed, defineComponent, ref} from "vue"
-import {hashCode} from "@/utils/stringUtils"
 
 import * as Model from "./MixMatchModel"
-import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
+import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
 
-import MinigameControls from "@/modules/SotW/components/MinigameControls.vue"
 
 export default defineComponent({
-  components: {MinigameControls},
   inheritAttrs: false,
   setup() {
-    const minigameData = useViewData<Model.MixMatchMinigameData>()
+    const minigameData = useMinigameData<Model.MixMatchMinigameData>()
     const pieceOptions = computed(() => minigameData.value.modelOptions)
     const colorOptions = computed(() => minigameData.value.colorOptions)
 
@@ -58,7 +53,10 @@ export default defineComponent({
       ]
     }))
 
-    const controls = useMinigameControls()
+    useMinigameControls({
+      getValue: () => piecesSerialized.value,
+      reset: () => internalState.reset(minigameData),
+    })
 
     const selectedPiece = ref(-1);
     const setupOpen = ref(false);
@@ -109,9 +107,6 @@ export default defineComponent({
       getModelImage: (modelName: string): string|undefined => {
         let option = selectedPieceModelOptions.value.find((model) => model.name === modelName);
         return option ? 'url("/minigames/totems/' + option.image +'")' : undefined;
-      },
-      checkTotem: () => {
-        controls.checkSolution(hashCode(piecesSerialized.value))
       },
     };
   },

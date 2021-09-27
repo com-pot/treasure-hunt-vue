@@ -1,55 +1,51 @@
 <template>
-  <h1>Minigame part</h1>
-  <template v-if="viewState === 'loading'">
-    Loading...
+  <template v-if="componentStatus === 'loading'">Probíhá příprava výzvy...</template>
+
+  <template v-else-if="componentStatus === 'ready' && componentSpec">
+    <p v-html="viewData.description.replaceAll('\n', '<br/>')"></p>
+    <component :is="componentSpec"/>
   </template>
 
-  <template v-else-if="viewState === 'ready' && componentSpec">
-    <component :is="componentSpec" @minigameSignal="$emit('sotwSignal', $event)"/>
-  </template>
-
-  <template v-else>
-    Whoooooops!
-  </template>
+  <template v-else>Jejda?</template>
 </template>
 
 <script lang="ts">
-import {defineComponent, ref, shallowRef, watch} from "vue";
+import {defineComponent, shallowRef, watch} from "vue";
 import {loadMinigameComponent} from "@/modules/Minigames/minigameUtils";
 
-import {ViewState} from "../types/views";
+import {useViewData} from "@/modules/SotW/utils/useViewState"
+import {hasComponentStatus} from "@/modules/SotW/utils/componentHelpers"
 
 export default defineComponent({
-  emits: ['sotwSignal'],
   props: {
-    minigameId: {type: String, required: true},
-    minigameData: {type: Object, required: true},
-    viewStateData: {type: Object},
+    challengeType: {type: String, required: true},
   },
   setup(props) {
-    const viewState = ref<ViewState>('loading');
+    const componentStatus = hasComponentStatus('loading');
     const componentSpec = shallowRef<any>(null);
 
-    async function loadMinigame(minigameId: string) {
-      viewState.value = "loading";
+    const viewData = useViewData();
+
+    async function loadMinigame(challengeType: string) {
+      componentStatus.value = "loading";
 
       let minigameModule;
       try {
-        minigameModule = await loadMinigameComponent(minigameId);
+        minigameModule = await loadMinigameComponent(challengeType);
       } catch (e) {
-        console.error(e);
-        viewState.value = "error";
-        return;
+        componentStatus.value = "error";
+        throw e
       }
 
       componentSpec.value = minigameModule.default;
-      viewState.value = "ready";
+      componentStatus.value = "ready";
     }
 
-    watch(() => props.minigameId, loadMinigame, {immediate: true});
+    watch(() => props.challengeType, loadMinigame, {immediate: true});
 
     return {
-      viewState,
+      viewData,
+      componentStatus,
       componentSpec,
       console,
     };

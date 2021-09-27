@@ -2,34 +2,35 @@
   <Navigation ref="navigation">
     <div class="navigation-section">
       <span class="section-title">Příběh</span>
-      <nav :class="['story-part']" v-for="(link, i) in storyLinks" :key="'node-' + i" @click="$refs.navigation.isOpen = false">
-        <router-link class="name" :to="link.to">
+      <nav :class="['story-parts']" @click="$refs.navigation.isOpen = false">
+        <router-link v-for="(link, i) in storyLinks" :key="'node-' + i" :to="link.to"
+                     class="btn" active-class="active"
+        >
           <span>{{ link.text }}</span>
         </router-link>
       </nav>
     </div>
 
-    <div class="navigation-section mt-auto">
+    <div class="navigation-section -minor mt-auto">
       <span class="section-title">Návštěva</span>
-      <nav @click="signOut">
-        <span>Ukončit</span>
-      </nav>
+      <div>
+        <button class="btn" @click="signOut">Ukončit</button>
+      </div>
     </div>
   </Navigation>
 
-  <router-view></router-view>
+  <router-view v-if="componentStatus === 'ready'"></router-view>
 </template>
 
 <script lang="ts">
-import {computed, ref} from "vue";
+import {computed, provide, reactive, ref} from "vue";
 import Navigation from "@/modules/Layout/components/Navigation.vue";
 import authStore from "@/modules/Auth/authStore";
 import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
 
-import playerStore from "@/modules/SotW/playerStore";
-import serviceContainer from "@/modules/SotW/serviceContainer";
-import SotwApi from "@/modules/SotW/api/SotwApi";
-import AudioService from "@/modules/SotW/services/AudioService";
+import {useSotwApi, useSotwAudio} from "@/modules/SotW/services"
+import {hasComponentStatus} from "@/modules/SotW/utils/componentHelpers"
+import {PlayerProgression} from "@/modules/SotW/types/game"
 
 type StoryLink = {
   text: string,
@@ -44,29 +45,43 @@ export default {
   setup() {
     const $router = useRouter();
     const $route = useRoute();
-    const sotwApi = serviceContainer.getService<SotwApi>('sotwApi');
-    const sotwAudio = serviceContainer.getService<AudioService>('sotwAudio');
+    const sotwApi = useSotwApi()
+    const sotwAudio = useSotwAudio()
+
+    const componentStatus = hasComponentStatus('loading')
 
     sotwAudio.preloadFiles()
       .then(() => console.log("Audio ready"));
 
-    const storyPartTitles = ref<{[key: string]: string}>({});
-    sotwApi.loadStoryTitles().then((titles) => storyPartTitles.value = titles);
+    const playerProgression = reactive<PlayerProgression>({
+      storyParts: [],
+    })
+    provide('player.progression', playerProgression)
 
     const storyLinks = computed<StoryLink[]>(() => {
-      return playerStore.revealedStoryNodes.value.map((node) => {
+      return playerProgression.storyParts.map((partOfStory) => {
         const link: StoryLink =  {
-          text: storyPartTitles.value[node.storyPartId] || 'Neznámá část příběhu - ' + node.storyPartId,
-          to: {name: 'sotw.NodeView', params: {nodeId: node.nodeId}},
+          text: partOfStory.title,
+          to: {name: 'sotw.NodeView', params: {nodeId: partOfStory.slug}},
         }
 
         return link
       })
     });
 
-    if ($route.name === 'sotw.Game') {
-      $router.replace(storyLinks.value[0].to)
-    }
+    sotwApi.listStoryParts('sotw')
+        .then((parts) => playerProgression.storyParts = parts)
+        .then(() => {
+          componentStatus.value = 'ready'
+          if ($route.name === 'sotw.Game') {
+            $router.replace(storyLinks.value[0].to)
+          }
+        })
+        .catch((err) => {
+          componentStatus.value = 'error'
+          $router.replace({name: 'Landing.welcome'})
+          throw err
+        })
 
     return {
       storyLinks,
@@ -74,6 +89,7 @@ export default {
         authStore.actions.signOut()
         $router.push({name: 'Landing.welcome'})
       },
+      componentStatus,
     }
   },
 }

@@ -1,4 +1,4 @@
-import {inject, reactive, Ref} from "vue"
+import {computed, ComputedRef, inject, reactive, Ref} from "vue"
 
 type ViewState<T, TData=any> = {
     value: T,
@@ -15,6 +15,11 @@ export function useViewData<T>(): Ref<T>  {
     }
 
     return viewData
+}
+
+export function useMinigameData<T>(): ComputedRef<T> {
+    const viewData = useViewData<any>()
+    return computed<T>(() => viewData.value.challengeConfig)
 }
 
 export type ViewStateInitializer<TData, TState> = ((viewData: TData, currentState?: TState) => TState)

@@ -10,44 +10,48 @@
                  :active-index="swapping.selectedGroup === 'placed' && swapping.selectedIndex"
                  @slotClicked="clickSlot('placed', $event)"/>
     </div>
-
-
-    <MinigameControls :check-solution="checkValid" :reset="resetState"/>
   </div>
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, PropType, reactive, ref, toRef, watch} from "vue";
+import {computed, defineComponent, PropType, reactive, ref, watch} from "vue";
 import * as ZebraModel from "./Model/ZebraFoalModel";
 import {Zebra} from "./Model/ZebraFoalModel";
 
 import {twoPartyMultiGroupSwapping} from "@/modules/Minigames/utils/slotSwapping";
 import ZebraArea from "./ZebraArea.vue";
 import ZebraNeighborRule, {NeighborPositions, NeighborRuleEvaluator} from "./Model/ZebraNeighborRule";
-import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
-import MinigameControls from "@/modules/SotW/components/MinigameControls.vue";
+import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 import {resolveAfter} from "@/utils/promiseUtils";
+import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
 
-type Position = 'waiting' | 'placed';
 type ZebraFoalMinigameData = {
   zebras: Zebra[],
   check: string,
 }
 
 export default defineComponent({
-  components: {MinigameControls, ZebraArea},
+  components: {ZebraArea},
   inheritAttrs: false,
   props: {
     displayMode: {type: String as PropType<'images' | 'names'>, default: 'images'},
   },
   setup(props, {emit}) {
-    const minigameData = useViewData<ZebraFoalMinigameData>()
-    const allZebras = toRef(minigameData.value, 'zebras')
+    const minigameData = useMinigameData<ZebraFoalMinigameData>()
+    const allZebras = computed(() => minigameData.value.zebras)
 
     const minigameState = useViewState<ZebraModel.ZebraFoalViewState>(() => ({
-      placements: allZebras.value.map((zebra: ZebraModel.Zebra, i: number) => i === 0 ? zebra.name : null)
+      placements: allZebras.value.map((zebra: ZebraModel.Zebra, i: number) => i === 0 ? zebra.name : null),
     }))
     const placements = computed(() => minigameState.value.placements)
+
+    useMinigameControls({
+      reset: () => {
+        minigameState.reset(minigameData)
+        initUiState()
+      },
+      getValue: () => checkValid(),
+    })
 
     // UI State
     const zebras = reactive({
@@ -107,20 +111,18 @@ export default defineComponent({
       zebras.placed.forEach((slot) => slot.hasError = false);
     }
 
-    function checkValid(): Promise<void> {
+    function checkValid() {
       checkNoWaiting()
 
       return checkAllPlacedAndSated()
           .then((allSated) => {
-            emit('minigameSignal', {
-              type: allSated ? 'success' : 'error',
-            })
             if (!allSated) {
               pipePosition.value = undefined
             } else {
               checkPipePosition()
             }
           })
+          .then(() => zebras.placed.map((zs) => zs.zebra?.name).join('-'))
     }
 
     function checkNoWaiting(): boolean {
@@ -139,8 +141,9 @@ export default defineComponent({
         await resolveAfter(420)
 
         const slot = zebras.placed[i]
-        const zebra = slot.zebra as Zebra
+        const zebra = slot.zebra
         if (!zebra || !zebra.rules) {
+          console.log("No zebra or rules")
           slot.hasError = true
           continue
         }
@@ -165,7 +168,10 @@ export default defineComponent({
       return false;
     }
 
-    function checkPipePosition() {
+    /**
+     * Rewinds the pipe position if it traveled more than one round
+     */
+    async function checkPipePosition() {
       const pos = pipePosition.value
       const items = placements.value.length
       if (pos === undefined || pos < items) {
@@ -173,12 +179,10 @@ export default defineComponent({
       }
 
       pipeRewind.value = true
-      return resolveAfter(42)
-          .then(() => {
-            pipePosition.value = pos - items
-            return resolveAfter(42)
-          })
-          .finally(() => pipeRewind.value = false)
+      await resolveAfter(42)
+      pipePosition.value = pos - items
+      await resolveAfter(42)
+      pipeRewind.value = false
     }
 
     return {
@@ -188,11 +192,6 @@ export default defineComponent({
 
       swapping,
       clickSlot: (group: keyof typeof zebras, index: number) => swapping.pickItem(group, index),
-      checkValid,
-      resetState: () => {
-        minigameState.reset(minigameData)
-        initUiState()
-      },
     };
   },
 })

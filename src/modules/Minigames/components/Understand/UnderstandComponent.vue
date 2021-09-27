@@ -1,6 +1,6 @@
 <template>
   <div class="mg-understand">
-    <div class="play-area">
+    <div class="play-area" :class="gameState">
       <div class="current-word" v-if="currentWord">
         <div>{{round.currentStep}} / {{wordsPerRound}}</div>
         <div class="img-wrapper">
@@ -28,6 +28,8 @@ import arrays from "@/utils/arrays";
 
 import UnderstandApi from "./UnderstandApi";
 import VocabularyEntry from "./Model/VocabularyEntry";
+import {useGameLoop} from "@/modules/Minigames/utils/gameLoop"
+import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
 
 export default defineComponent({
   props: {
@@ -46,6 +48,12 @@ export default defineComponent({
   },
   data() {
     return {
+      gameLoop: useGameLoop(24, (t, dt) => this.updateTimeLimit(t, dt)),
+      controls: useMinigameControls({
+        reset: () => this.beginAttempt(),
+
+      }),
+      gameState: 'started',
       vocabulary: [] as VocabularyEntry[],
       round: {
         currentStep: -1,
@@ -64,7 +72,12 @@ export default defineComponent({
       return this.vocabulary.length > 0;
     },
     currentWordIndex(): number {
-      return this.round.wordIndices[this.round.currentStep];
+      let number = this.round.wordIndices[this.round.currentStep]
+      if (typeof number === "undefined") {
+        number = this.round.wordIndices[this.round.currentStep - 1]
+      }
+
+      return number
     },
     currentWord(): VocabularyEntry {
       return this.vocabulary[this.currentWordIndex];
@@ -96,37 +109,48 @@ export default defineComponent({
       this.step.remainingTime = this.stepTimeLimit;
     },
     selectOption(option: number) {
-      if (option === this.currentWordIndex) {
-        this.nextStep();
-      } else {
-        this.startRound();
+      if (option !== this.currentWordIndex) {
+        this.endAttempt('failed')
+        return
       }
+
+      this.nextStep()
     },
     nextStep() {
       this.round.currentStep++;
       if (this.round.currentStep === this.wordsPerRound) {
-        this.$emit('minigameSignal', {
-          type: 'success',
-          words: this.round.wordIndices.map((i) => this.vocabulary[i].word),
-        });
-        this.startRound();
+        this.endAttempt('won')
       } else {
         this.initializeOptions();
       }
     },
-    updateTimeLimit() {
-      this.step.remainingTime -= 0.05;
+    updateTimeLimit(t: number, dt: number) {
+      this.step.remainingTime -= dt * 0.001;
       if (this.step.remainingTime <= 0) {
-        this.startRound();
+        this.step.remainingTime = 0
+        this.endAttempt('failed')
       }
+    },
+
+    beginAttempt() {
+      this.startRound()
+      this.gameState = 'started'
+      !this.gameLoop.redrawInterval && this.gameLoop.start()
+    },
+    endAttempt(state: string) {
+      this.gameLoop.stop()
+      this.gameState = state
+
+      this.controls.checkSolution('' + this.round.currentStep)
     },
   },
   mounted() {
     UnderstandApi.loadVocabulary()
         .then((entries) => this.vocabulary = entries)
-        .then(() => this.startRound());
-
-    this.tickInterval = setInterval(() => this.updateTimeLimit(), 50);
+        .then(() => this.beginAttempt())
+  },
+  beforeUnmount() {
+    this.gameLoop.stop()
   },
 });
 </script>
@@ -137,6 +161,21 @@ export default defineComponent({
     display: flex;
     flex-direction: column;
     gap: 1em;
+
+    transition: filter 0.3s;
+
+    &.failed {
+      filter: saturate(0.2) brightness(0.8);
+    }
+    &.won {
+      filter: saturate(0.8) brightness(1.2);
+    }
+
+    &:not(.started) {
+      .understand-options {
+        pointer-events: none;
+      }
+    }
   }
 
   .current-word {

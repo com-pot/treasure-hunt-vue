@@ -3,7 +3,7 @@ import {useInputRegistry} from "@/modules/Typeful/inputs/inputRegistry";
 
 
 export default defineComponent({
-    // inheritAttrs: false,
+    inheritAttrs: false,
     props: {
         type: {type: String, default: 'text'},
     },
@@ -15,8 +15,9 @@ export default defineComponent({
             if (inputRegistry.has(props.type)) {
                 // FIXME: ts vue whoops
                 const component = inputRegistry.get(props.type) as any
-                // console.log({component})
-                return h(component)
+                return h(component, {
+                    ...context.attrs,
+                }, context.slots)
             }
 
             return h('input', {

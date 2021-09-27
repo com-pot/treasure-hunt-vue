@@ -2,48 +2,77 @@ type HttpMethod = 'get' | 'post' | 'put' | 'delete' | string;
 type SearchParams = { [name: string]: string|number };
 
 export default class JsonApiAdapter {
-    constructor(private readonly baseUrl: string) {
+    constructor(private readonly baseUrl: string, private readonly store: any) {
         if (!this.baseUrl.endsWith('/')) {
             this.baseUrl += '/';
         }
+        store.actions.bindApiAdapter(this)
     }
 
-    public get<T>(path: string, query?: SearchParams): Promise<T> {
+    public get<T=Object>(path: string, query?: SearchParams): Promise<T> {
         return this.makeRequest('get', path, undefined, query);
     }
 
-    public post<T>(path: string, data?: object, query?: SearchParams): Promise<T> {
+    public post<T=Object>(path: string, data?: object, query?: SearchParams): Promise<T> {
         return this.makeRequest('post', path, data, query);
     }
 
-    public put<T>(path: string, data?: object, query?: SearchParams): Promise<T> {
+    public put<T=Object>(path: string, data?: object, query?: SearchParams): Promise<T> {
         return this.makeRequest('put', path, data, query);
     }
 
-    public delete<T>(path: string, data?: object, query?: SearchParams): Promise<T> {
+    public patch<T=Object>(path: string, data: object, query?: SearchParams): Promise<T> {
+        return this.makeRequest('patch', path, data, query)
+    }
+
+    public delete<T=Object>(path: string, data?: object, query?: SearchParams): Promise<T> {
         return this.makeRequest('delete', path, data, query);
     }
 
     public makeRequest<T extends Object>(method: HttpMethod, path: string, data?: object, query?: SearchParams): Promise<T> {
+        const headers: Record<string, string> = {}
+        const user = this.store.state.user.value
+        const token = user && user.token
+        if (token) {
+            headers.Authorization = 'Bearer ' + token
+        }
+
         const requestInit: RequestInit = {
             method,
+            headers,
         }
         if (data) {
             if (method === 'get') {
                 console.warn("Passed data to a 'get' method. Omitting");
             } else {
                 requestInit.body = JSON.stringify(data);
+                headers['Content-Type'] = 'application/json; charset=utf-8'
             }
         }
 
         const url = this.createFullUrl(path, query);
         return fetch(url, requestInit)
-            .then((response) => {
-                if (response.headers.get('Content-Type') !== 'application/json') {
-                    throw new Error("Invalid response content type");
+            .then(async (response) => {
+                const bodyStr = await response.text()
+
+                let contentType = response.headers.get('Content-Type') || ''
+                if (!contentType.includes('application/json')) {
+                    let error = new Error("Invalid response content type") as any;
+                    error.response = response
+                    error.body = bodyStr
+                    throw error;
                 }
 
-                return response.json() as Promise<T>;
+                const body = JSON.parse(bodyStr)
+
+                if (response.status >= 400) {
+                    const e = new Error("Erroneous response") as any
+                    e.response = response
+                    e.body = body
+                    throw e
+                }
+
+                return body as T
             });
     }
 

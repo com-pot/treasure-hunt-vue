@@ -26,7 +26,7 @@
 import {computed, defineComponent} from "vue"
 import {hashCode} from "@/utils/stringUtils"
 
-import {useViewData, useViewState} from "@/modules/SotW/utils/useViewState"
+import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
 import MinigameControls from "@/modules/SotW/components/MinigameControls.vue"
 
@@ -40,7 +40,7 @@ export default defineComponent({
     MinigameControls,
   },
   setup() {
-    const viewData = useViewData<ComboPickViewData>()
+    const viewData = useMinigameData<ComboPickViewData>()
     const prompts = computed(() => viewData.value.prompts)
 
     const state = useViewState(initializeState, viewData)

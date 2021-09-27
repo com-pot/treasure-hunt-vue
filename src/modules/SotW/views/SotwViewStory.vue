@@ -1,34 +1,51 @@
 <template>
-  <h1>{{title}}</h1>
-  <div class="story-content" ref="storyContent" v-html="preparedHtml"/>
-  <div class="story-content logue">
-    <span class="msg glow" style="--glow: limegreen;">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium aliquam distinctio doloremque maiores nihil possimus repellat soluta vitae voluptates voluptatibus! Accusamus blanditiis ex mollitia natus perferendis quis voluptates. Ex, nisi.</span>
-    <span class="msg glow">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium aliquam distinctio doloremque maiores nihil possimus repellat soluta vitae voluptates voluptatibus! Accusamus blanditiis ex mollitia natus perferendis quis voluptates. Ex, nisi.</span>
-    <span class="msg" style="--log-col: darkblue; --glow: limegreen">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae, consectetur consequuntur dignissimos et, exercitationem id ipsa iste necessitatibus nihil nulla possimus quae quas quis recusandae similique sint, tenetur ut voluptas!</span>
-    <span class="msg glow">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium aliquam distinctio doloremque maiores nihil possimus repellat soluta vitae voluptates voluptatibus! Accusamus blanditiis ex mollitia natus perferendis quis voluptates. Ex, nisi.</span>
-
-    <span class="msg glow breathe" style="--glow: limegreen;">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorem enim error iure laboriosam sapiente tempora. Atque blanditiis dolore ea esse facilis itaque nesciunt officia pariatur qui vitae. Blanditiis, nam placeat?</span>
-  </div>
+  <div class="story-content logue" ref="storyContent" v-html="preparedHtml"/>
 </template>
 
 <script lang="ts">
 import {computed, defineComponent, PropType} from "vue";
-import TextsService from "@/modules/SotW/services/TextsService";
 
-import serviceContainer from "@/modules/SotW/serviceContainer";
-import {PartOfStory} from "../model/SotwModel";
-import {SotwSignal} from "../types/game";
+import {PartOfStory, TrophyData} from "../model/SotwModel";
+import {useTextsService} from "@/modules/SotW/services"
 
 export default defineComponent({
   emits: ['sotwSignal'],
   props: {
     storyData: {type: Object as PropType<PartOfStory>, required: true},
+    trophies: {type: Object as PropType<TrophyData[]>},
   },
   setup(props) {
-    const textsService = serviceContainer.getService<TextsService>('textsService');
+    const textsService = useTextsService()
 
-    const title = computed(() => props.storyData.storyTitle || 'Nadpis');
-    const preparedHtml = computed(() => textsService.replaceTerms(props.storyData.storyContent));
+    const trophyValues = [500, 300, 150]
+    const trophy = computed(() => props.trophies && props.trophies[0])
+    const interpolators: Record<string, () => string|undefined> = {
+      poukaz: () => {
+        if (!trophy.value) {
+          return
+        }
+        const value = trophyValues[trophy.value.order - 1] || 50
+        return trophy.value && `<img class="trophy-coupon" alt="Dárkový poukaz v hodnotě ${value} žetonů." src="/trophies/kraz-${value}.jpg"/>`
+      },
+      finishPlace: () => trophy.value && ('' + trophy.value.order),
+    }
+    const getInterpolateStr = (name: string) => {
+      const interpolator = interpolators[name]
+      let result = interpolator && interpolator()
+      if (typeof result !== "string") {
+        console.warn("Invalid interpolation for " + name)
+        return '---'
+      }
+      return result
+    }
+
+    const title = computed(() => props.storyData.title || 'Nadpis');
+    const preparedHtml = computed(() => {
+      let content = textsService.replaceTerms(props.storyData.contentHtml)
+      content = content.replaceAll(/{{\s*(\w+)\s*}}/g, (match, name) => getInterpolateStr(name))
+
+      return content
+    });
 
     return {
       title,
@@ -42,14 +59,10 @@ export default defineComponent({
 
       signalElements.forEach((el) => {
         let signal = el.getAttribute('data-sotw-signal') || '';
-        let signalArguments = signal.split(':');
-        let signalType: string = signalArguments.shift()!;
 
         el.addEventListener('click', (e) => {
           e.preventDefault();
-
-          const signal: SotwSignal = { signalType, signalArguments };
-          this.$emit('sotwSignal', signal);
+          this.$emit('sotwSignal', signal.split(':'));
         });
       });
 
@@ -60,6 +73,11 @@ export default defineComponent({
 
 <style lang="scss">
 .story-content {
-  --glow-accent: #{hsla(20deg, 100%, 75%, 1)}
+  --glow-accent: #{hsla(20deg, 100%, 75%, 1)};
+
+  .trophy-coupon {
+    width: 100%;
+    height: auto;
+  }
 }
 </style>

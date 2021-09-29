@@ -15,6 +15,7 @@ import {computed, defineComponent} from "vue";
 import authStore from "../authStore";
 import WelcomeForm from "../components/WelcomeForm.vue";
 import {useRouter} from "vue-router";
+import {useAlert} from "@/modules/SotW/utils/viewUtils"
 
 type AvailableForm = {
   spec: AuthForm,
@@ -31,7 +32,7 @@ const availableForms: AvailableForm[] = [
   },
   {
     spec: {
-      id: 'TZ-017-N', title: 'Návratový formulář',
+      id: 'TZ-017-P', title: 'Návratový formulář',
       description: 'Vyplněním správných údajů získáte zpět přístup do kůry "Na vlastní srst".'
     },
     component: WelcomeForm,
@@ -45,15 +46,21 @@ export default defineComponent({
   },
   setup(props) {
     const $router = useRouter();
+    const alert = useAlert()
 
     const currentForm = computed(() => {
       return availableForms.find((form) => form.spec.id === props.formId)
     });
 
+    const commonLoginErrors: Record<string, string> = {
+      'login-taken': "Jméno je již obsazené",
+      'invalid-credentials': "Neplatné přihlašovací údaje",
+    }
+
     return {
       currentForm,
       submitSignIn: (authValues: { login: string, password: string }) => {
-        const loginPromise = currentForm.value!.spec.id === 'TZ-017-N'
+        const loginPromise = currentForm.value!.spec.id === 'TZ-017-P'
             ? authStore.actions.signIn(authValues.login, authValues.password)
             : authStore.actions.signUp(authValues.login, authValues.password);
 
@@ -62,7 +69,18 @@ export default defineComponent({
               $router.push({name: 'sotw.Game'});
             })
             .catch((err) => {
-              console.error(err);
+              const error = err.body && err.body.error
+              const text = commonLoginErrors[error] || "Neočekávaná chyba"
+
+              alert.fire({
+                toast: true,
+                text: text,
+                timer: 2000,
+                didOpen(popup) {
+                  popup.addEventListener('mouseenter', alert.stopTimer)
+                  popup.addEventListener('mouseleave', alert.resumeTimer)
+                }
+              })
             })
 
       },

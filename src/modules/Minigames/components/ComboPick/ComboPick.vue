@@ -17,18 +17,14 @@
                         class="war" mode="select"/>
       </div>
     </div>
-
-    <MinigameControls :reset="state.reset" :check-solution="checkSolution"/>
   </div>
 </template>
 
 <script lang="ts">
 import {computed, defineComponent} from "vue"
-import {hashCode} from "@/utils/stringUtils"
 
 import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
-import MinigameControls from "@/modules/SotW/components/MinigameControls.vue"
 
 import {ComboPickViewData, initializeState} from "./ComboPickModel"
 import ComboPickInput from "@/modules/Minigames/components/ComboPick/ComboPickInput.vue"
@@ -37,7 +33,6 @@ import ComboPickInput from "@/modules/Minigames/components/ComboPick/ComboPickIn
 export default defineComponent({
   components: {
     ComboPickInput,
-    MinigameControls,
   },
   setup() {
     const viewData = useMinigameData<ComboPickViewData>()
@@ -45,14 +40,15 @@ export default defineComponent({
 
     const state = useViewState(initializeState, viewData)
 
-    const solutionHash = computed(() => hashCode(state.value.selections.join('--')))
-    const controls = useMinigameControls()
+    useMinigameControls({
+      reset: () => state.reset(viewData.value),
+      getValue: () => state.value.selections.join('--'),
+    })
 
     return {
       state,
       prompts,
       viewData,
-      checkSolution: () => controls.checkSolution(solutionHash.value),
     }
   },
 })

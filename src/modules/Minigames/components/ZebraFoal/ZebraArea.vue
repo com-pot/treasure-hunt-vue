@@ -16,7 +16,7 @@
       </div>
     </li>
     <li v-if="showPipe" class="pipe" :style="'--position:' + pipePosition">
-      <div class="zebra-slot">PP</div>
+      <div class="zebra-slot"></div>
     </li>
   </ul>
 </template>
@@ -62,6 +62,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+@import "~@/sass/vars/colors";
+
 .zebra-area {
   list-style: none;
   margin: 0;
@@ -77,7 +79,7 @@ export default defineComponent({
   }
 
   .error {
-    --item-color: blueviolet;
+    --item-color: #{$vile};
   }
 
   .zebra-slot {
@@ -135,7 +137,7 @@ export default defineComponent({
 
       div {
         display: inline-flex;
-        box-shadow: #42b983 4px 4px 4px 2px;
+        box-shadow: $vivid 4px 4px 4px 2px;
 
         transition: all var(--pipe-animation-time) ease;
       }

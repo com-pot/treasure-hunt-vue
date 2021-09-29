@@ -52,6 +52,7 @@
       <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
       <span v-else class="spacer"/>
     </div>
+    <p v-if="mode === 'challenge' && progNode?.progression.status === 'done'">Tato výzva je již vyřešená</p>
 
     <PlayerTimeoutIndication :timeout="timeout"/>
   </div>
@@ -242,6 +243,8 @@ export default defineComponent({
 
     const minigameControls = reactive<MinigameControls>({
       async checkSolution(value?: string) {
+        minigameControls.status = 'evaluating'
+
         if (value === undefined) {
           if (!minigameControls.getValue) {
             throw new Error("Cannot try solution without value")
@@ -256,7 +259,6 @@ export default defineComponent({
           value = minigameControls.serializeSolution(checkValue)
         }
 
-        minigameControls.status = 'evaluating'
         let result: any
         try {
           result = await sotwApi.checkAnswer(props.nodeId!, {checkSum: value})
@@ -265,7 +267,7 @@ export default defineComponent({
           throw err
         }
 
-        let success = result.status === 'ok'
+        let success = result.status === 'ok' || result.status === 'already-solved'
 
         result.errorActions && result.errorActions.forEach(performGameAction)
         result.progression && updateProgression(result.progression)
@@ -286,10 +288,9 @@ export default defineComponent({
     const gameLoop = useGameLoop(4, (t) => timeout.now = t)
 
     provide('sotw.minigameControls', minigameControls)
-    watch(() => props.mode, (mode) => {
-      if (mode !== 'challenge') {
-        minigameControls.reset = minigameControls.getValue = undefined
-      }
+    watch(progNode, (node) => {
+      minigameControls.reset = minigameControls.getValue = undefined
+      minigameControls.status = node?.progression.status === 'done' ? 'success' : 'idle'
     })
 
     watch(() => progNode.value?.progression.timeout, applyTimeout, {immediate: true})

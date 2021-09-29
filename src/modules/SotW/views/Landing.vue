@@ -1,26 +1,34 @@
 <template>
   <div class="sotw-landing">
     <p>
-      Vítejte ve hře <b>Spirit of the Wild</b>. Pro pokračování prosím použijte jeden z následujících formulářů:
+      Vítejte ve hře <b>Stezka duchů / Spirit of the Wild</b>
     </p>
 
-    <div class="sign-options" v-if="user">
-      <router-link class="option-link -resume-game" :to="{name: 'sotw.Game'}">
-        <span class="user">{{user.login}}</span>
-        <div class="description">Pokračujte zpět do hry</div>
-      </router-link>
+    <p>
+      V rámci vaší návštěvy westernového světa mate jedinečnou možnost poodhalit tajemství kultury domorodého
+      obyvatelstva. Cesty duchů jsou ovšem nevyzpytatelné a plné nejrůznějších úkladů.
+      <br>
+      Máte-li tedy odvahu vydat se na tuto cestu vězte, že není hambou poprosit o pomoc své strážné duchy v podobě
+      přátel a dalších hráčů, neb temnota si na vás v stínech už brousí drápy.
+    </p>
+
+    <div class="sign-options -authenticated" v-if="user">
+      <p>Vítej zpět, <span class="user">{{ user.login }}</span>.</p>
+      <router-link class="option-link -resume-game" :to="{name: 'sotw.Game'}">Pokračuj do hry</router-link>
     </div>
 
     <div class="sign-options" v-else>
+      Pro pokračování prosím použijte jeden z následujících formulářů:
+
       <router-link class="option-link -form" :to="{name: 'Authorization', params: {formId: 'TZ-017-U'}}">
         <span class="title">Uvítací formulář</span>
         <span class="code">TZ-017-U</span>
         <span class="description">Formulář je určen pro zájemce o vstup do hry</span>
       </router-link>
 
-      <router-link class="option-link -form" :to="{name: 'Authorization', params: {formId: 'TZ-017-N'}}">
-        <span class="title">Návratový formulář</span>
-        <span class="code">TZ-017-N</span>
+      <router-link class="option-link -form" :to="{name: 'Authorization', params: {formId: 'TZ-017-P'}}">
+        <span class="title">Přihlašovací formulář</span>
+        <span class="code">TZ-017-P</span>
         <span class="description">Formulář je určen pro stávající členy hry</span>
       </router-link>
     </div>
@@ -47,11 +55,16 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+@import "~@/sass/vars/colors";
+
 .sign-options {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 1rem;
+
+  margin-top: 4rem;
+  margin-bottom: 2rem;
 
   .option-link {
     flex: 1 0 45%;
@@ -69,9 +82,11 @@ export default defineComponent({
       .title {
         font-weight: bold;
       }
+
       .code {
         font-size: 0.8rem;
       }
+
       .description {
         margin-top: 0.5rem;
         border-top: 1px solid darkgray;
@@ -80,6 +95,22 @@ export default defineComponent({
     }
 
     text-decoration: none;
+  }
+
+  &.-authenticated {
+    flex-direction: column;
+
+    p {
+      margin: 0;
+    }
+
+    .-resume-game {
+      align-self: center;
+      display: block;
+      background: var(--container-bg);
+      border: $vile 2px solid;
+      color: $vile;
+    }
   }
 }
 </style>

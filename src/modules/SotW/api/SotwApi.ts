@@ -17,5 +17,12 @@ export default class SotwApi {
 
     async checkAnswer(slug: string, answer: {checkSum: any}): Promise<any> {
         return this.apiAdapter.post(`/treasure-hunt/progression/${slug}/answer`, answer)
+            .catch((err) => {
+                if (err.body && err.body.error === 'already-solved') {
+                    err.body.status = 'already-solved'
+                    return err.body
+                }
+                throw err
+            })
     }
 }

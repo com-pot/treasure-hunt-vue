@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import Page404 from '../modules/Layout/views/Page404.vue'
 
 // import {debugRoutes as minigamesDebugRoutes} from "@/modules/Minigames/routes";
 import sotwRoutes from "@/modules/SotW/routes.ts";
@@ -8,17 +9,8 @@ let routes: RouteRecordRaw[] = [
     // ...minigamesDebugRoutes,
     ...sotwRoutes,
     {
-        path: '/story-editor',
-        component: () => import('@/modules/StoryEditor/StoryEditor.vue'),
-        props(match) {
-            return {activePart: match.query.part}
-        },
-    },
-    {
         path: '/:path(.+)',
-        component: {
-            template: "<p>uh oh, '{{$route.params.path}}'</p>"
-        },
+        component: Page404,
         meta: {
             title: "Whoops!",
         },

@@ -1,16 +1,11 @@
 <template>
   <div :class="['mg-bpc']">
 
-    <form class="bpc-container" @submit.prevent="checkValues">
+    <form class="bpc-container" @submit.prevent="controls.checkSolution()">
       <div class="input-pair" v-for="input in minigameData.inputs" :key="input.name">
         <label :for="input.name">{{ input.caption }}</label>
         <input type="number" inputmode="numeric" v-model.number="minigameState.value.inputsModel[input.name]"
                :id="input.name"/>
-      </div>
-
-      <div class="input-pair input-pair-full input-pair-center">
-        <label>&nbsp;</label>
-        <button type="submit" class="btn btn-vivid">Check</button>
       </div>
     </form>
 
@@ -19,7 +14,6 @@
 
 <script lang="ts">
 import {defineComponent} from "vue"
-import {hashCode} from "@/utils/stringUtils";
 import {useMinigameData, useViewState} from "@/modules/SotW/utils/useViewState"
 
 import * as Model from "./BpcModel"
@@ -28,21 +22,18 @@ import {useMinigameControls} from "@/modules/SotW/utils/minigameUtils"
 export default defineComponent({
   setup() {
     const minigameData = useMinigameData<Model.BpcMinigameData>()
-    console.log(minigameData)
-
     const minigameState = useViewState<Model.BpcViewState>(() => ({
       inputsModel: Object.fromEntries(minigameData.value.inputs.map((input) => [input.name, 0])),
     }))
 
-    const controls = useMinigameControls()
+    const controls = useMinigameControls({
+      getValue: () => Object.values(minigameState.value.inputsModel).map((v) => 's4lty' + v + 'p3pp3ry').join('-'),
+    })
 
     return {
       minigameData,
       minigameState,
-      checkValues() {
-        let valueSerialized = Object.values(minigameState.value.inputsModel).map((v) => 's4lty' + v + 'p3pp3ry').join('-');
-        controls.checkSolution(hashCode(valueSerialized).substr(0, 6))
-      },
+      controls,
     };
   },
 });
@@ -55,6 +46,7 @@ export default defineComponent({
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    justify-content: space-evenly;
     gap: 0.25em;
 
     .input-pair {

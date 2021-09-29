@@ -1,6 +1,10 @@
 <template>
   <div class="mg-understand">
-    <div class="play-area" :class="gameState">
+    <template v-if="gameState === 'idle'">
+      <button class="btn btn-vivid" @click.prevent="beginAttempt">Začít</button>
+    </template>
+
+    <div class="play-area" :class="gameState" v-else>
       <div class="current-word" v-if="currentWord">
         <div>{{round.currentStep}} / {{wordsPerRound}}</div>
         <div class="img-wrapper">
@@ -13,9 +17,9 @@
               @click="selectOption(option)">{{ vocabulary[option].word }}</span>
       </div>
     </div>
-    <div class="time-limit" :style="'--remainingPct: ' + remainingTimePct + '%'">
-      <div class="bar"></div>
-      <span class="label">{{step.remainingTime.toFixed(1)}}</span>
+
+    <div class="progressbar">
+      <div class="chunk -vivid" :style="'--done: ' + remainingTimePct + ';'"></div>
     </div>
 
   </div>
@@ -51,9 +55,8 @@ export default defineComponent({
       gameLoop: useGameLoop(24, (t, dt) => this.updateTimeLimit(t, dt)),
       controls: useMinigameControls({
         reset: () => this.beginAttempt(),
-
       }),
-      gameState: 'started',
+      gameState: 'idle',
       vocabulary: [] as VocabularyEntry[],
       round: {
         currentStep: -1,
@@ -83,7 +86,7 @@ export default defineComponent({
       return this.vocabulary[this.currentWordIndex];
     },
     remainingTimePct(): number {
-      return this.step.remainingTime / this.stepTimeLimit * 100;
+      return this.step.remainingTime / this.stepTimeLimit;
     },
   },
   methods: {
@@ -147,7 +150,6 @@ export default defineComponent({
   mounted() {
     UnderstandApi.loadVocabulary()
         .then((entries) => this.vocabulary = entries)
-        .then(() => this.beginAttempt())
   },
   beforeUnmount() {
     this.gameLoop.stop()
@@ -156,6 +158,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+@import "~@/sass/vars/colors";
+
 .mg-understand {
   .play-area {
     display: flex;
@@ -178,6 +182,10 @@ export default defineComponent({
     }
   }
 
+  .progressbar {
+    margin-top: 1rem;
+  }
+
   .current-word {
     display: flex;
     flex-direction: row;
@@ -195,22 +203,6 @@ export default defineComponent({
         max-width: 100%;
         max-height: 100%;
       }
-    }
-  }
-  .time-limit {
-    height: 20px;
-    position: relative;
-
-    .bar {
-      position: absolute;
-      top: 0.25em;
-
-      background: rgba(pink, 0.5);
-      width: var(--remainingPct, 0);
-      height: 0.5em;
-    }
-    .label {
-      position: absolute;
     }
   }
 

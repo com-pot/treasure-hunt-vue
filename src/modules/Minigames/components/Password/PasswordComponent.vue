@@ -14,6 +14,7 @@ import {resolveAfter} from "@/utils/promiseUtils"
 
 type PasswordViewData = {
   prompt: string,
+  caseSensitive?: boolean,
 }
 type PasswordViewState = {
   password: string,
@@ -30,7 +31,7 @@ export default defineComponent({
 
     useMinigameControls({
       reset: () => untype(),
-      getValue: () => state.value.password,
+      getValue: () => data.value.caseSensitive ? state.value.password : state.value.password.toLowerCase( ),
     })
 
     const untype = async () => {

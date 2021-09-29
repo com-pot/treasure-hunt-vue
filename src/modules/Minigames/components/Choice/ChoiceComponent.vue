@@ -67,7 +67,7 @@ export default defineComponent({
 
     --shadow-blur-min: 2px;
     --shadow-blur-max: 6px;
-    --shadow-color: black;
+    --shadow-color: indigo;
 
     &, & img {
       transition: all 1s ease;

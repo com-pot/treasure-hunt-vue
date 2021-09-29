@@ -23,35 +23,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "../../../sass/vars/colors";
 .timeout {
-
   transition: opacity 0.3s ease;
+
   &:not(.ticking) {
     opacity: 0;
-  }
-
-  .progressbar {
-    border-radius: 0.25rem;
-    overflow: hidden;
-    line-height: 0;
-
-    box-shadow: 1px 1px 0 0 $dim;
-    background: rgba($dim, 0.1);
-
-    .chunk {
-      display: inline-block;
-      height: 0.5rem;
-
-      width: calc(var(--done) * 100%);
-
-      &.-vivid {
-        background: $vivid;
-      }
-      &.-vile {
-        background: $vile;
-      }
-    }
   }
 }
 </style>

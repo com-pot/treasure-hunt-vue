@@ -12,7 +12,7 @@
       Hotovo
     </div>
 
-    <div class="drums" v-if="loaded">
+    <div class="drums" v-if="loaded" :class="isPlaying && 'sample-playing'">
       <button v-for="(drum, i) in drums" :key="drum.note"
               :class="['drum', strikes[i] && 'strike']"
               @click.prevent="hitDrum(i, $event)"
@@ -47,6 +47,7 @@ export default defineComponent({
     const patterns = ref([
       [0, 2, 0],
       [0, 2, 0, 3, 2],
+      [0, 2, 0, 3, 2, 3, 3, 0, 1],
     ]);
 
     const loaded = ref(false);
@@ -92,6 +93,17 @@ export default defineComponent({
       progressSequence(drum.note)
     }
 
+    const sequence = {
+      resetCurrentPatternAttempt() {
+        currentAttemptStep.value = 0;
+      },
+      progressAttempt() {
+        correctPatterns.value++;
+        currentAttemptStep.value = 0;
+        playSamplePattern(750)
+      },
+    }
+
     function progressSequence(note: string) {
       let pattern = currentPattern.value;
       if (!pattern) {
@@ -101,20 +113,19 @@ export default defineComponent({
       let nextNoteIndex = pattern[currentAttemptStep.value];
       let nextNote = drums.value[nextNoteIndex].note;
 
-      if (nextNote && note === nextNote) {
-        currentAttemptStep.value++;
-        if (currentAttemptStep.value === currentPattern.value.length) {
-          correctPatterns.value++;
-          currentAttemptStep.value = 0;
-          playSamplePattern(750)
-        }
+      if (!nextNote || note !== nextNote) {
+        sequence.resetCurrentPatternAttempt()
+        playSamplePattern(500)
+        return
+      }
 
-        if (correctPatterns.value === patterns.value.length) {
-          controls.checkSolution(controls.serializeSolution('' + (69713 + correctPatterns.value * 48213 )))
-        }
+      currentAttemptStep.value++;
+      if (currentAttemptStep.value === currentPattern.value.length) {
+        sequence.progressAttempt()
+      }
 
-      } else {
-        currentAttemptStep.value = 0;
+      if (correctPatterns.value === patterns.value.length) {
+        controls.checkSolution(controls.serializeSolution('' + (69713 + correctPatterns.value * 48213 )))
       }
     }
 
@@ -150,6 +161,7 @@ export default defineComponent({
     }
 
     onMounted(() => {
+      Tone.Transport.set({bpm: 90})
       Tone.Transport.start()
       playSamplePattern(750)
     })
@@ -216,6 +228,13 @@ $drumAppearance: 1.07, 1.01, 0.94, 1;
 
         transition: all var(--strike-duration);
       }
+    }
+
+    transition: opacity 0.1s;
+    &.sample-playing {
+      pointer-events: none;
+
+      opacity: 0.75;
     }
   }
 }

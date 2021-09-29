@@ -1,5 +1,7 @@
 <template>
-  <div class="story-editor">
+  <BackstageNavigation/>
+
+  <div class="backstage story-editor">
     <nav class="story-nav">
       <p class="name" v-if="!storyParts">Načítám příběh</p>
       <template v-else>
@@ -68,10 +70,12 @@ import {useRouter} from "vue-router";
 import {PartOfStory} from "@/modules/SotW/model/SotwModel";
 import editorJsToHtml from "./editorJsToHtml"
 import TypefulInput from "@/modules/Typeful/components/TypefulInput"
+import BackstageNavigation from "@/modules/SotW/components/BackstageNavigation.vue"
 
 
 export default defineComponent({
   components: {
+    BackstageNavigation,
     TypefulInput,
   },
 
@@ -95,14 +99,14 @@ export default defineComponent({
     const viewMode = ref('editor')
 
     const reloadStoryParts = () => {
-      api.get<PartOfStory[]>('treasure-hunt/story-parts')
+      api.get<PartOfStory[]>('backstage/treasure-hunt/story-parts')
           .then((parts) => {
             storyParts.value = parts.map((part) => [part.slug, part.title])
           })
     }
     reloadStoryParts()
 
-    api.get<any[]>('treasure-hunt/challenges')
+    api.get<any[]>('backstage/treasure-hunt/challenges')
       .then((result) => {
         challenges.value = result
       })
@@ -130,7 +134,7 @@ export default defineComponent({
 
       viewState.value = 'saving'
       try {
-        await api.put('/treasure-hunt/story-part/' + props.activePart!, data)
+        await api.put('backstage/treasure-hunt/story-part/' + props.activePart!, data)
         viewState.value = 'ok'
         if (props.activePart !== data.slug) {
           const route = router.currentRoute.value
@@ -153,7 +157,7 @@ export default defineComponent({
       }
 
       viewState.value = 'loading'
-      api.get<PartOfStory>('treasure-hunt/story-part/' + part)
+      api.get<PartOfStory>('backstage/treasure-hunt/story-part/' + part)
           .then((partData) => activePartData.value = partData)
           .finally(() => viewState.value = 'idle')
     }, {immediate: true})

@@ -12,7 +12,7 @@ let routes: RouteRecordRaw[] = [
         path: '/:path(.+)',
         component: Page404,
         meta: {
-            title: "Whoops!",
+            title: "Stránka nenaleyena",
         },
     },
 ];

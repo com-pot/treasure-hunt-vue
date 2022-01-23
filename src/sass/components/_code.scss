@@ -1,0 +1,26 @@
+.code-example {
+  .header {
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+
+    .toggle {
+      transform: rotate(-90deg);
+    }
+  }
+  .code {
+    text-align: left;
+    background: lightgoldenrodyellow;
+    padding: 0.5rem;
+  }
+
+  &:not(.expanded) {
+    .toggle {
+      transform: rotate(90deg);
+    }
+    .code {
+      display: none;
+    }
+  }
+}
+

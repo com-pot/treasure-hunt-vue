@@ -10,55 +10,58 @@ body, html {
 }
 
 body {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  font-size: 14pt;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
 }
 
-#sotw {
+#treasure-hunt-app {
   padding-top: 5vh;
   padding-bottom: 5vh;
 }
-.root-container {
-  max-width: 60ch;
-  width: 80vw;
-  margin: 0 auto 5vh;
-  padding: 0.5rem;
 
-  border-radius: 2rem;
-  background: var(--container-bg);
-  box-shadow: 0 0 0.25rem 0.25rem var(--container-bg);
+.theme-sotw {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-size: 14pt;
 
-  transition: all 0.5s ease;
+  .root-container {
+    max-width: 60ch;
+    width: 80vw;
+    margin: 0 auto 5vh;
+    padding: 0.5rem;
 
-  &.entrance {
-    --container-bg: #{hsla(42, 20%, 60%, 0.2)};
+    border-radius: 2rem;
+    background: var(--container-bg);
+    box-shadow: 0 0 0.25rem 0.25rem var(--container-bg);
 
-    + .bg {
-      filter: opacity(0.2) saturate(0.2);
+    transition: all 0.5s ease;
 
-      .cloud {
-        opacity: 0;
+    &.entrance {
+      --container-bg: #{hsla(42, 20%, 60%, 0.2)};
+
+      + .bg {
+        filter: opacity(0.2) saturate(0.2);
+
+        .cloud {
+          opacity: 0;
+        }
       }
     }
   }
-}
 
+  .bg {
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    pointer-events: none;
+    overflow: hidden;
 
-.bg {
-  position: fixed;
-  z-index: -1;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  pointer-events: none;
-  overflow: hidden;
+    transition: filter 0.5s ease;
 
-  transition: filter 0.5s ease;
-
-  .cloud {
-    transition: opacity 0.5s ease;
+    .cloud {
+      transition: opacity 0.5s ease;
+    }
   }
 }

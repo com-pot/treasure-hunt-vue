@@ -1,13 +1,15 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Page404 from '../modules/Layout/views/Page404.vue'
 
-// import {debugRoutes as minigamesDebugRoutes} from "@/modules/Minigames/routes";
-import sotwRoutes from "@/modules/SotW/routes.ts";
+import {debugRoutes as minigamesDebugRoutes} from "@/modules/Minigames/routes";
+import sotwRoutes from "@/modules/treasure-hunt/routes.ts";
+import typefulRoutes from "@/modules/Typeful/typefulRoutes.ts";
 
 
 let routes: RouteRecordRaw[] = [
-    // ...minigamesDebugRoutes,
+    ...minigamesDebugRoutes,
     ...sotwRoutes,
+    ...typefulRoutes,
     {
         path: '/:path(.+)',
         component: Page404,

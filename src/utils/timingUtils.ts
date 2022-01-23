@@ -11,3 +11,5 @@ export function debounce<T extends Array<any>, U>(fn: (...args: T) => U, delay: 
         }, delay)
     }
 }
+
+export type Awaited<T> = T extends PromiseLike<infer U> ? U : T

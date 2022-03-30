@@ -1,9 +1,9 @@
 import {computed, reactive} from "vue"
 
-import trigonometry, {Degrees, Point2D, PointRad2D, Radians} from "@/utils/trigonometry"
+import trigonometry, {Degrees, Point2D, PointRad2D, Radians} from "@src/utils/trigonometry"
 import * as Model from "./Model/CircularDominoModel"
-import velocityUtils from "@/utils/velocityUtils"
-import Resources from "@/utils/Resources"
+import velocityUtils from "@src/utils/velocityUtils"
+import Resources from "@src/utils/Resources"
 
 export type UiConfig = {
     debug: boolean,

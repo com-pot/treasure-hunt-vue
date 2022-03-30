@@ -1,10 +1,10 @@
 import {RouteRecordRaw} from "vue-router";
 
-import Authorization from "@/modules/Auth/views/Authorization.vue";
+import Authorization from "@src/modules/Auth/views/Authorization.vue";
 import PlayerViewEntrypoint from "./views/PlayerViewEntrypoint.vue";
 import GameView from "./views/GameView.vue";
-import Landing from "@/../custom/sotw/Landing.vue";
-import Page404 from "@/modules/Layout/views/Page404.vue"
+import Landing from "@src/../custom/sotw/Landing.vue";
+import Page404 from "@src/modules/Layout/views/Page404.vue"
 import BackstageLayout from "./Backstage/BackstageLayout.vue"
 
 const gameRoutes: RouteRecordRaw[] = [

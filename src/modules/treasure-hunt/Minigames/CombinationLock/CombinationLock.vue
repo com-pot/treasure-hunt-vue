@@ -11,7 +11,7 @@
 <script lang="ts">
 
 import {computed, defineComponent} from "vue"
-import {useMinigameData} from "@/modules/treasure-hunt/components/minigameData"
+import {useMinigameData} from "@src/modules/treasure-hunt/components/minigameData"
 import {
   CombinationLockMinigameData,
   LockDigitOptionsSpec,

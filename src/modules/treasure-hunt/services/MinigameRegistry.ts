@@ -1,4 +1,4 @@
-import {MinigameBundle, MinigameSpecInternal} from "@/modules/treasure-hunt/types/minigames"
+import {MinigameBundle, MinigameSpecInternal} from "@src/modules/treasure-hunt/types/minigames"
 
 type MinigameSpecRegisterObj = Omit<MinigameSpecInternal, 'name'>
 

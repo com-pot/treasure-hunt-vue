@@ -1,5 +1,5 @@
 <template>
-  <Navigation ref="navigation">
+  <!-- <Navigation ref="navigation">
     <div class="navigation-section">
       <span class="section-title">Příběh</span>
       <nav :class="['story-parts']" @click="$refs.navigation.isOpen = false">
@@ -17,7 +17,7 @@
         <button class="btn" @click="signOut">Ukončit</button>
       </div>
     </div>
-  </Navigation>
+  </Navigation> -->
 
   <router-view v-if="componentStatus === 'ready'"></router-view>
 </template>
@@ -26,10 +26,10 @@
 import {computed, provide, reactive} from "vue";
 import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
 
-import Navigation from "@/modules/Layout/components/Navigation.vue";
-import authStore from "@/modules/Auth/authStore";
+// import Navigation from "@src/modules/Layout/components/Navigation.vue";
+import authStore from "@src/modules/Auth/authStore";
 
-import {hasComponentStatus} from "@/modules/Layout/utils/componentHelpers"
+import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
 import {useSotwApi, useSotwAudio} from "../services"
 import {PlayerProgression} from "../model/TreasureHuntModel"
 
@@ -40,7 +40,7 @@ type StoryLink = {
 
 export default {
   components: {
-    Navigation,
+    // Navigation,
   },
 
   setup() {

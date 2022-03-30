@@ -10,7 +10,7 @@
 
 <script lang="ts">
 import {defineComponent, onMounted, onUnmounted, PropType, ref, watch} from "vue"
-import {debounce} from "@/utils/timingUtils"
+import {debounce} from "@src/utils/timingUtils"
 
 export default defineComponent({
   props: {

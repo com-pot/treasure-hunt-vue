@@ -13,8 +13,8 @@
 
 <script lang="ts">
 import {defineComponent, reactive} from "vue"
-import {ComponentStatus, resolvePromiseAsStatus} from "@/modules/Layout/utils/componentHelpers"
-import {useApiAdapter} from "@/modules/treasure-hunt/services"
+import {ComponentStatus, resolvePromiseAsStatus} from "@src/modules/Layout/utils/componentHelpers"
+import {useApiAdapter} from "@src/modules/treasure-hunt/services"
 
 export default defineComponent({
   setup() {

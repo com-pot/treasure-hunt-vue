@@ -1,5 +1,5 @@
 import {defineComponent, h} from "vue"
-import {useInputRegistry} from "@/modules/Typeful/inputs/inputRegistry";
+import {useInputRegistry} from "@src/modules/Typeful/inputs/inputRegistry";
 
 
 export default defineComponent({

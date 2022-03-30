@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Page404 from '../modules/Layout/views/Page404.vue'
 
-import {debugRoutes as minigamesDebugRoutes} from "@/modules/Minigames/routes";
-import sotwRoutes from "@/modules/treasure-hunt/routes.ts";
-import typefulRoutes from "@/modules/Typeful/typefulRoutes.ts";
+import {debugRoutes as minigamesDebugRoutes} from "@src/modules/Minigames/routes";
+import sotwRoutes from "@src/modules/treasure-hunt/routes";
+import typefulRoutes from "@src/modules/Typeful/typefulRoutes";
 
 
 let routes: RouteRecordRaw[] = [
@@ -20,7 +20,7 @@ let routes: RouteRecordRaw[] = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL),
+    history: createWebHistory(import.meta.env.BASE_URL),
     routes,
 });
 

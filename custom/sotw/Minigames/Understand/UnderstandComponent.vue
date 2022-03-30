@@ -28,12 +28,12 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 
-import arrays from "@/utils/arrays";
+import arrays from "@src/utils/arrays";
 
 import UnderstandApi from "./UnderstandApi";
 import VocabularyEntry from "./Model/VocabularyEntry";
-import {useGameLoop} from "@/modules/treasure-hunt/components/gameLoop"
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
+import {useGameLoop} from "@src/modules/treasure-hunt/components/gameLoop"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 export default defineComponent({
   props: {
@@ -158,8 +158,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "~@/sass/vars/colors";
-
 .mg-understand {
   .play-area {
     display: flex;

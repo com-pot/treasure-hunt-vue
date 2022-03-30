@@ -1,4 +1,4 @@
-import {MinigameBundle} from "@/modules/treasure-hunt/types/minigames"
+import {MinigameBundle} from "@src/modules/treasure-hunt/types/minigames"
 
 const generalMinigameBundle: MinigameBundle = {
     register(registry) {

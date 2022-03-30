@@ -15,7 +15,7 @@
 import {defineComponent} from "vue"
 import {useRoute} from "vue-router"
 
-import useLayoutSkin from "@/modules/Layout/mixins/useLayoutSkin.ts"
+import useLayoutSkin from "@src/modules/Layout/mixins/useLayoutSkin"
 
 export default defineComponent({
   setup() {

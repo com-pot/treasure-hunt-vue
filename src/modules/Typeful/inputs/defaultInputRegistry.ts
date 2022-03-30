@@ -1,6 +1,6 @@
 import Multiselect from "@vueform/multiselect"
 
-import {InputRegistry} from "@/modules/Typeful/inputs/inputRegistry"
+import {InputRegistry} from "@src/modules/Typeful/inputs/inputRegistry"
 
 import "@vueform/multiselect/themes/default.scss"
 

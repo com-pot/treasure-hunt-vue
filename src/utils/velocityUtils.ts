@@ -1,4 +1,4 @@
-import {Radians} from "@/utils/trigonometry";
+import {Radians} from "@src/utils/trigonometry";
 
 const pi2 = Math.PI * 2;
 

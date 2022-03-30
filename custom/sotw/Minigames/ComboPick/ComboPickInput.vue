@@ -16,7 +16,7 @@
 
 import {defineComponent, onMounted, onUnmounted, PropType, ref, watch} from "vue"
 import SelectScroller from "./SelectScroller.vue";
-import TypefulInput from "@/modules/Typeful/components/TypefulInput";
+import TypefulInput from "@src/modules/Typeful/components/TypefulInput";
 
 export default defineComponent({
   inheritAttrs: false,

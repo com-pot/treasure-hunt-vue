@@ -31,9 +31,9 @@
 
 <script lang="ts">
 import {defineComponent, reactive, ref} from "vue"
-import {useApiAdapter} from "@/modules/treasure-hunt/services"
-import {useAlert} from "@/modules/Layout/components/viewUtils"
-import {PagedResult} from "@/modules/Typeful/types/Collections"
+import {useApiAdapter} from "@src/modules/treasure-hunt/services"
+import {useAlert} from "@src/modules/Layout/components/viewUtils"
+import {PagedResult} from "@src/modules/Typeful/types/Collections"
 
 export default defineComponent({
   setup() {
@@ -145,7 +145,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "~@/sass/vars/colors";
 
 .backstage.-players {
 
@@ -182,7 +181,7 @@ export default defineComponent({
       order: 2;
     }
     &.active {
-      background: rgba($vivid, 0.2);
+      background: rgba(var(--hsl-vivid), 0.2);
     }
     &.finished {
       background: rgba(orange, 0.2);

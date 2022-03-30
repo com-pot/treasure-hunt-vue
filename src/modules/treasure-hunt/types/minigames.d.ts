@@ -1,4 +1,4 @@
-import MinigameRegistry from "@/modules/Minigames/MinigameRegistry"
+import MinigameRegistry from "../services/MinigameRegistry"
 
 export type MinigameSpec = {
     caption: string,

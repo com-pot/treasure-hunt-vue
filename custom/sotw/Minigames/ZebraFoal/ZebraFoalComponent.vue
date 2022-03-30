@@ -2,12 +2,12 @@
   <div class="mg-zebra-foal">
     <div class="areas">
       <ZebraArea class="waiting-area" :slots="zebras.waiting" arrangement="inline" :display-mode="displayMode"
-                 :active-index="swapping.selectedGroup === 'waiting' && swapping.selectedIndex"
+                 :active-index="swapping.selectedGroup === 'waiting' && swapping.selectedIndex || undefined"
                  @slot-clicked="clickSlot('waiting', $event)"/>
 
       <ZebraArea class="placed-area" :slots="zebras.placed" arrangement="circle" :display-mode="displayMode"
                  :pipe-position="pipePosition" :pipe-rewind="pipeRewind"
-                 :active-index="swapping.selectedGroup === 'placed' && swapping.selectedIndex"
+                 :active-index="swapping.selectedGroup === 'placed' && swapping.selectedIndex || undefined"
                  @slotClicked="clickSlot('placed', $event)"/>
     </div>
   </div>
@@ -18,12 +18,12 @@ import {computed, defineComponent, PropType, reactive, ref, watch} from "vue";
 import * as ZebraModel from "./Model/ZebraFoalModel";
 import {Zebra} from "./Model/ZebraFoalModel";
 
-import {twoPartyMultiGroupSwapping} from "@/modules/treasure-hunt/components/slotSwapping"
+import {twoPartyMultiGroupSwapping} from "@src/modules/treasure-hunt/components/slotSwapping"
 import ZebraArea from "./ZebraArea.vue";
 import ZebraNeighborRule, {NeighborPositions, NeighborRuleEvaluator} from "./Model/ZebraNeighborRule";
-import {useMinigameData, useViewState} from "@/modules/treasure-hunt/components/minigameData"
-import {resolveAfter} from "@/utils/promiseUtils";
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
+import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {resolveAfter} from "@src/utils/promiseUtils";
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 type ZebraFoalMinigameData = {
   zebras: Zebra[],

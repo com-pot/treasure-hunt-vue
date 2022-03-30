@@ -62,12 +62,12 @@ import List from "@editorjs/list"
 import Header from "@editorjs/header"
 import EditorColorPlugin from "editorjs-text-color-plugin";
 
-import {debounce} from "@/utils/timingUtils";
+import {debounce} from "@src/utils/timingUtils";
 
-import {useApiAdapter} from "@/modules/treasure-hunt/services"
-import {PartOfStory} from "@/modules/treasure-hunt/model/TreasureHuntModel"
+import {useApiAdapter} from "@src/modules/treasure-hunt/services"
+import {PartOfStory} from "@src/modules/treasure-hunt/model/TreasureHuntModel"
 import editorJsToHtml from "../../utils/editorJsToHtml"
-import TypefulInput from "@/modules/Typeful/components/TypefulInput"
+import TypefulInput from "@src/modules/Typeful/components/TypefulInput"
 
 export default defineComponent({
   components: {

@@ -2,8 +2,9 @@
   <BackstageNavigation/>
   <router-view/>
 </template>
-<script>
-import BackstageNavigation from "./components/BackstageNavigation";
+
+<script lang="ts">
+import BackstageNavigation from "./components/BackstageNavigation.vue";
 export default {
   components: {BackstageNavigation}
 }

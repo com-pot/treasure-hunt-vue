@@ -1,4 +1,4 @@
-import {Radians} from "@/utils/trigonometry"
+import {Radians} from "@src/utils/trigonometry"
 
 export interface Tile {
     bgColor: string,

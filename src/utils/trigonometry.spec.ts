@@ -1,4 +1,4 @@
-import {expect} from "chai";
+import {describe, test, expect} from "vitest";
 
 import trigonometry, {Radians} from "./trigonometry";
 
@@ -21,7 +21,7 @@ describe("Angular calculations", () => {
 
 
         ['I.', 'II.', 'III.', 'IV.'].forEach((label, i) => {
-            it('self-checks ' + label + ' quadrant', () => checkQuadrant(i * piHalf, (i + 1) * piHalf))
+            test('self-checks ' + label + ' quadrant', () => checkQuadrant(i * piHalf, (i + 1) * piHalf))
         });
     })
 
@@ -34,7 +34,7 @@ describe("Angular calculations", () => {
             [Math.PI * 2 - 0.1, Math.PI * -2 - 0.1, 0],
         ]
         cases.forEach(([a, b, expectedDiff]) => {
-            it(`a: ${a}, b: ${b}`, () => {
+            test(`a: ${a}, b: ${b}`, () => {
                 const diff = trigonometry.minAngleDiff(a, b)
                 expect(diff).to.be.closeTo(expectedDiff, 0.0001)
             })

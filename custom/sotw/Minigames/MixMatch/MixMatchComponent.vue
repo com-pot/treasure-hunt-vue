@@ -3,7 +3,7 @@
     <div class="pieces">
       <template v-for="(piece, i) in internalState.value.pieces" :key="i">
         <div :class="['piece', 'piece-' + piece.type, i === selectedPiece && setupOpen && 'piece-selected']"
-             :style="{'--color': piece.color, '--modelImage': getPieceImage(piece)}"
+             :style="['--color:'+ piece.color, '--modelImage:'+ getPieceImage(piece)]"
              @click="selectPiece(i)"></div>
       </template>
     </div>
@@ -15,13 +15,13 @@
         </div>
 
         <div class="attribute start colors">
-          <div class="option" v-for="option in colorOptions" :key="option"
-               :style="{'--color': option.color}" @click="internalState.value.pieces[selectedPiece].color = option.color"></div>
+          <div class="option" v-for="option in colorOptions" :key="option.color"
+               :style="'--color:'+ option.color" @click="internalState.value.pieces[selectedPiece].color = option.color"></div>
         </div>
 
         <div class="attribute end models">
-          <div class="option" v-for="option in selectedPieceModelOptions" :key="option"
-               :style="{'--image': getModelImage(option.name)}" @click="internalState.value.pieces[selectedPiece].model = option.name"></div>
+          <div class="option" v-for="option in selectedPieceModelOptions" :key="option.name"
+               :style="'--image:'+ getModelImage(option.name)" @click="internalState.value.pieces[selectedPiece].model = option.name"></div>
         </div>
       </template>
     </div>
@@ -32,8 +32,8 @@
 import {computed, defineComponent, ref} from "vue"
 
 import * as Model from "./MixMatchModel"
-import {useMinigameData, useViewState} from "@/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
+import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 
 export default defineComponent({

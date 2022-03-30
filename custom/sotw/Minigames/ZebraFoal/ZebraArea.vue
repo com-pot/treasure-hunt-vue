@@ -1,7 +1,7 @@
 <template>
   <ul :class="['zebra-area', arrangement, displayMode, pipeRewind && 'pipe-rewind']" :style="areaStyles">
     <li v-for="(slot, i) in slots" :key="i" @click="$emit('slotClicked', i)"
-        :style="{'--order': i}"
+        :style="'--order: ' + i"
     >
       <div :class="[
           'zebra-slot',
@@ -35,18 +35,17 @@ export default defineComponent({
     arrangement: {type: String as PropType<'inline' | 'circle'>, default: 'inline'},
     displayMode: {type: String as PropType<'images' | 'names'>, default: 'images'},
     slots: {type: Array as PropType<ZebraSlot[]>, required: true},
-    activeIndex: [Number, Boolean],
+    activeIndex: {type: [Number, Boolean]},
     pipePosition: Number,
     pipeRewind: Boolean,
   },
   computed: {
     areaStyles() {
       if (this.arrangement !== 'circle') {
-        return null
+        return
       }
-      return {
-        '--slice-angle': this.sliceDegrees + 'deg',
-      }
+      return `--slice-angle: ${this.sliceDegrees}deg`
+      
     },
     sliceDegrees(): number {
       return 360 / this.slots.length;
@@ -62,7 +61,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "~@/sass/vars/colors";
 
 .zebra-area {
   list-style: none;
@@ -79,7 +77,7 @@ export default defineComponent({
   }
 
   .error {
-    --item-color: #{$vile};
+    --item-color: var(--hsl-vile);
   }
 
   .zebra-slot {
@@ -137,7 +135,7 @@ export default defineComponent({
 
       div {
         display: inline-flex;
-        box-shadow: $vivid 4px 4px 4px 2px;
+        box-shadow: var(--hsl-vivid) 4px 4px 4px 2px;
 
         transition: all var(--pipe-animation-time) ease;
       }

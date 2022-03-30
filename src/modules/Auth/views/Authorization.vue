@@ -15,7 +15,7 @@ import {computed, defineComponent} from "vue";
 import authStore from "../authStore";
 import WelcomeForm from "../components/WelcomeForm.vue";
 import {useRouter} from "vue-router";
-import {useAlert} from "@/modules/Layout/components/viewUtils";
+import {useAlert} from "@src/modules/Layout/components/viewUtils";
 
 type AvailableForm = {
   spec: AuthForm,

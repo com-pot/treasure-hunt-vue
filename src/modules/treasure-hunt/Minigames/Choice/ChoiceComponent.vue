@@ -14,8 +14,8 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {useMinigameData, useViewState} from "@/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
+import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 type ChoiceMinigameData = {
   options: string[],

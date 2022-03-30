@@ -1,5 +1,5 @@
 import {ref} from "vue";
-import JsonApiAdapter from "@/modules/Api/services/JsonApiAdapter"
+import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
 
 type UserData = {
     login: string,
@@ -13,9 +13,6 @@ const state = {
 let apiAdapter: JsonApiAdapter
 const actions = {
     bindApiAdapter(api: JsonApiAdapter) {
-        if (apiAdapter) {
-            throw new Error('adapter-already-bound')
-        }
         apiAdapter = api
     },
 

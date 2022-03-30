@@ -23,8 +23,8 @@
 <script lang="ts">
 import {computed, defineComponent} from "vue"
 
-import {useMinigameData, useViewState} from "@/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
+import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 import {ComboPickViewData, initializeState} from "./ComboPickModel"
 import ComboPickInput from "./ComboPickInput.vue"
@@ -55,7 +55,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "~@/modules/Layout/scss/breakpoints";
+@import "../../../../src/modules/Layout/scss/breakpoints";
 
 .mg-cp {
   .prompts {

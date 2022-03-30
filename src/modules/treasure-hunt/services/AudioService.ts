@@ -36,7 +36,7 @@ export default class AudioService {
         soundBankElement.id = this.soundBankId
 
         let promises = Object.entries(this.soundBank)
-            .map(([name, sound]) => new Promise((resolve) => {
+            .map(([name, sound]) => new Promise<void>((resolve) => {
                 let audioEl = document.createElement('audio')
                 audioEl.src = (sound as SoundDefUninitialized).fileName
                 audioEl.preload = "auto"

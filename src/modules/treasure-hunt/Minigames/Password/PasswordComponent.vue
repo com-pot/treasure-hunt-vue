@@ -7,10 +7,10 @@
 
 <script lang="ts">
 import {defineComponent, reactive} from "vue"
-import {useMinigameData, useViewState} from "@/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
-import {hasComponentStatus} from "@/modules/Layout/utils/componentHelpers"
-import {resolveAfter} from "@/utils/promiseUtils"
+import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
+import {resolveAfter} from "@src/utils/promiseUtils"
 
 type PasswordViewData = {
   prompt: string,

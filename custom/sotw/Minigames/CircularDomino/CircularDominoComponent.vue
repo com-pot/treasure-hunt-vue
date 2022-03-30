@@ -9,8 +9,8 @@
         <li>Ring: {{ minigameState.value.ringsAngles[board.drag.iRing].toFixed(2) }} /
           {{ ui.ringAngularVelocity[board.drag.iRing].toFixed(2) }}
         </li>
-        <li>Offset: {{ board.drag.holdOffset.angle.toFixed(2) }}</li>
-        <li>Current: {{ board.drag.currentPosition.angle.toFixed(2) }}</li>
+        <li>Offset: {{ board?.drag?.holdOffset?.angle.toFixed(2) }}</li>
+        <li>Current: {{ board?.drag?.currentPosition?.angle.toFixed(2) }}</li>
       </ul>
     </div>
   </div>
@@ -22,14 +22,14 @@
 import {computed, defineComponent, onBeforeUnmount, onMounted, reactive, ref} from "vue"
 import {useRoute} from "vue-router"
 
-import * as touchUtils from "@/utils/touchUtils"
+import * as touchUtils from "@src/utils/touchUtils"
 
 import * as Model from "./Model/CircularDominoModel"
 
-import {useMinigameData, useViewState} from "@/modules/treasure-hunt/components/minigameData"
-import {useGameLoop} from "@/modules/treasure-hunt/components/gameLoop"
+import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {useGameLoop} from "@src/modules/treasure-hunt/components/gameLoop"
 import {UiConfig, useAngularBoard} from "./angularBoard"
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 
 

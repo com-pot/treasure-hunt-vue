@@ -1,5 +1,5 @@
 import {computed, ComputedRef, inject, provide, reactive, Ref} from "vue"
-import {hashCode} from "@/utils/stringUtils"
+import {hashCode} from "@src/utils/stringUtils"
 import {CheckResult} from "../model/TreasureHuntModel"
 
 type MinigameStatus = 'idle' | 'evaluating' | 'error' | 'success'

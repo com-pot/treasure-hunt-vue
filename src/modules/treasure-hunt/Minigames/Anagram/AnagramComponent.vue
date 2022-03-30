@@ -20,8 +20,8 @@ import {computed, defineComponent} from "vue"
 
 import * as Model from "./AnagramModel";
 import {AnagramMinigameData, AnagramMinigameState} from "./AnagramModel";
-import {useMinigameData, useViewState} from "@/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
+import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 
 export default defineComponent({
@@ -58,7 +58,7 @@ export default defineComponent({
     const outputText = computed(() => minigameState.value.outputLetters.map(getOutputChar).join(''));
     const outputTextPadded = computed(() => {
       const padLength = minigameData.value.outputLength - outputText.value.length
-      return outputText.value + ' '.repeat(padLength > 0 ? padLength : 0)
+      return (outputText.value + ' '.repeat(padLength > 0 ? padLength : 0)).split('')
     })
 
     const spaceAvailable = computed(() => outputText.value.length && outputText.value.charAt(outputText.value.length - 1) !== ' ');
@@ -106,7 +106,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "~@/sass/vars/colors";
 
 .mg-anagram {
   display: flex;
@@ -126,7 +125,7 @@ export default defineComponent({
       height: 24px;
       font-style: normal;
 
-      background: $dim;
+      background: var(--hsl-dim);
       border: 2px solid;
 
       &:not(.picked):not(.disabled) {

@@ -35,10 +35,10 @@
 }
 
 .btn-vivid {
-  --fg-color: #{$vivid};
+  --fg-color: var(--hsl-vivid);
 }
 .btn-success {
-  --fg-color: #{$earth};
+  --fg-color: var(--hsl-earth);
 }
 .btn-bland {
   --fg-color: #{hsl(42deg, 45%, 40%)};

@@ -22,9 +22,9 @@
       <div class="spacer"/>
     </div>
 
-    <CodeExample header="Konfigurace">
+    <!-- <CodeExample header="Konfigurace">
       <template #default>{{ {config: mgDemoData.challengeConfig, checkHash} }}</template>
-    </CodeExample>
+    </CodeExample> -->
 
   </div>
   <div class="view-error" :data-status="status" v-else>
@@ -37,15 +37,15 @@
 
 <script lang="ts">
 import {defineComponent, provide, ref, shallowRef, watch} from "vue"
-import {hasComponentStatus} from "@/modules/Layout/utils/componentHelpers"
-import CodeExample from "@/modules/Layout/components/CodeExample.vue"
+import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
+// import CodeExample from "@src/modules/Layout/components/CodeExample.vue"
 import PlayerViewLoading from "../../views/PlayerViewLoading.vue"
 import {loadMinigameComponent, loadMinigameComponentDemoData} from "../../utils/minigameUtils"
 import {createMinigameControls} from "../../components/minigameData"
 
 export default defineComponent({
   components: {
-    CodeExample,
+    // CodeExample,
     PlayerViewLoading,
   },
   props: {

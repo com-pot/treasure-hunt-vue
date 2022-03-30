@@ -1,27 +1,29 @@
 <template>
   <div class="sotw-view">
 
-    <div class="node-navigation -top" v-if="progNode">
-      <router-link v-if="nodeLinks.previous" class="btn -round" :to="nodeLinks.previous">&lt;</router-link>
-      <span v-else class="spacer"/>
+    <template v-if="progNode">
+      <div class="node-navigation -top">
+        <router-link v-if="nodeLinks.previous" class="btn -round" :to="nodeLinks.previous">&lt;</router-link>
+        <span v-else class="spacer"/>
 
-      <h1 v-if="progNode.title">{{ progNode.title }}</h1>
+        <h1 v-if="progNode.title">{{ progNode.title }}</h1>
 
-      <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
-      <span v-else class="spacer"/>
-    </div>
+        <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
+        <span v-else class="spacer"/>
+      </div>
 
-    <PlayerViewLoading v-if="componentStatus === 'loading'"/>
+      <PlayerViewLoading v-if="componentStatus === 'loading'"/>
 
-    <SotwViewStory v-else-if="componentStatus === 'ready' && mode === 'story'" :key="nodeId + '-story'"
-                   :story-data="progNode.progression.storyPart"
-                   :trophies="progNode.progression.trophies"
-                   @sotwSignal="performGameAction"
-    />
+      <SotwViewStory v-else-if="componentStatus === 'ready' && mode === 'story'" :key="nodeId + '-story'"
+                    :story-data="progNode.progression.storyPart"
+                    :trophies="progNode.progression.trophies"
+                    @sotwSignal="performGameAction"
+      />
 
-    <SotwViewMinigame v-else-if="componentStatus === 'ready' && mode === 'challenge'" :key="nodeId + '-challenge'"
-                      :challenge-type="progNode.progression.challenge.type"
-    />
+      <SotwViewMinigame v-else-if="componentStatus === 'ready' && mode === 'challenge'" :key="nodeId + '-challenge'"
+                        :challenge-type="progNode.progression.challenge.type"
+      />
+    </template>
 
     <div class="view-error" v-else>
       <h1>Jejda, stránku se nepodařilo načíst</h1>
@@ -70,9 +72,9 @@ import SotwViewMinigame from "./SotwViewMinigame.vue";
 import {PlayerProgression} from "../model/TreasureHuntModel"
 import {createMinigameControls} from "../components/minigameData"
 import {useSotwApi, useSotwAudio} from "../services"
-import {hasComponentStatus} from "@/modules/Layout/utils/componentHelpers"
-import {useAlert} from "@/modules/Layout/components/viewUtils"
-import {resolveAfter} from "@/utils/promiseUtils"
+import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
+import {useAlert} from "@src/modules/Layout/components/viewUtils"
+import {resolveAfter} from "@src/utils/promiseUtils"
 import {GameAction, PartOfStory, ProgressionData, TimeoutData} from "../model/TreasureHuntModel"
 import PlayerTimeoutIndication from "../components/PlayerTimeoutIndication.vue"
 import {useTimeout} from "../components/playerTimeout"

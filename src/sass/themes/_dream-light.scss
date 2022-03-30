@@ -3,13 +3,18 @@
 
   --nav-bg: #{hsl(42deg, 60%, 60%)};
   --nav-border-color: #{darken(hsl(42deg, 60%, 60%), 20%)};
+
+  --hsl-vivid: hsl(66, 100%, 50%);
+  --hsl-earth: lightgreen;
+  --hsl-vile: rgb(76, 175, 80);
+  --hsl-dim: #444;
 }
 
 .bg {
   background: #e69833;
 
   .texture {
-    background-image: url("~@/assets/photo_2021-04-17_20-59-02.jpg");
+    background-image: url("/sotw/photo_2021-04-17_20-59-02.jpg");
     background-size: cover;
     background-attachment: fixed;
     filter: saturate(1.4) brightness(1.25) opacity(0.6) contrast(0.6);
@@ -18,7 +23,7 @@
   }
 
   .cloud {
-    background: url("~@/assets/cloud.webp") no-repeat center;
+    background: url("/sotw/cloud.webp") no-repeat center;
     background-size: cover;
     width: 420px;
     height: 666px;

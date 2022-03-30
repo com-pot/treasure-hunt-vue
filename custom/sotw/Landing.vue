@@ -38,8 +38,8 @@
 <script lang="ts">
 import {computed, defineComponent} from "vue";
 
-import authStore from "@/modules/Auth/authStore";
-import {useTextsService} from "@/modules/treasure-hunt/services"
+import authStore from "@src/modules/Auth/authStore";
+import {useTextsService} from "@src/modules/treasure-hunt/services"
 
 export default defineComponent({
   setup() {
@@ -55,7 +55,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "~@/sass/vars/colors";
 
 .sign-options {
   display: flex;
@@ -108,8 +107,8 @@ export default defineComponent({
       align-self: center;
       display: block;
       background: var(--container-bg);
-      border: $vile 2px solid;
-      color: $vile;
+      border: var(--hsl-vile) 2px solid;
+      color: var(--hsl-vile);
     }
   }
 }

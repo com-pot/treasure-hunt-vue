@@ -14,13 +14,19 @@
 
 <script lang="ts">
 import {defineComponent, ref} from "vue"
-import {useApiAdapter} from "@/modules/treasure-hunt/services"
+import {useApiAdapter} from "@src/modules/treasure-hunt/services"
+
+type StoryPartStats = {
+  title: string,
+  slug: string,
+  countByStatus: {new: number, done: number},
+}
 
 export default defineComponent({
   setup() {
     const api = useApiAdapter()
 
-    const storyParts = ref([])
+    const storyParts = ref<StoryPartStats[]>([])
 
     api.get('/backstage/treasure-hunt/dashboard/story', {story: 'sotw'})
       .then((res: any) => {
@@ -35,7 +41,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "~@/sass/vars/colors";
 
 .backstage.-challenges {
   .list {
@@ -47,7 +52,7 @@ export default defineComponent({
   .story-part {
     padding: 0.5rem;
     border-radius: 0.2em;
-    background: rgba($vivid, 0.2);
+    background: rgba(var(--hsl-vivid), 0.2);
     border: dimgray 2px solid;
 
     .title {

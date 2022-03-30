@@ -10,7 +10,7 @@
     </div>
 
     <div :class="['matrix-field', minigameControls.status]">
-      <div v-for="field in minigameData.fields" :key="field.key" class="field" :style="{'--row': field.row, '--col': field.col}">
+      <div v-for="field in minigameData.fields" :key="field.key" class="field" :style="[`--row: ${field.row}`, `--col: ${field.col}`]">
         <label :class="minigameState.value.toggled[field.key] && 'selected'">
           <input type="checkbox" v-model="minigameState.value.toggled[field.key]">
           <i class="symbol"/>
@@ -24,10 +24,10 @@
 <script lang="ts">
 import {computed, defineComponent} from "vue"
 
-import {useMinigameData, useViewState} from "@/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
-import {shuffleFisherYates} from "@/utils/arrays"
-import {resolveAfter} from "@/utils/promiseUtils"
+import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {shuffleFisherYates} from "@src/utils/arrays"
+import {resolveAfter} from "@src/utils/promiseUtils"
 
 type ToggleMatrixViewData = {
   width?: number,
@@ -75,10 +75,10 @@ export default defineComponent({
 
 
 
-    const matrixCss = computed(() => ({
-      '--matrix-width': minigameData.value.width,
-      '--matrix-height': minigameData.value.height,
-    }))
+    const matrixCss = computed(() => ([
+      '--matrix-width:' + minigameData.value.width,
+      '--matrix-height:' + minigameData.value.height,
+    ]))
     
     return {
       minigameData,
@@ -96,8 +96,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "~@/sass/vars/colors";
-
 .mg-toggle-matrix {
   --symbol-size: 4em;
 
@@ -113,7 +111,7 @@ export default defineComponent({
       grid-template-columns: repeat(var(--matrix-width), 1fr);
 
       i {
-        background: $dim;
+        background: var(--hsl-dim);
         display: block;
         width: 8px;
         height: 8px;
@@ -122,13 +120,13 @@ export default defineComponent({
 
     .hint-1 {
       i:nth-child(2), i:nth-child(9) {
-        background: $vivid;
+        background: var(--hsl-vivid);
       }
     }
 
     .hint-2 {
       i:nth-child(4) {
-        background: $vivid;
+        background: var(--hsl-vivid);
       }
     }
   }
@@ -163,28 +161,28 @@ export default defineComponent({
       mask-image: url("./resources/star.svg");
       background: #666;
 
-      transition: background 0.3s ease;
+      transition: background-color 0.3s ease;
     }
 
     input[type=checkbox] {
       display: none;
 
       &:checked + .symbol {
-        background: $vivid;
+        background: var(--hsl-vivid);
       }
     }
 
     > label {
       --color: #ccc;
       &.selected {
-        --color: #{$vivid}
+        --color: var(--hsl-vivid);
       }
     }
   }
 
   .matrix-field.success {
     .field > label.selected {
-      border-color: $earth;
+      border-color: var(--hsl-earth);
     }
   }
 }

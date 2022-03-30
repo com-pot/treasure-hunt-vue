@@ -19,7 +19,7 @@
 <script lang="ts">
 import {defineComponent, ref} from "vue";
 import {listMinigames} from "../../utils/minigameUtils"
-import {Awaited} from "@/utils/timingUtils"
+import {Awaited} from "@src/utils/timingUtils"
 
 export default defineComponent({
   props: {

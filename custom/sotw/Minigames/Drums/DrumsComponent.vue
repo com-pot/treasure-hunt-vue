@@ -24,8 +24,8 @@
 <script lang="ts">
 import * as Tone from "tone";
 import {computed, defineComponent, onBeforeUnmount, onMounted, ref} from "vue";
-import {useMinigameControls} from "@/modules/treasure-hunt/components/minigameData"
-import {resolveAfter} from "@/utils/promiseUtils"
+import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {resolveAfter} from "@src/utils/promiseUtils"
 
 type Drum = {
   note: string,
@@ -144,7 +144,7 @@ export default defineComponent({
       const notes = currentPattern.value.map((drumIndex) => drums.value[drumIndex].note)
       let i = 0
 
-      await new Promise((res) => {
+      await new Promise<void>((res) => {
         const sequence = new Tone.Sequence(function (time, note) {
           animateStrike(currentPattern.value[i])
           synth.triggerAttackRelease(note, "8n")

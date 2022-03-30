@@ -1,11 +1,22 @@
+import { watch } from "vue";
+
 import Universe from "./services/Universe"
 import TextsService from "./services/TextsService"
-import JsonApiAdapter from "@/modules/Api/services/JsonApiAdapter"
+import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
 import TreasureHuntApi from "./api/TreasureHuntApi";
 import AudioService from "./services/AudioService";
-import authStore from "@/modules/Auth/authStore"
+import authStore from "@src/modules/Auth/authStore"
 
-let apiAdapterInstance= new JsonApiAdapter(process.env.VUE_APP_API_BASE, authStore)
+
+
+let apiAdapterInstance= new JsonApiAdapter(import.meta.env.VITE_API_BASE + '')
+watch(() => authStore.state.user.value, (user) => {
+    if (!user) {
+        delete apiAdapterInstance.defaultHeaders.Authorization
+    } else {
+        apiAdapterInstance.defaultHeaders.Authorization = 'Bearer ' + user.token
+    }
+}, {immediate: true})
 export const useApiAdapter = () => {
     return apiAdapterInstance
 }

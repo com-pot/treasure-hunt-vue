@@ -11,10 +11,10 @@
 
 <script lang="ts">
 import {defineComponent, shallowRef, watch} from "vue";
-import {loadMinigameComponent} from "@/modules/treasure-hunt/utils/minigameUtils"
+import {loadMinigameComponent} from "@src/modules/treasure-hunt/utils/minigameUtils"
 
 import {useViewData} from "../components/minigameData"
-import {hasComponentStatus} from "@/modules/Layout/utils/componentHelpers"
+import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
 
 export default defineComponent({
   props: {
@@ -24,7 +24,7 @@ export default defineComponent({
     const componentStatus = hasComponentStatus('loading');
     const componentSpec = shallowRef<any>(null);
 
-    const viewData = useViewData();
+    const viewData = useViewData<{description: string}>();
 
     async function loadMinigame(challengeType: string) {
       componentStatus.value = "loading";

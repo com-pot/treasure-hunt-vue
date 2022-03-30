@@ -2,7 +2,7 @@ import {MinigameSpec} from "../types/minigames"
 import MinigameRegistry from "../services/MinigameRegistry"
 
 const registry = new MinigameRegistry([
-    () => import("@/../custom/sotw/sotw.minigameBundle"),
+    () => import("@src/../custom/sotw/sotw.minigameBundle"),
     () => import("../general.minigameBundle"),
 ])
 

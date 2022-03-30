@@ -1,5 +1,5 @@
 import {PartOfStory, ProgressionData} from "../model/TreasureHuntModel";
-import JsonApiAdapter from "@/modules/Api/services/JsonApiAdapter";
+import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter";
 
 export default class TreasureHuntApi {
 

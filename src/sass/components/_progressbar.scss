@@ -3,8 +3,8 @@
   overflow: hidden;
   line-height: 0;
 
-  box-shadow: 1px 1px 0 0 $dim;
-  background: rgba($dim, 0.1);
+  box-shadow: 1px 1px 0 0 var(--hsl-dim);
+  background: rgba(var(--hsl-dim), 0.1);
 
   .chunk {
     display: inline-block;
@@ -13,10 +13,10 @@
     width: calc(var(--done) * 100%);
 
     &.-vivid {
-      background: $vivid;
+      background: var(--hsl-vivid);
     }
     &.-vile {
-      background: $vile;
+      background: var(--hsl-vile);
     }
   }
 }

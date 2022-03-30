@@ -1,5 +1,5 @@
 import {defineComponent, h, onMounted, ref} from "vue"
-import SotwLayout from "@/../custom/sotw/SotwLayout.vue"
+import SotwLayout from "@custom/sotw/SotwLayout.vue"
 
 export default defineComponent({
     props: {

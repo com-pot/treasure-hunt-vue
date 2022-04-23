@@ -1,0 +1,23 @@
+@use "sass:math";
+
+@use "sass:map";
+@use "../utils/colorUtils" as colorUtils;
+
+$accents: () !default;
+$accentSteps: () !default;;
+
+//map.merge($accents, $defaultAccents);
+@if (not map.has-key($accents, 'neutral')) {
+  $accents: map.set($accents, 'neutral', hsl(33 10% 50%));
+}
+
+
+:root {
+  @each $name, $color in $accents {
+    $steps: map.get($accentSteps, $name);
+    @include colorUtils.mixColorVars($name, $color, $steps);
+  }
+
+  --hsl-dark: #{colorUtils.toHSL(black)};
+  --hsl-light: #{colorUtils.toHSL(white)};
+}

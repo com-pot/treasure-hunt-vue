@@ -1,9 +1,10 @@
-import {MinigameSpec} from "../types/minigames"
+import {MinigameSpec} from "../Minigames"
 import MinigameRegistry from "../services/MinigameRegistry"
 
 const registry = new MinigameRegistry([
-    () => import("@src/../custom/sotw/sotw.minigameBundle"),
     () => import("../general.minigameBundle"),
+    () => import("@custom/sotw/sotw.minigameBundle"),
+    () => import("@custom/vlm/vlm.minigameBundle"),
 ])
 
 
@@ -15,6 +16,10 @@ export async function listMinigames(): Promise<MinigameSpec[]> {
             caption: mg.caption,
         }))
 }
+export async function listMinigameBundles() {
+    await registry.whenReady()
+    return registry.getBundles()
+}
 
 export async function loadMinigameComponent(challengeType: string): Promise<any> {
     await registry.whenReady()
@@ -23,7 +28,19 @@ export async function loadMinigameComponent(challengeType: string): Promise<any>
         return Promise.reject(new Error(`No minigame with id '${challengeType}'`))
     }
 
-    return mgData.module()
+    return (await mgData.module()).default
+}
+export async function loadMinigameConfigurator(challengeType: string): Promise<any>|null {
+    await registry.whenReady()
+    const mgData = registry.get(challengeType)
+    if (!mgData) {
+        return Promise.reject(new Error(`No minigame with id '${challengeType}'`))
+    }
+    if (!mgData.configurator) {
+        return null
+    }
+
+    return (await mgData.configurator()).default
 }
 
 export async function loadMinigameComponentDemoData(challengeType: string): Promise<object> {
@@ -41,4 +58,8 @@ export async function loadMinigameComponentDemoData(challengeType: string): Prom
     }
 
     return data || {}
+}
+
+export function useMinigameRegistry() {
+    return registry
 }

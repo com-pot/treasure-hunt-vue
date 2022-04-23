@@ -1,0 +1,29 @@
+.app-form {
+  input {
+    padding: 0.2em 0.5em;
+    width: 100%;
+
+    border-radius: 4px;
+  }
+
+  &.-container {
+    padding: 1rem;
+    background: var(--neutral-900);
+  }
+
+  &.-auto-spacing {
+    legend {
+      line-height: 0;
+
+      + * {
+        margin-top: 0.5rem;
+      }
+    }
+    fieldset {
+      //padding-block: 1rem;
+      &:not(:first-child) {
+        margin-top: 1.5rem;
+      }
+    }
+  }
+}

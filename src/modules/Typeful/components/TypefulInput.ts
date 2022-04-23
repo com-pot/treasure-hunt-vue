@@ -1,29 +1,53 @@
 import {defineComponent, h} from "vue"
-import {useInputRegistry} from "@src/modules/Typeful/inputs/inputRegistry";
+import {AppTypeDeclaration} from "@src/modules/Typeful/defineTypefulModule"
+import {useTypeRegistry} from "@src/modules/Typeful/typeRegistry"
 
 
 export default defineComponent({
+    name: 'TypefulInput',
     inheritAttrs: false,
     props: {
         type: {type: String, default: 'text'},
+        inOpts: {type: Object},
     },
 
     setup(props, context) {
-        const inputRegistry = useInputRegistry()
+        const typeRegistry = useTypeRegistry()
 
-        return () => {
-            if (inputRegistry.has(props.type)) {
-                // FIXME: ts vue whoops
-                const component = inputRegistry.get(props.type) as any
-                return h(component, {
-                    ...context.attrs,
-                }, context.slots)
+        function getComponent(type: string, inputProps: Record<string, unknown>) {
+            const typeSpec = typeRegistry.getTypeSpec(props.type)
+            if (!typeSpec) {
+                return null
+            }
+            let component: AppTypeDeclaration['component'] = typeSpec?.component
+            const discriminator = (typeSpec.componentDiscriminator ?? 'mode') as string
+
+            if (typeof component === 'function') {
+                const discriminatorValue = inputProps[discriminator]
+                delete inputProps[discriminator]
+
+                component = component(discriminatorValue)
             }
 
-            return h('input', {
-                ...context.attrs,
-                type: props.type,
-            })
+            return component ?? null
+        }
+
+        return () => {
+            const inputProps = Object.assign({}, context.attrs, props.inOpts)
+            if (typeof context.attrs.name === 'string') {
+                inputProps.key = context.attrs.name
+            }
+
+            const component = getComponent(props.type, inputProps)
+            if (component) {
+                return h(component, inputProps, context.slots)
+            }
+
+            console.warn("Unknown input spec", props.type, inputProps)
+            return h('div', {
+                ...inputProps,
+                key: inputProps.name,
+            }, [`model error [type='${props.type}']`])
         }
     },
 })

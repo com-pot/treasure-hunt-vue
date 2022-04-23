@@ -1,12 +1,4 @@
-import {OutputBlockData} from "@editorjs/editorjs"
-
-export interface PartOfStory {
-    slug: string,
-    title: string,
-    contentBlocks?: OutputBlockData[],
-    contentHtml: string,
-    challenge?: string,
-}
+import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
 
 export type TimeoutData = {
     since?: Date,
@@ -27,13 +19,16 @@ export type PlayerProgression = {
 
 export type ProgressionData = {
     status: 'new'|'done',
-    timeout: TimeoutData,
+    timeout?: TimeoutData,
     challenge: ChallengeData,
     data?: ProgressionChallengeData,
     storyPart: PartOfStory,
     trophies: TrophyData[],
 }
 
+/**
+ * @deprecated - use {type: '', args: {...}} notation
+ */
 export type GameAction = [string, ...any[]]
 export type CheckResult = {
     status: 'ok'|'already-solved'|'ko',

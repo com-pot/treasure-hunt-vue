@@ -3,13 +3,16 @@ import {RouteRecordRaw} from "vue-router";
 import Authorization from "@src/modules/Auth/views/Authorization.vue";
 import PlayerViewEntrypoint from "./views/PlayerViewEntrypoint.vue";
 import GameView from "./views/GameView.vue";
-import Landing from "@src/../custom/sotw/Landing.vue";
+import ThLanding from "@src/modules/treasure-hunt/views/ThLanding.vue";
 import Page404 from "@src/modules/Layout/views/Page404.vue"
-import BackstageLayout from "./Backstage/BackstageLayout.vue"
+import PassThroughComponent from "@src/routing/PassThroughComponent"
+
+import gameStatic from "@custom/vlm/vlmGame.static.json"
+// import gameStatic from "@custom/sotw/sotwGame.static.json"
 
 const gameRoutes: RouteRecordRaw[] = [
     {
-        name: 'sotw.NodeView',
+        name: 'th.NodeView',
         path: 'part/:nodeId',
         component: PlayerViewEntrypoint,
         props(match) {
@@ -17,7 +20,7 @@ const gameRoutes: RouteRecordRaw[] = [
         },
     },
     {
-        name: 'sotw.NodeView.challenge',
+        name: 'th.NodeView.challenge',
         path: 'part/:nodeId/challenge',
         component: PlayerViewEntrypoint,
         props(match) {
@@ -28,7 +31,7 @@ const gameRoutes: RouteRecordRaw[] = [
 
 const routes: RouteRecordRaw[] = [
     {
-        name: 'sotw.Game',
+        name: 'th.Game',
         path: '/game',
         component: GameView,
         children: gameRoutes,
@@ -36,7 +39,10 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/',
         name: 'Landing.welcome',
-        component: Landing,
+        component: ThLanding,
+        props: {
+            gameStatic: gameStatic,
+        },
         meta: {
             skin: 'entrance',
         },
@@ -54,11 +60,14 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/backstage',
         name: "Backstage.root",
-        component: BackstageLayout,
+        component: PassThroughComponent,
+        meta: {
+            layout: 'backstage',
+        },
         redirect: {name: 'Backstage.SeasonDashboard'},
         children: [
             {
-                path: '/',
+                path: '',
                 name: 'Backstage.SeasonDashboard',
                 component: () => import('./Backstage/views/SeasonDashboard.vue'),
             },
@@ -91,17 +100,19 @@ const routes: RouteRecordRaw[] = [
             {
                 path: "minigame/:minigame",
                 name: 'minigame.dev.detail',
-                component: () => import("./Backstage/views/MinigameContainer.vue"),
+                component: () => import("src/modules/treasure-hunt/Backstage/views/MinigameSandbox.vue"),
                 props: true,
             },
-            {
-                path: '/:path(.+)',
-                component: Page404,
-                meta: {
-                    title: "Stránka nenaleyena",
-                },
-            },
         ],
+    },
+
+    {
+        path: '/:path(.+)',
+        name: 'Page.Error.404',
+        component: Page404,
+        meta: {
+            title: "Stránka nenalezena",
+        },
     },
 ]
 

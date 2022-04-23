@@ -10,8 +10,10 @@
   }
   .code {
     text-align: left;
-    background: lightgoldenrodyellow;
+    background: var(--primary-900);
+    border: var(--neutral-400) 1px solid;
     padding: 0.5rem;
+    white-space: pre-wrap;
   }
 
   &:not(.expanded) {

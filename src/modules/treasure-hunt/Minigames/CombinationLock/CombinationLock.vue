@@ -9,9 +9,8 @@
 </template>
 
 <script lang="ts">
+import {computed, defineComponent, PropType} from "vue"
 
-import {computed, defineComponent} from "vue"
-import {useMinigameData} from "@src/modules/treasure-hunt/components/minigameData"
 import {
   CombinationLockMinigameData,
   LockDigitOptionsSpec,
@@ -41,13 +40,13 @@ const createOptions = (spec: LockDigitOptionsSpec) => {
 }
 
 export default defineComponent({
-  setup() {
-    const mgData = useMinigameData<CombinationLockMinigameData>()
-
-    const digitOptions = computed(() => mgData.value.digits.map((digit) => createOptions(digit.options)))
+  props: {
+    challengeConfig: {type: Object as PropType<CombinationLockMinigameData>, required: true},
+  },
+  setup(props) {
+    const digitOptions = computed(() => props.challengeConfig.digits.map((digit) => createOptions(digit.options)))
 
     return {
-      mgData,
       digitOptions,
     }
   },

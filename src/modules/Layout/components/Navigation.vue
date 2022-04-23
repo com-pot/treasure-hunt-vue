@@ -14,7 +14,7 @@ import {defineComponent, ref} from "vue";
 
 export default defineComponent({
   setup() {
-    const isOpen = ref(false);
+    const isOpen = ref(false)
 
     return {
       isOpen,

@@ -7,9 +7,7 @@ import TreasureHuntApi from "./api/TreasureHuntApi";
 import AudioService from "./services/AudioService";
 import authStore from "@src/modules/Auth/authStore"
 
-
-
-let apiAdapterInstance= new JsonApiAdapter(import.meta.env.VITE_API_BASE + '')
+let apiAdapterInstance = new JsonApiAdapter(import.meta.env.VITE_API_BASE + '')
 watch(() => authStore.state.user.value, (user) => {
     if (!user) {
         delete apiAdapterInstance.defaultHeaders.Authorization
@@ -17,15 +15,14 @@ watch(() => authStore.state.user.value, (user) => {
         apiAdapterInstance.defaultHeaders.Authorization = 'Bearer ' + user.token
     }
 }, {immediate: true})
+authStore.actions.bindApiAdapter(apiAdapterInstance)
+
 export const useApiAdapter = () => {
     return apiAdapterInstance
 }
-let sotwApiInstance: TreasureHuntApi
-export const useSotwApi = () => {
-    if (!sotwApiInstance) {
-        sotwApiInstance = new TreasureHuntApi(useApiAdapter())
-    }
-    return sotwApiInstance
+
+export const useTreasureHuntApi = () => {
+    return new TreasureHuntApi(useApiAdapter())
 }
 
 let universeInstance: Universe

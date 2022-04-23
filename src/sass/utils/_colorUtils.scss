@@ -1,0 +1,31 @@
+@use "sass:color";
+
+@mixin mixColorVars($name, $color, $steps: 5, $mixColorLow: black, $mixColorHigh: white) {
+  @if ($steps == null) {
+    $steps: 5;
+  }
+
+  $stepWeight: calc(50% / $steps);
+  $stepNamePart: calc(500 / $steps);
+
+  @for $i from 0 through $steps {
+    $stepName: --#{$name}-#{$stepNamePart * $i};
+    $colorWeight: $i * $stepWeight * 2;
+
+    $stepColor: color.mix($color, $mixColorLow, $colorWeight);
+    //@debug $stepName, $colorWeight, $stepColor;
+    #{$stepName}: #{$stepColor};
+  }
+
+  @for $i from $steps + 1 through $steps * 2 {
+    $stepName: --#{$name}-#{$stepNamePart * $i};
+    $colorWeight: ($i - $steps) * $stepWeight * 2;
+    $stepColor: color.mix($mixColorHigh, $color, $colorWeight);
+    //@debug $stepName, $colorWeight, $stepColor;
+    #{$stepName}: #{$stepColor};
+  }
+}
+
+@function toHSL($color) {
+  @return '#{hue($color), saturation($color), lightness($color)}'
+}

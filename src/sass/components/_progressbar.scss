@@ -3,20 +3,14 @@
   overflow: hidden;
   line-height: 0;
 
-  box-shadow: 1px 1px 0 0 var(--hsl-dim);
-  background: rgba(var(--hsl-dim), 0.1);
+  box-shadow: 1px 1px 0 0 var(--neutral-200);
+  background: rgba(var(--neutral-200), 0.1);
 
   .chunk {
     display: inline-block;
     height: 0.5rem;
 
     width: calc(var(--done) * 100%);
-
-    &.-vivid {
-      background: var(--hsl-vivid);
-    }
-    &.-vile {
-      background: var(--hsl-vile);
-    }
+    background-color: var(--acc-color, var(--primary-500));
   }
 }

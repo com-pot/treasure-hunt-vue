@@ -1,4 +1,6 @@
 <template>
+  <h1>Přehled výzev dle hráčů</h1>
+
   <div class="backstage -challenges">
     <div class="list">
       <div class="story-part" v-for="storyPart in storyParts" :key="storyPart.slug">
@@ -15,6 +17,7 @@
 <script lang="ts">
 import {defineComponent, ref} from "vue"
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
+import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 
 type StoryPartStats = {
   title: string,
@@ -25,10 +28,11 @@ type StoryPartStats = {
 export default defineComponent({
   setup() {
     const api = useApiAdapter()
+    const storySelection = useStorySelection()
 
     const storyParts = ref<StoryPartStats[]>([])
 
-    api.get('/backstage/treasure-hunt/dashboard/story', {story: 'sotw'})
+    api.get('/backstage/treasure-hunt/dashboard/story/' + storySelection.story)
       .then((res: any) => {
         storyParts.value = res.storyParts
       })

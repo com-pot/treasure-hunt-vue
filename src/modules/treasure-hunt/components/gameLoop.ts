@@ -29,7 +29,7 @@ export function useGameLoop(targetTicksPerSecond: number, update: UpdateFn, rend
     }
 
     const gameLoop = {
-        redrawInterval: null as number | null,
+        redrawInterval: null as ReturnType<typeof setInterval> | null,
 
         start() {
             if (gameLoop.redrawInterval !== null) {

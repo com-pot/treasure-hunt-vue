@@ -14,7 +14,7 @@ import {computed, defineComponent} from "vue";
 
 import authStore from "../authStore";
 import WelcomeForm from "../components/WelcomeForm.vue";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {useAlert} from "@src/modules/Layout/components/viewUtils";
 
 type AvailableForm = {
@@ -46,6 +46,7 @@ export default defineComponent({
   },
   setup(props) {
     const $router = useRouter();
+    const route = useRoute()
     const alert = useAlert()
 
     const currentForm = computed(() => {
@@ -54,7 +55,23 @@ export default defineComponent({
 
     const commonLoginErrors: Record<string, string> = {
       'login-taken': "Jméno je již obsazené",
+      'missing-credentials': "Neplatné přihlašovací údaje",
       'invalid-credentials': "Neplatné přihlašovací údaje",
+    }
+
+    function getContinueTo() {
+      const continueName = route.query['return-to']
+      let continueTo
+      if (continueName && typeof continueName === 'string') {
+        try {
+          continueTo = $router.resolve({name: continueName})
+        } catch (err) {
+          console.error('Invalid return location', err)
+
+        }
+      }
+
+      return continueTo || {name: 'th.Game'}
     }
 
     return {
@@ -66,7 +83,7 @@ export default defineComponent({
 
         loginPromise
             .then(() => {
-              $router.push({name: 'sotw.Game'});
+              $router.push(getContinueTo())
             })
             .catch((err) => {
               const error = err.body && err.body.error

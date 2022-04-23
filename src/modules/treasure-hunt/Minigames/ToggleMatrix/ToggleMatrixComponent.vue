@@ -1,17 +1,11 @@
 <template>
   <div class="mg-toggle-matrix" :style="matrixCss">
-    <div class="guide" v-if="false">
-      <div class="hint hint-1">
-        <i v-for="i of totalFields" :key="i"/>
-      </div>
-      <div class="hint hint-2">
-        <i v-for="i of totalFields" :key="i"/>
-      </div>
-    </div>
-
-    <div :class="['matrix-field', minigameControls.status]">
-      <div v-for="field in minigameData.fields" :key="field.key" class="field" :style="[`--row: ${field.row}`, `--col: ${field.col}`]">
-        <label :class="minigameState.value.toggled[field.key] && 'selected'">
+    <div class="matrix-field">
+      <div v-for="field in challengeConfig.fields" :key="field.key"
+           class="field" :class="minigameState.value.toggled[field.key] && 'selected'"
+           :style="[`--row: ${field.row}`, `--col: ${field.col}`]"
+      >
+        <label>
           <input type="checkbox" v-model="minigameState.value.toggled[field.key]">
           <i class="symbol"/>
         </label>
@@ -22,10 +16,9 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent} from "vue"
+import {computed, defineComponent, PropType} from "vue"
 
-import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 import {shuffleFisherYates} from "@src/utils/arrays"
 import {resolveAfter} from "@src/utils/promiseUtils"
 
@@ -39,9 +32,10 @@ type ToggleMatrixState = {
 }
 
 export default defineComponent({
-  setup() {
-    const minigameData = useMinigameData<ToggleMatrixViewData>()
-
+  props: {
+    challengeConfig: {type: Object as PropType<ToggleMatrixViewData>, required: true},
+  },
+  setup(props, {emit}) {
     const minigameState = useViewState<ToggleMatrixState>(() => ({
       toggled: {},
     }))
@@ -59,15 +53,15 @@ export default defineComponent({
       }
     }
 
-    const minigameControls = useMinigameControls({
+    exposeMinigameControls({
       reset: () => clearAll(),
       getValue: () => solution.value,
-    })
+    }, emit)
 
-    const totalFields = computed(() => (minigameData.value.width || 3) * (minigameData.value.height || 3))
-    const emptyFields = computed(() => totalFields.value - minigameData.value.fields.length)
+    const totalFields = computed(() => (props.challengeConfig.width || 3) * (props.challengeConfig.height || 3))
+    const emptyFields = computed(() => totalFields.value - props.challengeConfig.fields.length)
     const solution = computed(() => {
-      return minigameData.value.fields
+      return props.challengeConfig.fields
           .filter((field) => minigameState.value.toggled[field.key])
           .map((field) => field.key)
           .join('-');
@@ -76,19 +70,16 @@ export default defineComponent({
 
 
     const matrixCss = computed(() => ([
-      '--matrix-width:' + minigameData.value.width,
-      '--matrix-height:' + minigameData.value.height,
+      '--matrix-width:' + props.challengeConfig.width,
+      '--matrix-height:' + props.challengeConfig.height,
     ]))
     
     return {
-      minigameData,
       minigameState,
 
       emptyFields,
       totalFields,
       matrixCss,
-
-      minigameControls,
     }
   },
 });
@@ -98,38 +89,8 @@ export default defineComponent({
 <style lang="scss">
 .mg-toggle-matrix {
   --symbol-size: 4em;
-
-  .guide {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-
-    margin-block-end: 1em;
-
-    .hint {
-      display: grid;
-      grid-template-columns: repeat(var(--matrix-width), 1fr);
-
-      i {
-        background: var(--hsl-dim);
-        display: block;
-        width: 8px;
-        height: 8px;
-      }
-    }
-
-    .hint-1 {
-      i:nth-child(2), i:nth-child(9) {
-        background: var(--hsl-vivid);
-      }
-    }
-
-    .hint-2 {
-      i:nth-child(4) {
-        background: var(--hsl-vivid);
-      }
-    }
-  }
+  --inactive-color: var(--neutral-500);
+  --active-color: var(--hsl-vivid);
 
   .matrix-field {
     display: inline-grid;
@@ -138,6 +99,7 @@ export default defineComponent({
   }
 
   .field {
+    --color: var(--inactive-color);
     grid-column: var(--col, auto);
     grid-row: var(--row, auto);
 
@@ -159,30 +121,17 @@ export default defineComponent({
       display: block;
       mask-size: contain;
       mask-image: url("./resources/star.svg");
-      background: #666;
+      background-color: var(--color);
 
       transition: background-color 0.3s ease;
     }
 
     input[type=checkbox] {
       display: none;
-
-      &:checked + .symbol {
-        background: var(--hsl-vivid);
-      }
     }
 
-    > label {
-      --color: #ccc;
-      &.selected {
-        --color: var(--hsl-vivid);
-      }
-    }
-  }
-
-  .matrix-field.success {
-    .field > label.selected {
-      border-color: var(--hsl-earth);
+    &.selected {
+      --color: var(--active-color);
     }
   }
 }

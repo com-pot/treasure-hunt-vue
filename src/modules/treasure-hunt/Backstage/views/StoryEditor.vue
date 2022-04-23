@@ -1,76 +1,150 @@
 <template>
-  <div class="backstage story-editor">
-    <nav class="story-nav">
-      <p class="name" v-if="!storyParts">Načítám příběh</p>
-      <template v-else>
-        <div class="parts" v-if="storyParts.length">
-        <div class="part" :class="id === activePart && 'active'" v-for="[id, part] in storyParts" :key="id"
-             @click="selectPart(id)"
-        >
-          <div class="name">{{ part }}</div>
-          <small>/{{ id }}</small>
-        </div>
-      </div>
-      </template>
-    </nav>
-
-    <form class="form-story-part" v-if="activePartData" @submit.prevent>
-      <div class="controls">
-        <button class="btn btn-vivid" @click="savePart">Uložit</button>
-        <button class="btn" :class="viewMode === 'preview' ? 'btn-success' : 'btn-vivid'" @click="toggleViewMode">Náhled</button>
-        <span>Stav: {{ viewState }}</span>
-      </div>
-
-      <div class="story-meta" style="margin-top: 0.5rem">
-        <div class="pair">
-          <label for="title">Název části</label>
-          <input type="text" id="title" v-model="activePartData.title">
-        </div>
-        <div class="pair">
-          <label for="slug">Hezké url</label>
-          <input type="text" id="slug" v-model="activePartData.slug"/>
-        </div>
-        <div class="pair">
-          <label for="challenge">Výzva</label>
-          <TypefulInput type="select" v-model="activePartData.challenge"
-                        id="challenge"
-
-                        :options="challenges"
-                        value-prop="id" track-by="id"
-                        placeholder="Bez výzvy"
-          >
-            <template v-slot:singlelabel="{value}">{{ value.name }} - ({{ value.id }})</template>
-            <template v-slot:option="{option}">{{ option.name }} - ({{ option.id }})</template>
-          </TypefulInput>
-        </div>
-      </div>
-    </form>
-
-    <div class="content" :class="'view-mode-' + viewMode">
-      <div class="editor" ref="elEditor"></div>
-      <div class="preview logue" v-html="previewHtml"></div>
+  <div class="section-heading">
+    <div>
+      <h1>Editor příběhů</h1>
+      <span class="add-text">{{ activePart ? `Úprava části '${activePart}'` : 'Nová část' }}</span>
     </div>
+  </div>
+
+  <div class="backstage story-editor content-auto-layout">
+    <EntityPicker
+        :items="storyParts.value" item-key="slug"
+        :model-value="activePart" @update:model-value="selectPart"
+        :add="() => selectPart()"
+
+        loading-text="Načítám příběh" empty-text="Příběh nemá žádné části"
+    >
+      <template #item="{item: part}">
+        <div class="name">[{{part.order}}] {{ part.title }}</div>
+        <small>/{{ part.slug }}</small>
+      </template>
+    </EntityPicker>
+
+    <form class="app-form form-story-part -auto-spacing" @submit.prevent>
+      <fieldset class="form-auto-layout" v-if="activePartData.value">
+        <TypefulInputPair name="title" type="text" label="Název" v-model="activePartData.value.title"/>
+
+        <TypefulInputPair name="slug" type="text" label="Url klíč" v-model="activePartData.value.slug"/>
+
+        <TypefulInputPair name="order" type="number" label="Pořadí" v-model="activePartData.value.order"/>
+      </fieldset>
+
+      <fieldset class="controls">
+        <button class="btn -fill -acc-primary" @click="savePart">Uložit</button>
+      </fieldset>
+
+      <hr>
+
+      <TabFrame :tabs="editorTabs" v-model="viewMode">
+        <template #pane-edit>
+          <div class="content" :class="'view-mode-' + viewMode" v-if="activePartData.value?.contentController === 'inline'">
+            <div class="editor" ref="elEditor"></div>
+          </div>
+
+          <div v-else-if="activePartData.value">
+            <TypefulList :model-value="activePartData.value.thContentBlocks">
+              <template #item="{item}">
+                <ThContentBlock :content-item="item" :condition-types="conditionTypes.value" :view-mode="viewMode"/>
+              </template>
+            </TypefulList>
+
+            <div class="create-options" v-if="viewMode === 'edit'">
+              <button class="btn" v-for="type in activePartData.thContentBlocks.getAvailableTypes()"
+                      @click.prevent="activePartData.thContentBlocks.addContent(type)">Přidat obsah [{{ type }}]</button>
+            </div>
+          </div>
+        </template>
+
+        <template #pane-preview>
+          <div class="content" :class="'view-mode-' + viewMode">
+            <div class="preview logue" v-if="activePartData.value?.contentHtml" v-html="activePartData.value?.contentHtml"></div>
+            <p v-else>Náhled není k dispozici</p>
+          </div>
+        </template>
+
+        <template #pane-challenge>
+          <div v-if="!activePartChallenge">
+            Výzva není k dispozici
+          </div>
+
+          <fieldset v-else>
+            <legend>Výzva</legend>
+
+            <TypefulInputPair name="challengeType" label="Typ výzvy" type="select"
+                              v-model="activePartChallenge.type"
+                              :options="challengeTypes.value"
+
+                              value-prop="type" track-by="type" :in-opts="{label:'type'}"
+                              placeholder="Bez výzvy"
+            />
+
+            <hr>
+            <template v-if="selectedChallengeType?.params">
+              <TypefulAutoSection v-model="activePartChallenge.challengeConfig"
+                                  :inputs="selectedChallengeType.params"
+              />
+            </template>
+            <p v-else>Tento typ výzvy nelze konfigurovat</p>
+
+            <CodeExample header="Konfigurace - data">
+              {{ activePartChallenge.challengeConfig }}
+            </CodeExample>
+          </fieldset>
+
+          <fieldset v-if="activePartChallenge">
+            <legend>Akce výzvy</legend>
+            <em>V případě chyby</em>
+            <template v-for="i in activePartChallenge.onError?.length || 0" :key="i">
+              <StoryAction v-model="activePartChallenge.onError[i - 1]"/>
+            </template>
+          </fieldset>
+        </template>
+      </TabFrame>
+
+    </form>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, onMounted, ref, watch} from "vue"
+import {computed, defineComponent, ref, toRef, watch} from "vue"
 import {useRouter} from "vue-router";
 
-import EditorJS, {OutputBlockData} from "@editorjs/editorjs";
-import List from "@editorjs/list"
-import Header from "@editorjs/header"
-import EditorColorPlugin from "editorjs-text-color-plugin";
-
-import {debounce} from "@src/utils/timingUtils";
+import {OutputBlockData} from "@editorjs/editorjs";
 
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
-import {PartOfStory} from "@src/modules/treasure-hunt/model/TreasureHuntModel"
 import editorJsToHtml from "../../utils/editorJsToHtml"
 import TypefulInput from "@src/modules/Typeful/components/TypefulInput"
+import TabFrame, {TabEntry} from "@src/modules/Layout/components/Tabs/TabFrame.vue"
+import {useEditorInComponent} from "@src/modules/treasure-hunt/Backstage/components/useEditorJs"
+import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
+import useAsyncIndicator from "@src/modules/Layout/mixins/useAsyncIndicator"
+import {useChallengeTypeList} from "@src/modules/treasure-hunt/model/ChallengeType"
+import TypefulInputPair from "@src/modules/Typeful/components/TypefulInputPair"
+import CodeExample from "@src/modules/Layout/components/CodeExample.vue"
+import {useChallengeInstance} from "@src/modules/treasure-hunt/model/Challenge"
+import {useMinigameRegistry} from "@src/modules/treasure-hunt/utils/minigameUtils"
+import StoryAction from "@src/modules/treasure-hunt/Backstage/components/StoryAction.vue"
+import TypefulAutoSection from "@src/modules/Typeful/components/TypefulAutoSection"
+import EntityPicker from "@src/modules/treasure-hunt/Backstage/views/StoryEditor/EntityPicker.vue"
+import TypefulList from "@src/modules/Typeful/components/TypefulList.vue"
+import {useStoryPartCollection, useStoryPartInstance} from "@src/modules/treasure-hunt/model/StoryPart"
+import ClueContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
+import ThContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
+import {useConditionTypeCollection} from "@src/modules/TypefulExecutive/model/ConditionType"
+import {ContentBlockViewMode} from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/contentBlockBase"
+import {resolveAfter} from "@src/utils/promiseUtils"
 
 export default defineComponent({
   components: {
+    ThContentBlock,
+    ClueContentBlock,
+    TypefulList,
+    EntityPicker,
+    TypefulAutoSection,
+    StoryAction,
+    CodeExample,
+    TypefulInputPair,
+    TabFrame,
     TypefulInput,
   },
 
@@ -81,189 +155,164 @@ export default defineComponent({
   setup(props) {
     const api = useApiAdapter()
     const router = useRouter()
+    const storySelection = useStorySelection()
+
+    const viewState = useAsyncIndicator()
+
+    const storyParts = useStoryPartCollection(api)
+    const challengeTypes = useChallengeTypeList(api)
+    challengeTypes.load()
+    const conditionTypes = useConditionTypeCollection(api)
+    conditionTypes.load()
+
+    const activePartData = useStoryPartInstance(api)
+    const activePartChallenge = useChallengeInstance(api, useMinigameRegistry())
+    const selectedChallengeType = computed(() => challengeTypes.value?.find((type) => type.type === activePartChallenge.value?.type))
+
+    const editorTabs = computed(() => {
+      const tabs: TabEntry[] = [
+        {name: 'edit', caption: 'Obsah'},
+        {name: 'preview', caption: 'Náhled'},
+      ]
+
+      if (activePartData.value?.contentController === 'inline') {
+        tabs.push({name: 'challenge', caption: 'Výzva - staré'})
+      } else {
+        tabs[1].pane = 'edit'
+      }
+      return tabs
+    })
 
     const elEditor = ref<null | HTMLElement>(null)
-    let editorJs: EditorJS
-    const viewState = ref('idle')
+    useEditorInComponent(elEditor, {
+      placeholder: "Další příběh začíná prvním slovem...",
+      saveBeforeDestroy(data) {
+        if (activePartData.value) {
+          activePartData.value.contentBlocks = data.blocks
+          activePartData.value.contentHtml = renderBlocks(data.blocks)
+        }
+      },
+    }, computed(() => activePartData.getStoryPartBlocks()))
 
-    const storyParts = ref<[string, string][]|null>(null)
-    const challenges = ref<any[]>([])
-
-    const activePartData = ref<PartOfStory | null>(null)
-    const previewHtml = ref('')
-    const viewMode = ref('editor')
+    const viewMode = ref<ContentBlockViewMode>('edit')
 
     const reloadStoryParts = () => {
-      api.get<PartOfStory[]>('backstage/treasure-hunt/story-parts')
-          .then((parts) => {
-            storyParts.value = parts.map((part) => [part.slug, part.title])
-          })
+      storyParts.fluent()
+        .filter(storySelection.story ? {story: storySelection.story} : undefined)
+        .load(1, 50)
+        .then(() => {
+          if (!storyParts.value?.find(({slug}) => slug === props.activePart)) {
+            selectPart()
+          }
+        })
     }
     reloadStoryParts()
 
-    api.get<any[]>('backstage/treasure-hunt/challenges')
-      .then((result) => {
-        challenges.value = result
-      })
+    function selectPart(part?: string) {
+      if (part === props.activePart) {
+        return
+      }
 
-    function selectPart(part: string) {
       router.push({...router.currentRoute.value, query: {part}})
     }
 
     // TODO: API should be rendering the html
     const renderBlocks = (blocks: OutputBlockData[]) => editorJsToHtml(blocks).replaceAll('background-color', '--glow')
 
-    const renderPreview = debounce(() => {
-      editorJs.save()
-          .then((data) => previewHtml.value = renderBlocks(data.blocks))
-    }, 750)
+    function reloadPart() {
+      activePartData.flush()
+      activePartChallenge.flush()
+
+      const entityPromise = props.activePart
+          ? loadPart(props.activePart, storySelection.story)
+          : activePartData.create({
+            contentController: 'th-blocks',
+          })
+      viewState.awaitTask(entityPromise)
+    }
+
+    function loadPart(id: string, story?: string) {
+      return activePartData.load(id, {story})
+          .then((partData) => {
+            return partData.challenge
+                ? activePartChallenge.load(partData.challenge).catch((err) => {
+                  console.error(err)
+                })
+                : activePartChallenge.create()
+          })
+    }
+
+    async function prepareDataToSave() {
+      const data = activePartData.value ? {...activePartData.value} : null
+
+      if (!data) {
+        return Promise.reject("Nothing to be saved")
+      }
+      if (!storySelection.story) {
+        return Promise.reject('No story selected')
+      }
+      data.story = storySelection.story
+
+      return data
+    }
 
     async function savePart() {
-      const data = activePartData.value ? {...activePartData.value} : null
-      if (!data) {
-        console.warn("Nothing to save");
-        return
+      if (viewMode.value === 'edit') {
+        viewMode.value = 'preview'
+        return resolveAfter(200).then(savePart)
       }
-      data.contentBlocks = (await editorJs.save()).blocks
-      data.contentHtml = renderBlocks(data.contentBlocks)
 
-      viewState.value = 'saving'
-      try {
-        await api.put('backstage/treasure-hunt/story-part/' + props.activePart!, data)
-        viewState.value = 'ok'
-        if (props.activePart !== data.slug) {
-          const route = router.currentRoute.value
+      const modelItem = await prepareDataToSave()
+
+      const savePromise = activePartData.persist(modelItem)
+
+      return viewState.awaitTask(savePromise, 'saving')
+        .then((result) => {
           reloadStoryParts()
-          router.replace({...route, query: {...route.query, part: data.slug}})
-        }
-      } catch (e) {
-        viewState.value = 'error'
-        throw e
+          return result
+        })
+    }
+
+    function maybeUpdateRoute(partSlug?: string) {
+      if (partSlug && props.activePart !== partSlug) {
+        const route = router.currentRoute.value
+        return router.replace({...route, query: {...route.query, part: partSlug}})
       }
     }
-    function toggleViewMode() {
-      viewMode.value = viewMode.value === 'editor' ? 'preview' : 'editor'
-    }
 
-    watch(() => props.activePart, (part) => {
-      if (!part) {
-        activePartData.value = null
-        return
-      }
-
-      viewState.value = 'loading'
-      api.get<PartOfStory>('backstage/treasure-hunt/story-part/' + part)
-          .then((partData) => activePartData.value = partData)
-          .finally(() => viewState.value = 'idle')
-    }, {immediate: true})
-
-    const initPartDataBinding = () => {
-      watch(activePartData, (data) => {
-        editorJs.readOnly.toggle(!data)
-        editorJs.blocks.clear()
-
-        if (!data) {
-          return
-        }
-
-        console.log(data.slug)
-        let blocks = data.contentBlocks
-        if (!blocks || !blocks.length) {
-          console.warn("Parsing content into blocks from", data)
-          let content: string = data.contentHtml || (data as any).content
-          blocks = [
-            {
-              type: 'paragraph',
-              data: {
-                text: content.replaceAll('--glow', 'background-color'),
-              },
-            }
-          ]
-        }
-
-        blocks.forEach((block) => editorJs.blocks.insert(block.type, block.data))
-
-        editorJs.blocks.delete(0) // splice first blank block inserted by clear()
-      }, {immediate: true})
-    }
-
-    onMounted(() => {
-      let container = elEditor.value!
-      editorJs = new EditorJS({
-        holder: container,
-
-        placeholder: "Další příběh začíná prvním slovem...",
-
-        tools: {
-          list: List,
-          header: {
-            class: Header,
-            config: {
-              levels: [1, 2, 3],
-            },
-          },
-          FgColor: {
-            class: EditorColorPlugin,
-            config: {
-              type: 'text',
-            },
-          },
-          BgColor: {
-            class: EditorColorPlugin,
-            config: {
-              type: 'marker',
-            },
-          },
-        },
-
-        onChange() {
-          renderPreview()
-        }
-      })
-
-      editorJs.isReady.then(() => initPartDataBinding())
-    })
+    watch(() => storySelection.story, () => reloadStoryParts(), {immediate: true})
+    watch(() => props.activePart, reloadPart, {immediate: true})
 
     return {
       viewState,
       elEditor,
       storyParts,
-      challenges,
+      challengeTypes,
+      conditionTypes,
+
       activePartData,
-      previewHtml,
+      activePartChallenge: toRef(activePartChallenge, 'value'),
+      selectedChallengeType,
+
+      editorTabs,
       viewMode,
 
       selectPart,
-      toggleViewMode,
-      savePart,
+      savePart: () => savePart().then((part) => part && maybeUpdateRoute(part.slug)),
     }
-  }
+  },
 })
 </script>
 
 <style lang="scss">
 .story-editor {
-
-  > *:not(:first-child) {
-    margin-top: 1rem;
-  }
+  display: flex;
+  flex-direction: column;
 
   .parts {
-    display: grid;
-    grid-auto-flow: column;
-    gap: 0.5rem;
-    overflow-x: auto;
-
     .part {
       width: 8rem;
       height: 5rem;
-
-      padding: 0.2rem;
-      background: rgba(black, 0.1);
-
-      &.active {
-        background: rgba(#666, 0.4);
-      }
     }
   }
 
@@ -271,8 +320,9 @@ export default defineComponent({
     .codex-editor--narrow {
       margin-right: -50px;
     }
+
     .codex-editor__redactor {
-      background: azure;
+      background: var(--neutral-950);
     }
   }
 
@@ -283,11 +333,12 @@ export default defineComponent({
   }
 
   .content {
-    &:not(.view-mode-editor) {
+    &:not(.view-mode-content) {
       .editor {
         display: none;
       }
     }
+
     &:not(.view-mode-preview) {
       .preview {
         display: none;

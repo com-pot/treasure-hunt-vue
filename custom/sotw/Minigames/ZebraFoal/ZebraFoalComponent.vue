@@ -21,9 +21,8 @@ import {Zebra} from "./Model/ZebraFoalModel";
 import {twoPartyMultiGroupSwapping} from "@src/modules/treasure-hunt/components/slotSwapping"
 import ZebraArea from "./ZebraArea.vue";
 import ZebraNeighborRule, {NeighborPositions, NeighborRuleEvaluator} from "./Model/ZebraNeighborRule";
-import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 import {resolveAfter} from "@src/utils/promiseUtils";
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 type ZebraFoalMinigameData = {
   zebras: Zebra[],
@@ -34,24 +33,24 @@ export default defineComponent({
   components: {ZebraArea},
   inheritAttrs: false,
   props: {
+    challengeConfig: {type: Object as PropType<ZebraFoalMinigameData>, required: true},
     displayMode: {type: String as PropType<'images' | 'names'>, default: 'images'},
   },
   setup(props, {emit}) {
-    const minigameData = useMinigameData<ZebraFoalMinigameData>()
-    const allZebras = computed(() => minigameData.value.zebras)
+    const allZebras = computed(() => props.challengeConfig.zebras)
 
     const minigameState = useViewState<ZebraModel.ZebraFoalViewState>(() => ({
       placements: allZebras.value.map((zebra: ZebraModel.Zebra, i: number) => i === 0 ? zebra.name : null),
     }))
     const placements = computed(() => minigameState.value.placements)
 
-    useMinigameControls({
+    exposeMinigameControls({
       reset: () => {
-        minigameState.reset(minigameData)
+        minigameState.reset()
         initUiState()
       },
       getValue: () => checkValid(),
-    })
+    }, emit)
 
     // UI State
     const zebras = reactive({
@@ -207,7 +206,7 @@ export default defineComponent({
 
   .placed-area {
     width: 100%;
-    height: 420px;
+    aspect-ratio: 1;
   }
 }
 </style>

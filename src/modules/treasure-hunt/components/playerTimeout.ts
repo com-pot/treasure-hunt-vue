@@ -1,4 +1,5 @@
 import {computed, reactive} from "vue"
+import {TimeoutData} from "@src/modules/treasure-hunt/model/TreasureHuntModel"
 
 type TimeoutStatus = 'invalid' | 'ticking' | 'expired'
 export type PlayerTimeout = {
@@ -14,6 +15,8 @@ export type PlayerTimeout = {
 
     timeElapsed?: number,
     pctElapsed?: number,
+
+    applyFrom: (data: TimeoutData) => void,
 }
 
 const isValidDate = (d?: Date): d is Date => {
@@ -71,6 +74,11 @@ export const useTimeout = (): PlayerTimeout => {
 
             return Math.min(elapsed / totalDuration, 1)
         }),
+
+        applyFrom: (data?: TimeoutData|null) => {
+            timeout.start = data?.since ? new Date(data.since) : undefined
+            timeout.end = data?.until ? new Date(data.until) : undefined
+        },
     })
 
     return timeout

@@ -1,7 +1,7 @@
 <template>
   <div class="mg-understand">
     <template v-if="gameState === 'idle'">
-      <button class="btn btn-vivid" @click.prevent="beginAttempt">Začít</button>
+      <button class="btn -acc-vivid" @click.prevent="beginAttempt">Začít</button>
     </template>
 
     <div class="play-area" :class="gameState" v-else>
@@ -13,7 +13,7 @@
       </div>
 
       <div class="understand-options">
-        <span v-for="(option, i) in round.optionIndices" :key="i" class="btn btn-vivid"
+        <span v-for="(option, i) in round.optionIndices" :key="i" class="btn -acc-vivid"
               @click="selectOption(option)">{{ vocabulary[option].word }}</span>
       </div>
     </div>
@@ -33,7 +33,7 @@ import arrays from "@src/utils/arrays";
 import UnderstandApi from "./UnderstandApi";
 import VocabularyEntry from "./Model/VocabularyEntry";
 import {useGameLoop} from "@src/modules/treasure-hunt/components/gameLoop"
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {exposeMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 export default defineComponent({
   props: {
@@ -53,9 +53,9 @@ export default defineComponent({
   data() {
     return {
       gameLoop: useGameLoop(24, (t, dt) => this.updateTimeLimit(t, dt)),
-      controls: useMinigameControls({
+      controls: exposeMinigameControls({
         reset: () => this.beginAttempt(),
-      }),
+      }, this.$emit),
       gameState: 'idle',
       vocabulary: [] as VocabularyEntry[],
       round: {
@@ -144,7 +144,7 @@ export default defineComponent({
       this.gameLoop.stop()
       this.gameState = state
 
-      this.controls.checkSolution(777 * this.round.currentStep + 1847)
+      this.$emit('check-solution', 777 * this.round.currentStep + 1847)
     },
   },
   mounted() {

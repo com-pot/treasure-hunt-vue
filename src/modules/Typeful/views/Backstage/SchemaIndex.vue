@@ -1,42 +1,32 @@
 <template>
   <div class="schema-index">
     <div class="toolbar">
-      <a @click.prevent="schemas.reload()">reload</a>
+      <a @click.prevent="schemas.load()">reload</a>
     </div>
+
     <div class="schema-list">
-      <div class="entry" v-for="(schema, i) in schemas.list" :key="i">
-        {{ schema }}
-      </div>
+      <CodeExample v-for="(schema) in schemas.value" :key="schema.meta.entityFqn"
+                   :header="schema.meta.entityFqn"
+      >
+        <template #default>{{ schema }}</template>
+      </CodeExample>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, reactive} from "vue"
-import {ComponentStatus, resolvePromiseAsStatus} from "@src/modules/Layout/utils/componentHelpers"
+import {defineComponent} from "vue"
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
+import {useModelCollectionController} from "@src/modules/Typeful/components/useModelController"
+import CodeExample from "@src/modules/Layout/components/CodeExample.vue"
 
 export default defineComponent({
+  components: {CodeExample},
   setup() {
     const api = useApiAdapter()
 
-    const schemas = reactive({
-      list: [],
-
-      status: 'loading' as ComponentStatus,
-      reload() {
-        schemas.status = 'loading'
-        schemas.list.splice(0)
-        const loadPromise = api.get<[]>('/backstage/schemas/', {devAuth: 420})
-            .then((result) => {
-              console.log(result)
-              schemas.list = result
-            })
-        resolvePromiseAsStatus(loadPromise, schemas)
-      },
-    })
-
-    schemas.reload()
+    const schemas = useModelCollectionController<any>(api, 'typeful.schema')
+    schemas.load()
 
 
     return {

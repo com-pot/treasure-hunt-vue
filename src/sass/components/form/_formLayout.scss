@@ -1,0 +1,13 @@
+.form-auto-layout {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .tf-pair {
+    flex: 1 0 320px;
+  }
+
+  hr {
+    width: 100%;
+  }
+}

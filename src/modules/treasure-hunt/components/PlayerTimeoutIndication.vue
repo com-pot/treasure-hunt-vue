@@ -1,8 +1,8 @@
 <template>
   <div class="timeout" :class="timeout.status">
     <div class="progressbar">
-      <div class="chunk -vivid" :style="'--done:' + timeout.pctElapsed + ';'"></div>
-      <div class="chunk -vile" :style="`--done:${(1 - (timeout.pctElapsed || 0))} + ';`"></div>
+      <div class="chunk -acc-vivid" :style="'--done:' + timeout.pctElapsed + ';'"></div>
+      <div class="chunk -acc-vile" :style="`--done:${(1 - (timeout.pctElapsed || 0))} + ';`"></div>
     </div>
     <span v-if="displayType" class="time-left">{{ timeout.timeLeftText }}</span>
 

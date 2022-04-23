@@ -1,34 +1,54 @@
 <template>
-  <div class="sotw-view">
+  <LoadingIndicator v-if="progression.status === 'loading'"/>
 
-    <template v-if="progNode">
-      <div class="node-navigation -top">
-        <router-link v-if="nodeLinks.previous" class="btn -round" :to="nodeLinks.previous">&lt;</router-link>
-        <span v-else class="spacer"/>
+  <div class="view-error" v-else-if="!progression.value">
+    <h1>Jejda, stránku se nepodařilo načíst</h1>
+    <p>Zkuste akci opakovat z
+      <router-link to="/">úvodní stránky</router-link>
+      .
+    </p>
+  </div>
 
-        <h1 v-if="progNode.title">{{ progNode.title }}</h1>
+  <template v-else>
+    <div class="node-navigation -top">
+      <router-link v-if="nodeLinks.previous" class="btn -round" :to="nodeLinks.previous">&lt;</router-link>
+      <span v-else class="spacer"/>
 
-        <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
-        <span v-else class="spacer"/>
-      </div>
+      <h1 v-if="title">{{ title }}</h1>
 
-      <PlayerViewLoading v-if="componentStatus === 'loading'"/>
+      <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
+      <span v-else class="spacer"/>
+    </div>
 
-      <SotwViewStory v-else-if="componentStatus === 'ready' && mode === 'story'" :key="nodeId + '-story'"
-                    :story-data="progNode.progression.storyPart"
-                    :trophies="progNode.progression.trophies"
-                    @sotwSignal="performGameAction"
-      />
+    <template v-if="progression.value?.storyPart.contentController === 'th-blocks'">
+      <template v-for="block in progression.value?.storyPart.thContentBlocks">
+        <ThContentBlock :content-item="block" view-mode="live"
+                        :minigame-controls="minigameControls"
 
-      <SotwViewMinigame v-else-if="componentStatus === 'ready' && mode === 'challenge'" :key="nodeId + '-challenge'"
-                        :challenge-type="progNode.progression.challenge.type"
-      />
+                        @expose-minigame-controls="(controls) => minigameControls.acceptMinigame(controls)"
+                        @check-solution="(solution) => minigameControls.checkSolution(block.id, solution)"
+        />
+      </template>
     </template>
 
-    <div class="view-error" v-else>
-      <h1>Jejda, stránku se nepodařilo načíst</h1>
-      <p>Zkuste akci opakovat z <router-link to="/">úvodní stránky</router-link>.</p>
-    </div>
+    <template v-else>
+      <SotwViewStory v-if="progression.status === 'ready' && mode === 'story'" :key="nodeId + '-story'"
+                     :story-data="progression.value.storyPart"
+                     :trophies="progression.value.trophies"
+                     @sotwSignal="performGameAction"
+      />
+
+      <template v-else-if="progression.status === 'ready' && mode === 'challenge'">
+        <p v-html="progression.value?.challenge.description.replaceAll('\n', '<br/>')"/>
+        <MinigameComponent :challenge-type="progression.value.challenge.type"
+                           :challenge-config="progression.value.challenge.challengeConfig"
+
+                           @check-solution="(solution) => minigameControls.checkSolution(null, solution)"
+                           @expose-minigame-controls="minigameControls.acceptMinigame"
+
+        />
+      </template>
+    </template>
 
     <div class="node-navigation -actions">
       <router-link v-if="nodeLinks.previous" class="btn -round" :to="nodeLinks.previous">&lt;</router-link>
@@ -41,157 +61,118 @@
         <button v-if="minigameControls.reset" @click="minigameControls.reset"
                 class="btn btn-bland"
                 :disabled="minigameControls.status === 'evaluating' || timeout.status === 'ticking'"
-        >Začít znovu</button>
+        >Začít znovu
+        </button>
 
         <router-link class="btn" v-if="nodeLinks.parent" :to="nodeLinks.parent">Pryč</router-link>
 
         <button v-if="minigameControls.getValue" @click="minigameControls.checkSolution()"
-                :class="['btn', minigameControls.status === 'success' ? 'btn-success' :'btn-vivid']"
+                :class="['btn', minigameControls.status === 'success' ? '-acc-success' :'-acc-vivid']"
                 :disabled="minigameControls.status === 'evaluating' || timeout.status === 'ticking'"
-        >Vyzkoušet řešení</button>
+        >Vyzkoušet řešení
+        </button>
       </div>
 
       <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
       <span v-else class="spacer"/>
     </div>
-    <p v-if="mode === 'challenge' && progNode?.progression.status === 'done'">Tato výzva je již vyřešená</p>
+    <p v-if="mode === 'challenge' && progression.value?.status === 'done'">Tato výzva je již vyřešená</p>
 
     <PlayerTimeoutIndication :timeout="timeout"/>
-  </div>
+  </template>
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, inject, onBeforeUnmount, onMounted, provide, ref, watch} from "vue";
+import {computed, defineComponent, inject, onBeforeUnmount, onMounted, provide, watch} from "vue";
 import {RouteLocationRaw, useRouter} from "vue-router";
 
-import PlayerViewLoading from "./PlayerViewLoading.vue"
-
-import * as viewStateStore from "../viewStateStore";
 import SotwViewStory from "./SotwViewStory.vue";
-import SotwViewMinigame from "./SotwViewMinigame.vue";
-import {PlayerProgression} from "../model/TreasureHuntModel"
-import {createMinigameControls} from "../components/minigameData"
-import {useSotwApi, useSotwAudio} from "../services"
-import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
-import {useAlert} from "@src/modules/Layout/components/viewUtils"
+import {PlayerProgression, ProgressionData} from "../model/TreasureHuntModel"
+import {createMinigameController, createViewStateController} from "../components/minigameData"
+import {useApiAdapter, useSotwAudio, useTreasureHuntApi} from "../services"
 import {resolveAfter} from "@src/utils/promiseUtils"
-import {GameAction, PartOfStory, ProgressionData, TimeoutData} from "../model/TreasureHuntModel"
 import PlayerTimeoutIndication from "../components/PlayerTimeoutIndication.vue"
 import {useTimeout} from "../components/playerTimeout"
 import {useGameLoop} from "../components/gameLoop"
-
-type ProgressionNode = {
-  title: string,
-  storeKey: string,
-  progression: ProgressionData,
-}
+import {useGameActionExecutor} from "@src/modules/treasure-hunt/components/GameAction"
+import MinigameComponent from "@src/modules/treasure-hunt/components/MinigameComponent.vue"
+import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
+import ThContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
+import {useModelInstanceController} from "@src/modules/Typeful/components/useModelController"
+import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
 
 export default defineComponent({
-  components: {PlayerTimeoutIndication, SotwViewMinigame, SotwViewStory, PlayerViewLoading},
+  components: {ThContentBlock, LoadingIndicator, MinigameComponent, PlayerTimeoutIndication, SotwViewStory},
   props: {
     mode: {type: String, required: true},
     nodeId: {type: String},
   },
   setup(props) {
-    const sotwApi = useSotwApi()
+    const treasureHuntApi = useTreasureHuntApi()
     const $router = useRouter()
     const sotwAudio = useSotwAudio()
 
-    const alert = useAlert()
+    const timeout = useTimeout()
+    const gameLoop = useGameLoop(4, (t) => timeout.now = t)
 
-    const componentStatus = hasComponentStatus('loading');
-
-    const progNode = ref<ProgressionNode|null>(null);
-
-    const viewData = computed(() => {
-      return props.mode === 'story' ? progNode.value?.progression.storyPart : progNode.value?.progression.challenge
+    const progression = useModelInstanceController<ProgressionData>(useApiAdapter(), 'treasure-hunt.player-progression')
+    const storeKey = computed(() => {
+      const storyPart = progression.value?.storyPart
+      return storyPart ? `${storyPart.story}#${storyPart.slug}-${props.mode}` : null
     })
+    const title = computed(() => {
+      const storyPart = progression.value?.storyPart
+      const mode = props.mode
+      if (!storyPart) {
+        return
+      }
 
-    provide('sotw.viewData', viewData)
+      let title = storyPart.title
 
-    const viewStateData = ref<object|null>(null);
-    provide('sotw.viewStateData', viewStateData)
-
-    const playerProgression = inject<PlayerProgression>('player.progression')!
-
-    async function loadNode(mode: string, slug: string): Promise<ProgressionNode> {
-      const progression = await sotwApi.loadProgressionData(slug)
-      let title = progression.storyPart.title
-
-      if (mode === 'story') {
-        // do nothing
-      } else if (mode === 'challenge') {
+      if (mode === 'challenge') {
         title += ' - Úkol'
-      } else {
+      } else if (mode !== 'story'){
         console.warn("Unknown node mode", mode)
       }
 
-      return {
-        storeKey: slug + '.' + mode,
-        progression,
-        title,
-      };
-    }
-    function loadNodeViewStateData(node: ProgressionNode): void {
-      viewStateData.value = viewStateStore.actions.loadState(node.storeKey)
-    }
-    function saveNodeViewStateData(): void {
-      if (progNode.value && viewStateData.value) {
-        viewStateStore.actions.saveState(progNode.value.storeKey, viewStateData.value)
-      }
-    }
+      return title
+    })
 
-    watch(() => [props.nodeId, props.mode], async ([nodeId]) => {
-      saveNodeViewStateData()
+    const viewStateData = createViewStateController(storeKey)
+    provide('th.viewStateData', viewStateData)
+
+    const playerProgression = inject<PlayerProgression>('player.progression')!
+
+    watch(() => props.nodeId, async (nodeId) => {
+      progression.flush()
 
       if (!nodeId) {
         console.warn("No nodeId")
-        componentStatus.value = 'error';
-        return;
+        return
       }
 
-      componentStatus.value = 'loading';
-      progNode.value = null
-
-      let node: ProgressionNode|null;
-      try {
-        node = await loadNode(props.mode, nodeId);
-        loadNodeViewStateData(node);
-      } catch (error) {
-        console.error(error);
-        node = null;
-      }
-
-      if (!node) {
-        console.warn("No node")
-        componentStatus.value = 'error';
-        return;
-      }
-
-      progNode.value = node;
-      componentStatus.value = "ready";
-    }, {immediate: true});
+      return progression.awaitValue(treasureHuntApi.loadProgressionData(nodeId))
+    }, {immediate: true})
 
     const nodeLinks = computed(() => {
-      const links: Record<string, RouteLocationRaw> = {};
+      const links: Record<string, RouteLocationRaw> = {}
 
-      const ln = progNode.value
-      if (ln) {
+      if (progression.value) {
         if (props.mode === 'challenge') {
-          links.parent = {name: 'sotw.NodeView', params: {nodeId: props.nodeId!}}
+          links.parent = {name: 'th.NodeView', params: {nodeId: props.nodeId!}}
         }
-        if (props.mode === 'story' && ln.progression.challenge) {
-          links.child = {name: 'sotw.NodeView.challenge', params: {nodeId: props.nodeId!}}
+        if (props.mode === 'story' && progression.value.challenge) {
+          links.child = {name: 'th.NodeView.challenge', params: {nodeId: props.nodeId!}}
         }
 
         const currentPartIndex = playerProgression.storyParts.findIndex((sp) => sp.slug === props.nodeId)
         if (currentPartIndex > 0 && props.mode === 'story') {
           const prevPart = playerProgression.storyParts[currentPartIndex - 1]
-          links.previous = {name: 'sotw.NodeView', params: {nodeId: prevPart.slug}}
+          links.previous = {name: 'th.NodeView', params: {nodeId: prevPart.slug}}
         }
         if (currentPartIndex < playerProgression.storyParts.length - 1 && props.mode === 'story') {
           const nextPart = playerProgression.storyParts[currentPartIndex + 1]
-          links.next = {name: 'sotw.NodeView', params: {nodeId: nextPart.slug}}
+          links.next = {name: 'th.NodeView', params: {nodeId: nextPart.slug}}
         }
 
       }
@@ -199,100 +180,59 @@ export default defineComponent({
       return links
     })
 
-    const gameActions: Record<string, (...action: any[]) => any> = {
-      message: (text: string) => {
-        alert.fire({
-          toast: true,
-          text: text,
-          timer: 5000,
-          timerProgressBar: true,
-          didOpen(popup) {
-            popup.addEventListener('mouseenter', alert.stopTimer)
-            popup.addEventListener('mouseleave', alert.resumeTimer)
-          }
-        })
-      },
-      showForm: (formId: string) => {
-        $router.push({name: "Authorization", params: {formId}})
-      },
-      gameState: (action: string) => {
-        if (action === 'reset') {
-          return minigameControls.reset?.()
-        }
-        console.warn("Unknown gameState action", action)
-      },
-    }
-    const performGameAction = (args: GameAction) => {
-      const type = args.shift()
-      const action = gameActions[type]
-      if (!action) {
-        console.error("No action " + type)
-        return
-      }
-      action.apply(undefined, args)
-    }
-
     const updateProgression = (storyParts: PartOfStory[]) => {
       playerProgression.storyParts = storyParts
       const lastStoryPart = storyParts[storyParts.length - 1]
       resolveAfter(500)
-          .then(() => $router.push({name: 'sotw.NodeView', params: {nodeId: lastStoryPart.slug}}))
+          .then(() => $router.push({name: 'th.NodeView', params: {nodeId: lastStoryPart.slug}}))
 
     }
 
-    const minigameControls = createMinigameControls({
-      provide: true,
-      checkAnswer: (value) => sotwApi.checkAnswer(props.nodeId!, {checkSum: value}),
+    const minigameControls = createMinigameController({
+      checkAnswer: (block, value) => {
+        return treasureHuntApi.checkAnswer(props.nodeId!, {block, value})
+      },
       evaluateResult: (result) => {
         let success = result.status === 'ok' || result.status === 'already-solved'
 
         result.errorActions && result.errorActions.forEach(performGameAction)
         result.progression && updateProgression(result.progression)
-        result.timeout && applyTimeout(result.timeout)
+        result.timeout && timeout.applyFrom(result.timeout)
 
         sotwAudio.play(success ? 'minigameOk' : 'minigameKo')
 
         return success ? 'success' : 'error'
-      }
+      },
     })
+    const performGameAction = useGameActionExecutor(minigameControls, $router)
 
-    const timeout = useTimeout()
-    const applyTimeout = (data?: TimeoutData) => {
-      timeout.start = data && data.since && new Date(data.since)
-      timeout.end = data && data.until && new Date(data.until)
-    }
-    const gameLoop = useGameLoop(4, (t) => timeout.now = t)
-    watch(progNode, (node) => {
+    watch(() => progression.value, (progressionItem) => {
+      viewStateData.load()
       minigameControls.reset = minigameControls.getValue = undefined
-      minigameControls.status = node?.progression.status === 'done' ? 'success' : 'idle'
+      minigameControls.status = progressionItem?.status === 'done' ? 'success' : 'idle'
     })
 
-    watch(() => progNode.value?.progression.timeout, applyTimeout, {immediate: true})
+    watch(() => progression.value?.timeout, (timeoutData) => timeout.applyFrom(timeoutData), {immediate: true})
 
     onMounted(() => {
-      window.addEventListener('beforeunload', saveNodeViewStateData)
+      window.addEventListener('beforeunload', viewStateData.save)
       gameLoop.start()
     })
     onBeforeUnmount(() => {
-      window.removeEventListener('beforeunload', saveNodeViewStateData)
+      window.removeEventListener('beforeunload', viewStateData.save)
       gameLoop.stop()
     })
 
     return {
-      componentStatus,
-      progNode,
+      progression,
+      title,
 
       minigameControls,
       timeout,
 
       performGameAction,
       nodeLinks,
-      saveNodeViewStateData,
     }
   },
 })
 </script>
-
-<style lang="scss">
-
-</style>

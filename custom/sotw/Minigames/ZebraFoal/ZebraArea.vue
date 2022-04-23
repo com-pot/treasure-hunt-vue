@@ -102,9 +102,6 @@ export default defineComponent({
   }
 
   &.circle {
-    margin-top: 2em;
-    margin-bottom: 2em;
-
     position: relative;
     z-index: 1;
 

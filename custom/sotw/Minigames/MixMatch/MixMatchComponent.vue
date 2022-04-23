@@ -29,19 +29,20 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, ref} from "vue"
+import {computed, defineComponent, PropType, ref} from "vue"
 
 import * as Model from "./MixMatchModel"
-import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 
 
 export default defineComponent({
   inheritAttrs: false,
-  setup() {
-    const minigameData = useMinigameData<Model.MixMatchMinigameData>()
-    const pieceOptions = computed(() => minigameData.value.modelOptions)
-    const colorOptions = computed(() => minigameData.value.colorOptions)
+  props: {
+    challengeConfig: {type: Object as PropType<Model.MixMatchMinigameData>, required: true},
+  },
+  setup(props, {emit}) {
+    const pieceOptions = computed(() => props.challengeConfig.modelOptions)
+    const colorOptions = computed(() => props.challengeConfig.colorOptions)
 
     const internalState = useViewState<Model.MixMatchViewState>(() => ({
       pieces: [
@@ -53,10 +54,10 @@ export default defineComponent({
       ]
     }))
 
-    useMinigameControls({
+    exposeMinigameControls({
       getValue: () => piecesSerialized.value,
-      reset: () => internalState.reset(minigameData),
-    })
+      reset: () => internalState.reset(props.challengeConfig),
+    }, emit)
 
     const selectedPiece = ref(-1);
     const setupOpen = ref(false);

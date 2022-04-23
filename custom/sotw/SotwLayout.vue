@@ -1,5 +1,5 @@
 <template>
-  <div class="root-container" :class="layoutSkin">
+  <div class="root-container" :data-skin="layoutSkin">
     <router-view />
   </div>
 
@@ -27,3 +27,10 @@ export default defineComponent({
   },
 })
 </script>
+
+<style>
+[data-layout="sotw"] {
+  padding-top: 5vh;
+  padding-bottom: 5vh;
+}
+</style>

@@ -1,6 +1,7 @@
-import {MinigameBundle} from "@src/modules/treasure-hunt/types/minigames"
+import {MinigameBundle} from "./Minigames"
 
 const generalMinigameBundle: MinigameBundle = {
+    name: 'general', caption: "General",
     register(registry) {
         registry.registerMinigame('anagram', {
             caption: "Anagram",
@@ -27,7 +28,7 @@ const generalMinigameBundle: MinigameBundle = {
                 ],
             },
         })
-        registry.registerMinigame('toggleMatrix', {
+        registry.registerMinigame('toggle-matrix', {
             caption: "Toggle matrix",
             module: () => import('./Minigames/ToggleMatrix/ToggleMatrixComponent.vue'),
             demoData: {
@@ -47,6 +48,9 @@ const generalMinigameBundle: MinigameBundle = {
                     {row: 3, col: 3, label: 'G', key: 'grizzly'},
                 ],
             },
+            aliases: [
+                'toggleMatrix',
+            ],
         })
         registry.registerMinigame('combination-lock', {
             caption: "Combination lock",
@@ -63,6 +67,17 @@ const generalMinigameBundle: MinigameBundle = {
             module: () => import('./Minigames/Choice/ChoiceComponent.vue'),
             demoData: {
                 options: ['bear', 'cougar', 'fox', 'deer', 'wolf', 'owl', 'bison'],
+            },
+        })
+        registry.registerMinigame('choice.value-label', {
+            caption: "Choice - value:label",
+            module: () => import('./Minigames/Choice/ChoiceComponent.vue'),
+            demoData: {
+                options: [
+                    {value: 'bear', label: 'Bear'},
+                    {value: 'cougar', label: 'Cougar'},
+                    {value: 'fox', label: 'Fox'},
+                ],
             },
         })
     }

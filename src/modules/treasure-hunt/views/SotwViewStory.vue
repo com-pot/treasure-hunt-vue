@@ -5,7 +5,8 @@
 <script lang="ts">
 import {computed, defineComponent, PropType} from "vue";
 
-import {PartOfStory, TrophyData} from "../model/TreasureHuntModel"
+import {TrophyData} from "../model/TreasureHuntModel"
+import {PartOfStory} from "../model/StoryPart"
 import {useTextsService} from "../services"
 
 export default defineComponent({
@@ -41,6 +42,11 @@ export default defineComponent({
 
     const title = computed(() => props.storyData.title || 'Nadpis');
     const preparedHtml = computed(() => {
+      if (!props.storyData.contentHtml) {
+        console.warn("storyData does not have contentHtml", props.storyData)
+        return ''
+      }
+
       let content = textsService.replaceTerms(props.storyData.contentHtml)
       content = content.replaceAll(/{{\s*(\w+)\s*}}/g, (match, name) => getInterpolateStr(name))
 

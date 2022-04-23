@@ -1,8 +1,8 @@
 <template>
-  <!-- <Navigation ref="navigation">
+   <Navigation ref="elNavigation">
     <div class="navigation-section">
       <span class="section-title">Příběh</span>
-      <nav :class="['story-parts']" @click="$refs.navigation.isOpen = false">
+      <nav :class="['story-parts']" @click="elNavigation.isOpen = false">
         <router-link v-for="(link, i) in storyLinks" :key="'node-' + i" :to="link.to"
                      class="btn" active-class="active"
         >
@@ -17,21 +17,22 @@
         <button class="btn" @click="signOut">Ukončit</button>
       </div>
     </div>
-  </Navigation> -->
+  </Navigation>
 
   <router-view v-if="componentStatus === 'ready'"></router-view>
 </template>
 
 <script lang="ts">
-import {computed, provide, reactive} from "vue";
+import {computed, provide, reactive, ref} from "vue";
 import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
 
-// import Navigation from "@src/modules/Layout/components/Navigation.vue";
+import Navigation from "@src/modules/Layout/components/Navigation.vue";
 import authStore from "@src/modules/Auth/authStore";
 
 import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
-import {useSotwApi, useSotwAudio} from "../services"
+import {useTreasureHuntApi, useSotwAudio} from "../services"
 import {PlayerProgression} from "../model/TreasureHuntModel"
+import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 
 type StoryLink = {
   text: string,
@@ -40,14 +41,17 @@ type StoryLink = {
 
 export default {
   components: {
-    // Navigation,
+    Navigation,
   },
 
   setup() {
     const $router = useRouter();
     const $route = useRoute();
-    const sotwApi = useSotwApi()
+    const storySelection = useStorySelection()
+    const thApi = useTreasureHuntApi()
     const sotwAudio = useSotwAudio()
+
+    const elNavigation = ref<typeof Navigation|null>(null)
 
     const componentStatus = hasComponentStatus('loading')
 
@@ -63,18 +67,18 @@ export default {
       return playerProgression.storyParts.map((partOfStory) => {
         const link: StoryLink =  {
           text: partOfStory.title,
-          to: {name: 'sotw.NodeView', params: {nodeId: partOfStory.slug}},
+          to: {name: 'th.NodeView', params: {nodeId: partOfStory.slug}},
         }
 
         return link
       })
     });
 
-    sotwApi.listStoryParts('sotw')
+    thApi.listStoryParts(storySelection.story)
         .then((parts) => playerProgression.storyParts = parts)
         .then(() => {
           componentStatus.value = 'ready'
-          if ($route.name === 'sotw.Game') {
+          if ($route.name === 'th.Game') {
             $router.replace(storyLinks.value[0].to)
           }
         })
@@ -91,6 +95,8 @@ export default {
         $router.push({name: 'Landing.welcome'})
       },
       componentStatus,
+
+      elNavigation,
     }
   },
 }

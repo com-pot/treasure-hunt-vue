@@ -1,4 +1,5 @@
 <template>
+  <h1>Přehled hráčů</h1>
   <div class="backstage -players">
     <div class="list">
       <div class="player" v-for="player in players" :key="player.user"
@@ -20,7 +21,7 @@
 
           <div class="trophy-status -acquired" v-if="editPlayer.mode === 'trophy' && player.trophy">
             <span>Pořadí: {{ player.trophy.order }} ({{ getTrophyValue(player.trophy) }})</span>
-            <button class="btn btn-vivid -sm" @click.prevent="redeemTrophy(player)" :disabled="!!player.trophy.redeemedAt">Vyplatit</button>
+            <button class="btn -acc-vivid -sm" @click.prevent="redeemTrophy(player)" :disabled="!!player.trophy.redeemedAt">Vyplatit</button>
             <div v-if="player.trophy.redeemedAt">Vyplaceno {{ new Date(player.trophy.redeemedAt).toLocaleString() }}</div>
           </div>
         </div>
@@ -34,9 +35,11 @@ import {defineComponent, reactive, ref} from "vue"
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
 import {useAlert} from "@src/modules/Layout/components/viewUtils"
 import {PagedResult} from "@src/modules/Typeful/types/Collections"
+import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 
 export default defineComponent({
   setup() {
+    const storySelection = useStorySelection()
     const api = useApiAdapter()
     const alert = useAlert()
 
@@ -79,7 +82,7 @@ export default defineComponent({
     }
     const storyPartIndex = ref<Record<number, any>>({})
 
-    api.get('/backstage/treasure-hunt/dashboard/players')
+    api.get(`/backstage/treasure-hunt/dashboard/story/${storySelection.story}/players`)
       .then((res: any) => {
         const list = res.players as PagedResult['items']
         list.forEach((p) => {
@@ -126,7 +129,7 @@ export default defineComponent({
     }
 
     const redeemTrophy = (player: any) => {
-      api.post(`/backstage/treasure-hunt/dashboard/player/${player.user}/trophy/redeem`)
+      api.post(`/backstage/treasure-hunt/dashboard/story/${storySelection.story}/player/${player.user}/trophy/redeem`)
         .then((result: any) => player.trophy = result.trophy)
     }
 

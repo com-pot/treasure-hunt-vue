@@ -19,42 +19,40 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, onBeforeUnmount, onMounted, reactive, ref} from "vue"
+import {computed, defineComponent, onBeforeUnmount, onMounted, PropType, reactive, ref} from "vue"
 import {useRoute} from "vue-router"
 
 import * as touchUtils from "@src/utils/touchUtils"
 
 import * as Model from "./Model/CircularDominoModel"
 
-import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
+import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 import {useGameLoop} from "@src/modules/treasure-hunt/components/gameLoop"
 import {UiConfig, useAngularBoard} from "./angularBoard"
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 
 
 
 export default defineComponent({
   props: {
+    challengeConfig: {type: Object as PropType<Model.CircularDominoData>, required: true},
     renderSize: {
       type: Number,
       default: 420,
     },
   },
-  setup(props) {
+  setup(props, {emit}) {
     const route = useRoute()
-    const minigameData = useMinigameData<Model.CircularDominoData>()
     const minigameState = useViewState<Model.CircularDominoState>(() => ({
-      ringsAngles: minigameData.value.rings.map(() => 0),
+      ringsAngles: props.challengeConfig.rings.map(() => 0),
     }))
-    useMinigameControls({
+    exposeMinigameControls({
       getValue: () => solution.value,
       reset: () => {
-        minigameState.reset(minigameData.value)
+        minigameState.reset()
         Object.assign(minigameStateReactive, minigameState.value)
       },
-    })
+    }, emit)
 
-    const minigameDataReactive = reactive(minigameData.value)
     const minigameStateReactive = reactive(minigameState.value)
 
     const ui = reactive<UiConfig>({
@@ -67,7 +65,7 @@ export default defineComponent({
         ringHeightRampStart: 50,
         ringHeightRampTrend: -6,
       },
-      ringAngularVelocity: minigameData.value.rings.map(() => 0),
+      ringAngularVelocity: props.challengeConfig.rings.map(() => 0),
 
       resources: {
         ringBg: "/minigames/circular/wood.jpg",
@@ -90,7 +88,7 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement | null>(null)
     const canvasFg = ref<HTMLCanvasElement | null>(null)
 
-    const board = useAngularBoard(minigameDataReactive, minigameStateReactive, ui)
+    const board = useAngularBoard(props.challengeConfig, minigameStateReactive, ui)
     const fps = route.query.fps ? Number(route.query.fps) : 60
     const render = () => {
       if (!g) {
@@ -141,7 +139,7 @@ export default defineComponent({
     }
 
     const solution = computed(() => board.ringsSnaps
-        .map(({snapIndex}, i) => minigameData.value.rings[i].stones[snapIndex].tiles[0])
+        .map(({snapIndex}, i) => props.challengeConfig.rings[i].stones[snapIndex].tiles[0])
         .map((tile) => tile.bgColor + '-' + tile.symbol)
         .join('--'))
 
@@ -175,7 +173,6 @@ export default defineComponent({
     })
 
     return {
-      minigameData,
       minigameState,
 
       ui,

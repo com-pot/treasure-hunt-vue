@@ -10,7 +10,21 @@
     display: inline-block;
     height: 0.5rem;
 
-    width: calc(var(--done) * 100%);
     background-color: var(--acc-color, var(--primary-500));
+
+    &:not(.-vertical) {
+      .chunk {
+        width: calc(var(--done) * 100%);
+      }
+    }
+
+    &.-vertical {
+      display: flex;
+      flex-direction: column;
+
+      .chunk {
+        height: calc(var(--done) * 100%);
+      }
+    }
   }
 }

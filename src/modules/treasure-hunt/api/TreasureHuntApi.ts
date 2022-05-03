@@ -17,12 +17,5 @@ export default class TreasureHuntApi {
 
     async checkAnswer(slug: string, answer: {block?: string|number, value: any}): Promise<any> {
         return this.apiAdapter.post(`/treasure-hunt/progression/${slug}/answer`, answer)
-            .catch((err) => {
-                if (err.body && err.body.error === 'already-solved') {
-                    err.body.status = 'already-solved'
-                    return err.body
-                }
-                throw err
-            })
     }
 }

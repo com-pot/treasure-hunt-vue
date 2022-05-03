@@ -44,7 +44,7 @@
           <div v-else-if="activePartData.value">
             <TypefulList :model-value="activePartData.value.thContentBlocks">
               <template #item="{item}">
-                <ThContentBlock :content-item="item" :condition-types="conditionTypes.value" :view-mode="viewMode"/>
+                <ThContentBlock :content-item="item" :view-mode="viewMode"/>
               </template>
             </TypefulList>
 
@@ -162,8 +162,6 @@ export default defineComponent({
     const storyParts = useStoryPartCollection(api)
     const challengeTypes = useChallengeTypeList(api)
     challengeTypes.load()
-    const conditionTypes = useConditionTypeCollection(api)
-    conditionTypes.load()
 
     const activePartData = useStoryPartInstance(api)
     const activePartChallenge = useChallengeInstance(api, useMinigameRegistry())
@@ -288,7 +286,6 @@ export default defineComponent({
       elEditor,
       storyParts,
       challengeTypes,
-      conditionTypes,
 
       activePartData,
       activePartChallenge: toRef(activePartChallenge, 'value'),
@@ -324,12 +321,6 @@ export default defineComponent({
     .codex-editor__redactor {
       background: var(--neutral-950);
     }
-  }
-
-  .controls {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
   }
 
   .content {

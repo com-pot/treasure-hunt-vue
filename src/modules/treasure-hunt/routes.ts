@@ -27,6 +27,15 @@ const gameRoutes: RouteRecordRaw[] = [
             return {nodeId: match.params.nodeId, mode: 'challenge'}
         },
     },
+
+    {
+        name: 'th.ClueReveal',
+        path: '/clue',
+        component: () => import("./views/ClueReveal.vue"),
+        props: (match) => ({
+            clueKey: match.query.key,
+        }),
+    },
 ];
 
 const routes: RouteRecordRaw[] = [
@@ -89,6 +98,15 @@ const routes: RouteRecordRaw[] = [
                     return {activePart: match.query.part}
                 },
             },
+            {
+                name: 'Backstage.ClueEditor',
+                path: 'clue-editor',
+                component: () => import('./Backstage/components/ClueEditorView.vue'),
+                props(match) {
+                    return {activeClue: match.query.clue}
+                },
+            },
+
             {
                 path: "minigames",
                 name: "minigame.dev.index",

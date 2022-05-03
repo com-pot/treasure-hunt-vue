@@ -1,33 +1,13 @@
-import {GameAction} from "@src/modules/treasure-hunt/model/TreasureHuntModel"
 import {useAlert} from "@src/modules/Layout/components/viewUtils"
 import {MinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 import {Router} from "vue-router"
-import {ref} from "vue"
-import {InputSpec} from "@src/modules/Typeful/types/InputSpec"
-
-type ActionType<T=any> = {
-    value: string, label: string,
-    properties: Record<string, InputSpec>,
-    fromArray: (arr: any[]) => T,
-}
-const types = ref<Readonly<ActionType>[]>([
-    {
-        value: 'message', label: "Zpráva",
-        properties: {
-            text: {type: 'text'},
-        },
-        fromArray: (arr) => ({type: arr[0], text: arr[1]}),
-    },
-])
-export function useGameActionTypes() {
-    return types
-}
+import {Action} from "@src/modules/TypefulExecutive/model/Action"
 
 export function useGameActionExecutor(controls?: MinigameControls, router?: Router) {
     const alert = useAlert()
 
-    const gameActions: Record<string, (...action: any[]) => any> = {
-        message: (text: string) => {
+    const gameActions: Record<string, (action: Record<string, any>) => any> = {
+        message: ({text}) => {
             alert.fire({
                 toast: true,
                 text: text,
@@ -42,7 +22,7 @@ export function useGameActionExecutor(controls?: MinigameControls, router?: Rout
     }
 
     if (controls) {
-        gameActions.gameState = (action: string) => {
+        gameActions.gameState = ({action}) => {
             if (action === 'reset') {
                 return controls.reset?.()
             }
@@ -50,19 +30,18 @@ export function useGameActionExecutor(controls?: MinigameControls, router?: Rout
         }
     }
     if (router) {
-        gameActions.showForm = (formId: string) => {
+        gameActions.showForm = ({formId}) => {
             router.push({name: "Authorization", params: {formId}})
         }
     }
 
-    return (args: GameAction) => {
-        const type = args.shift()
-        const action = gameActions[type]
-        if (!action) {
-            console.error("No action " + type)
+    return (action: Action) => {
+        const actionFn = gameActions[action.type]
+        if (!actionFn) {
+            console.error("No action " + action.type)
             return
         }
 
-        action.apply(undefined, args)
+        actionFn.apply(undefined, action.arguments)
     }
 }

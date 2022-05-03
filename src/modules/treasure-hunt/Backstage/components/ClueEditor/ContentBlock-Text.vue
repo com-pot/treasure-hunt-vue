@@ -7,18 +7,15 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, ref, watch} from "vue"
+import {computed, defineComponent, ref} from "vue"
 import contentBlockBase from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/contentBlockBase"
-import TypefulInputPair from "@src/modules/Typeful/components/TypefulInputPair"
-import useEditorJs, {
+import {
   useEditorInComponent,
-  useEditorPreview,
 } from "@src/modules/treasure-hunt/Backstage/components/useEditorJs"
-import {OutputData} from "@editorjs/editorjs"
+
 import editorJsToHtml from "@src/modules/treasure-hunt/utils/editorJsToHtml"
 
 export default defineComponent({
-  components: {TypefulInputPair},
   props: {
     ...contentBlockBase.props,
   },
@@ -27,6 +24,7 @@ export default defineComponent({
 
     useEditorInComponent(editorContainer, {
       placeholder: "Obsah stopy",
+
       saveBeforeDestroy(data) {
         emit('update:block-data', {
           blocks: data.blocks,

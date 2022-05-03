@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, PropType} from "vue";
+import {computed, defineComponent, watch, PropType} from "vue";
 import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 import TypefulInputPair from "@src/modules/Typeful/components/TypefulInputPair"
 
@@ -63,9 +63,14 @@ export default defineComponent({
 
     const appearanceKey = computed(() => props.challengeConfig.appearance?.key || 'picture')
 
-    exposeMinigameControls({
-      getValue: () => state.value.selection,
-    }, emit)
+    watch(appearanceKey, (key) => {
+      const useConfirm = key === 'picture'
+
+      exposeMinigameControls({
+        getValue: useConfirm ? () => state.value.selection : undefined,
+      }, emit)
+    })
+
 
     return {
       appearanceKey,

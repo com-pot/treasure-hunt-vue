@@ -1,13 +1,12 @@
 <template>
   <div class="condition">
     <TypefulInputPair :label="label" name="conditionType"
-                      type="select" :options="conditionTypes"
-                      :in-opts="{label: 'name', valueProp: 'name'}"
+                      type="relation" target="typeful-executive.condition-type"
                       placeholder="Vždy"
                       v-model="typeStr"
+                      @update:selected-item="selectedType = $event"
 
                       class="inline"
-
     />
 
     <template v-if="selectedType?.arguments">
@@ -22,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, PropType} from "vue"
+import {computed, defineComponent, PropType, ref} from "vue"
 import {Condition} from "@src/modules/TypefulExecutive/model/Condition"
 import TypefulInputPair from "@src/modules/Typeful/components/TypefulInputPair"
 import {ConditionType} from "@src/modules/TypefulExecutive/model/ConditionType"
@@ -32,7 +31,6 @@ export default defineComponent({
   components: {TypefulAutoSection, TypefulInputPair},
   props: {
     modelValue: {type: Object as PropType<Condition>},
-    conditionTypes: {type: Array as PropType<ConditionType[]>, required: true},
     label: {type: String, default: ''},
   },
   setup(props, {emit}) {
@@ -48,9 +46,7 @@ export default defineComponent({
       },
     })
 
-    const selectedType = computed<ConditionType|null>(() => {
-      return typeStr.value && props.conditionTypes.find((type) => type.name === typeStr.value)
-    })
+    const selectedType = ref<ConditionType>(null)
 
     return {
       typeStr,

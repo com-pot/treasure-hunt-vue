@@ -7,14 +7,19 @@
   <template v-else>
     <div class="challenge-block" :data-mode="viewMode">
       <template v-if="viewMode === 'edit'">
-        <TypefulInputPair name="challengeType" type="relation" target="treasure-hunt.challenge-type"
-                          v-model="block.challengeType"
-                          @update:selected-item="setSelectedChallengeType($event)"
-        />
+        <fieldset class="form-auto-layout">
+          <TypefulInputPair name="challengeType" label="Typ výzvy" type="relation" target="treasure-hunt.challenge-type"
+                            v-model="block.challengeType"
+                            @update:selected-item="setSelectedChallengeType($event)"
+          />
+          <TypefulInputPair name="customController" label="Vlastní logika" type="string" v-model="block.customController"/>
+        </fieldset>
+
         <template v-if="selectedChallengeType">
           <hr/>
           <p v-if="!selectedChallengeType.params">Výzva není parametrizovatelná</p>
-          <TypefulAutoSection v-else :inputs="selectedChallengeType.params"
+          <TypefulAutoSection v-else tag="fieldset" class="form-auto-layout"
+                              :inputs="selectedChallengeType.params"
                               v-model="block.challengeConfig"
           />
         </template>

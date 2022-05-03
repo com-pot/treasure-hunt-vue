@@ -22,8 +22,7 @@
 
     <template v-if="progression.value?.storyPart.contentController === 'th-blocks'">
       <template v-for="block in progression.value?.storyPart.thContentBlocks">
-        <ThContentBlock :content-item="block" view-mode="live"
-                        :minigame-controls="minigameControls"
+        <ThContentBlock :content-item="block" view-mode="live" :saved-answer="progression.value.data?.[block.id]?.answer"
 
                         @expose-minigame-controls="(controls) => minigameControls.acceptMinigame(controls)"
                         @check-solution="(solution) => minigameControls.checkSolution(block.id, solution)"
@@ -45,7 +44,6 @@
 
                            @check-solution="(solution) => minigameControls.checkSolution(null, solution)"
                            @expose-minigame-controls="minigameControls.acceptMinigame"
-
         />
       </template>
     </template>
@@ -71,6 +69,8 @@
                 :disabled="minigameControls.status === 'evaluating' || timeout.status === 'ticking'"
         >Vyzkoušet řešení
         </button>
+
+        <router-link :to="{name: 'th.ClueReveal'}" class="btn">🔍</router-link>
       </div>
 
       <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
@@ -78,7 +78,9 @@
     </div>
     <p v-if="mode === 'challenge' && progression.value?.status === 'done'">Tato výzva je již vyřešená</p>
 
-    <PlayerTimeoutIndication :timeout="timeout"/>
+    <PlayerTimeoutIndication :timeout="timeout">
+      <template #timeLeft>{{remainingTime.formatted}}</template>
+    </PlayerTimeoutIndication>
   </template>
 </template>
 
@@ -93,13 +95,14 @@ import {useApiAdapter, useSotwAudio, useTreasureHuntApi} from "../services"
 import {resolveAfter} from "@src/utils/promiseUtils"
 import PlayerTimeoutIndication from "../components/PlayerTimeoutIndication.vue"
 import {useTimeout} from "../components/playerTimeout"
-import {useGameLoop} from "../components/gameLoop"
 import {useGameActionExecutor} from "@src/modules/treasure-hunt/components/GameAction"
 import MinigameComponent from "@src/modules/treasure-hunt/components/MinigameComponent.vue"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
 import ThContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
 import {useModelInstanceController} from "@src/modules/Typeful/components/useModelController"
 import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
+import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
+import useCurrentTime, {timePrint} from "@src/modules/treasure-hunt/components/useCurrentTime"
 
 export default defineComponent({
   components: {ThContentBlock, LoadingIndicator, MinigameComponent, PlayerTimeoutIndication, SotwViewStory},
@@ -110,10 +113,13 @@ export default defineComponent({
   setup(props) {
     const treasureHuntApi = useTreasureHuntApi()
     const $router = useRouter()
-    const sotwAudio = useSotwAudio()
+    const storySelection = useStorySelection()
 
-    const timeout = useTimeout()
-    const gameLoop = useGameLoop(4, (t) => timeout.now = t)
+    const sotwAudio = useSotwAudio()
+    if (storySelection.story === 'sotw') {
+      sotwAudio.preloadFiles()
+          .then(() => console.log("Audio ready"))
+    }
 
     const progression = useModelInstanceController<ProgressionData>(useApiAdapter(), 'treasure-hunt.player-progression')
     const storeKey = computed(() => {
@@ -137,6 +143,14 @@ export default defineComponent({
 
       return title
     })
+
+    const timeout = useTimeout()
+    const remainingTime = useCurrentTime({
+      format: (d) => 'Zbývá zhruba ještě ' + timePrint.dateDiffUnits(timeout.end, d, {units: ['hours', 'minutes'], czechCase: 1}) + '.'
+    })
+    watch(() => remainingTime.time, (t) => timeout.now = t, {immediate: true})
+    const activeTimeout = computed(() => progression.value?.timeout)
+    watch(activeTimeout, t => timeout.applyFrom(t), {immediate: true})
 
     const viewStateData = createViewStateController(storeKey)
     provide('th.viewStateData', viewStateData)
@@ -193,13 +207,17 @@ export default defineComponent({
         return treasureHuntApi.checkAnswer(props.nodeId!, {block, value})
       },
       evaluateResult: (result) => {
-        let success = result.status === 'ok' || result.status === 'already-solved'
-
-        result.errorActions && result.errorActions.forEach(performGameAction)
+        result.evaluationEffects?.forEach(performGameAction)
         result.progression && updateProgression(result.progression)
-        result.timeout && timeout.applyFrom(result.timeout)
 
-        sotwAudio.play(success ? 'minigameOk' : 'minigameKo')
+        if (result.status === 'custom') {
+          return 'idle'
+        }
+
+        if (storySelection.story === 'sotw') {
+          sotwAudio.play(result.status === 'ok' ? 'minigameOk' : 'minigameKo')
+        }
+
 
         return success ? 'success' : 'error'
       },
@@ -216,11 +234,9 @@ export default defineComponent({
 
     onMounted(() => {
       window.addEventListener('beforeunload', viewStateData.save)
-      gameLoop.start()
     })
     onBeforeUnmount(() => {
       window.removeEventListener('beforeunload', viewStateData.save)
-      gameLoop.stop()
     })
 
     return {
@@ -229,6 +245,7 @@ export default defineComponent({
 
       minigameControls,
       timeout,
+      remainingTime,
 
       performGameAction,
       nodeLinks,

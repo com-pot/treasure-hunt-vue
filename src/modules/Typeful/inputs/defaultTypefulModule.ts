@@ -6,6 +6,7 @@ import Multiselect from "@vueform/multiselect"
 import "@vueform/multiselect/themes/default.scss"
 import NumberInput from "@src/modules/Typeful/inputs/components/NumberInput.vue"
 import TypefulList from "@src/modules/Typeful/components/TypefulList.vue"
+
 import {InputSpec} from "@src/modules/Typeful/types/InputSpec"
 import RelationInput from "@src/modules/Typeful/inputs/components/RelationInput"
 import SelectionBtnGroup from "@src/modules/Typeful/inputs/components/SelectionBtnGroup.vue"
@@ -13,6 +14,7 @@ import TypefulAutoSection from "@src/modules/Typeful/components/TypefulAutoSecti
 import {h} from "vue"
 import {produceMutable} from "@src/utils/immutable"
 import BoolInput from "@src/modules/Typeful/inputs/components/BoolInput.vue"
+import TimeInput from "@src/modules/Typeful/inputs/components/TimeInput.vue"
 
 type ArrayTypeProps = {
     items?: InputSpec,
@@ -29,6 +31,7 @@ export default defineTypefulModule({
         text: {component: TextInput, aliases: ['string'], defaultValue: () => ''},
         number: {component: NumberInput, defaultValue: () => 0},
         bool: {component: BoolInput, defaultValue: () => false},
+        time: {component: TimeInput},
 
         select: {
             component: (discriminator: string) => {

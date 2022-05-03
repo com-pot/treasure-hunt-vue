@@ -1,30 +1,32 @@
 .progressbar {
+  --size: 0.5rem;
   border-radius: 0.25rem;
   overflow: hidden;
   line-height: 0;
+
+  display: flex;
 
   box-shadow: 1px 1px 0 0 var(--neutral-200);
   background: rgba(var(--neutral-200), 0.1);
 
   .chunk {
-    display: inline-block;
-    height: 0.5rem;
-
     background-color: var(--acc-color, var(--primary-500));
+  }
 
-    &:not(.-vertical) {
-      .chunk {
-        width: calc(var(--done) * 100%);
-      }
+  &:not(.-vertical) {
+    height: var(--size);
+
+    .chunk {
+      width: calc(var(--done) * 100%);
     }
+  }
 
-    &.-vertical {
-      display: flex;
-      flex-direction: column;
+  &.-vertical {
+    width: var(--size);
+    flex-direction: column;
 
-      .chunk {
-        height: calc(var(--done) * 100%);
-      }
+    .chunk {
+      height: calc(var(--done) * 100%);
     }
   }
 }

@@ -12,6 +12,7 @@ export default defineComponent({
             type: [Object, Array] as PropType<InputSpec[]|Record<string, InputSpec>>,
             required: true,
         },
+        tag: {type: String, default: 'div'},
     },
     setup(props) {
         const typeRegistry = useTypeRegistry()
@@ -51,7 +52,7 @@ export default defineComponent({
 
             const inputEls = inputs.map(([name, field]) => createFieldEl(name, field))
 
-            return h('div', {
+            return h(props.tag, {
                 class: 'auto-section',
             }, inputEls)
         }

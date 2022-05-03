@@ -43,6 +43,9 @@ export default class JsonApiAdapter {
 
     private prepareRequestInit(method: HttpMethod, data?: object): RequestInit {
         const headers = {...this.defaultHeaders}
+        if (sessionStorage.getItem('treasure-hunt.debug.time-travel')) {
+            headers['time-travel'] = 'yes'
+        }
 
         const requestInit: RequestInit = {
             method,

@@ -1,4 +1,5 @@
 import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
+import {Action} from "@src/modules/TypefulExecutive/model/Action"
 
 export type TimeoutData = {
     since?: Date,
@@ -26,13 +27,8 @@ export type ProgressionData = {
     trophies: TrophyData[],
 }
 
-/**
- * @deprecated - use {type: '', args: {...}} notation
- */
-export type GameAction = [string, ...any[]]
 export type CheckResult = {
-    status: 'ok'|'already-solved'|'ko',
-    errorActions?: GameAction[],
+    status: 'ok' | 'ko' | 'custom',
+    evaluationEffects?: Action[],
     progression?: PartOfStory[],
-    timeout?: TimeoutData,
 }

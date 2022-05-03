@@ -30,7 +30,7 @@ import Navigation from "@src/modules/Layout/components/Navigation.vue";
 import authStore from "@src/modules/Auth/authStore";
 
 import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
-import {useTreasureHuntApi, useSotwAudio} from "../services"
+import {useTreasureHuntApi} from "../services"
 import {PlayerProgression} from "../model/TreasureHuntModel"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 
@@ -49,14 +49,10 @@ export default {
     const $route = useRoute();
     const storySelection = useStorySelection()
     const thApi = useTreasureHuntApi()
-    const sotwAudio = useSotwAudio()
 
     const elNavigation = ref<typeof Navigation|null>(null)
 
     const componentStatus = hasComponentStatus('loading')
-
-    sotwAudio.preloadFiles()
-      .then(() => console.log("Audio ready"));
 
     const playerProgression = reactive<PlayerProgression>({
       storyParts: [],

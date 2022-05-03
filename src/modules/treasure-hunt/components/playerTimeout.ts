@@ -11,7 +11,6 @@ export type PlayerTimeout = {
     duration?: number,
 
     timeLeft?: number,
-    timeLeftText: string,
 
     timeElapsed?: number,
     pctElapsed?: number,
@@ -41,13 +40,6 @@ export const useTimeout = (): PlayerTimeout => {
                 return 'invalid'
             }
             return timeout.timeLeft > 0 ? 'ticking' : 'expired'
-        }),
-        timeLeftText: computed<string>(() => {
-            if (!timeout.timeLeft) {
-                return ''
-            }
-
-            return Math.round(timeout.timeLeft * 0.001) + ' vteřin'
         }),
 
         timeElapsed: computed<number | undefined>(() => {

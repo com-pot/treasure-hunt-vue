@@ -18,13 +18,11 @@
       />
     </div>
 
-    <Condition v-if="conditionTypes"
+    <Condition
         class="tile" data-bg="brighten"
         label="Zobrazit když"
-        :condition-types="conditionTypes"
         v-model="contentItem.if"
     />
-    <p v-else-if="contentItem.if">missing conditionTypes</p>
   </div>
 </template>
 
@@ -41,7 +39,6 @@ export default defineComponent({
   components: {ContentBlock, Condition, TypefulInputPair},
   props: {
     contentItem: {type: Object, required: true},
-    conditionTypes: {type: Array as PropType<ConditionType[]>},
     viewMode: contentBlockBase.props.viewMode,
   },
 })

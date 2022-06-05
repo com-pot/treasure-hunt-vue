@@ -7,6 +7,7 @@ export default {
         multiple: {type: Boolean},
 
         options: {type: Array as PropType<any[]>},
+        disabledOptions: {type: Array},
     },
 
     createSelectionController<TValue extends string|number = string, TOption extends {value: TValue} = any>(props: any, setValue: any) {
@@ -31,6 +32,9 @@ export default {
             isActive: (option: TOption) => Array.isArray(iv.value)
                 ? iv.value.includes(option.value)
                 : iv.value === option.value,
+            optionIsDisabled: (option: TOption) => {
+                return !!props.disabledOptions && props.disabledOptions.includes(option.value)
+            },
             toggleActive(option: TOption, desiredState?: boolean) {
                 const actualState = this.isActive(option)
                 if (isNil(desiredState)) {

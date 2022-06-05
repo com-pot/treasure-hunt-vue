@@ -39,10 +39,10 @@
                           @expose-configuration-fn="(getConfig) => configuration.getConfig = getConfig"/>
   </div>
 
-  <div class="view-error" :data-status="status" v-else>
+  <div class="view-error" :data-status="asyncIndicator.status" v-else>
     Jejda, nepovedlo se inicializovat pohled.
     <pre>
-      status: [{{ status.status }}]
+      status: [{{ asyncIndicator.status }}]
     </pre>
   </div>
 </template>

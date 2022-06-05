@@ -6,7 +6,7 @@
            @click="state.value.selection = option.value"
            :style="'--order: ' + (i * 7 % 11) + ';'"
       >
-        <img :src="'/minigames/shamans/' + option + '.png'" :alt="option.label"/>
+        <img :src="'/minigames/shamans/' + option.value + '.png'" :alt="option.label"/>
       </div>
     </div>
 
@@ -15,6 +15,8 @@
                         :options="normalizedOptions"
                         :model-value="state.value.selection"
                         @update:model-value="$emit('check-solution', $event)"
+
+                        :disabled="!!activeTimeout" :disabled-options="disabledOptions"
       />
     </template>
 
@@ -48,11 +50,16 @@ export default defineComponent({
   components: {TypefulInputPair},
   props: {
     challengeConfig: {type: Object as PropType<ChoiceMinigameData>, required: true},
+
+    activeTimeout: {type: Object},
+    blockProgressionData: {type: Object},
   },
   setup(props, {emit}) {
     const state = useViewState<ChoiceMinigameState>(() => {
       return {selection: null}
     })
+
+    const disabledOptions = computed(() => props.blockProgressionData?.visitedPlaces)
 
     const normalizedOptions = computed<ValueLabelOption[]>(() => (props.challengeConfig?.options || []).map((option) => {
       if (typeof option === 'string') {
@@ -77,6 +84,8 @@ export default defineComponent({
       normalizedOptions,
 
       state,
+
+      disabledOptions,
     }
   },
 })

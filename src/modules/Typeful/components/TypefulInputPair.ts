@@ -29,7 +29,10 @@ export default defineComponent({
                     id: id.value,
                 }),
             ]
-            return h('div', {class: ['tf-pair', attrs.class]}, pairElements)
+            return h('div', {
+                class: ['tf-pair', attrs.class],
+                'data-name': props.name,
+            }, pairElements)
         }
     },
 })

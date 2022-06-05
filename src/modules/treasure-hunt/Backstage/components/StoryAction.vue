@@ -12,7 +12,7 @@
     </template>
 
     <Condition class="tile" data-bg="brighten"
-               label="Provést když ..."
+               label="Provést když"
                v-model="action.if"
     />
   </div>

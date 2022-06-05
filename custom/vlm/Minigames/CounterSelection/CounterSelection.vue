@@ -2,13 +2,15 @@
   <div class="counter-selection" data-theme="vlm-rps">
     <div class="arena">
       <div class="trash-talk" v-if="gameState.status === 'idle'">
-        <p>Tak co ty posero, myslíš že mě porazíš?</p>
-        <button @click="gameState.start()" class="btn">Nemáš šanci!</button>
-      </div>
+        <p>
+          Poraz chlapce desetkrát za sebou ve hře kámen, nůžky, papír. Jestli prohraješ, musíš začít opět
+          od začátku. Pokud remizuješ, počítá se až další výhra nebo prohra. Naštěstí máš rychlé reflexy
+          a tak máš čas reagovat na chlapce.
 
-      <div class="trash-talk" v-else-if="gameState.status === 'draw'">
-        <p>Tohle je nerozhodně, uznám ti jen {{ challengeConfig.winConditions.roundCount }} výher v řadě.</p>
-        <button @click="gameState.start()" class="btn">Však ti ještě ukážu</button>
+          (Dole vidíš ubíhající časový limit na reakci. Pokud nestačíš zareagovat včas, chlapec tě
+          obviní, že se pokoušíš podvádět a musíš začít znovu.)
+        </p>
+        <button @click="gameState.start()" class="btn">Nemáš šanci!</button>
       </div>
 
       <div class="trash-talk" v-else-if="gameState.status === 'lost'">
@@ -54,7 +56,7 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, onBeforeUnmount, onMounted, PropType, reactive, ref, watch} from "vue"
+import {defineComponent, onBeforeUnmount, onMounted, ref, watch} from "vue"
 import {CounterSelectionConfig, useGameState} from "@custom/vlm/Minigames/CounterSelection/counterSelection"
 import {useGameLoop} from "@src/modules/treasure-hunt/components/gameLoop"
 
@@ -65,7 +67,7 @@ export default defineComponent({
     // challengeConfig: {type: Object as PropType<CounterSelectionConfig>}
   },
 
-  setup() {
+  setup(props, {emit}) {
     const challengeConfig = ref<CounterSelectionConfig>({
       prompts: {
         type: 'image',
@@ -115,9 +117,9 @@ export default defineComponent({
       gameState.value = useGameState(config)
     }, {immediate: true})
 
-    watch(() => gameState.value.currentRound, (round) => {
-      if (!round) {
-        return
+    watch(() => gameState.value.status, (status) => {
+      if (status === 'won') {
+        emit('check-solution', challengeConfig.value.winConditions.roundCount)
       }
     }, {immediate: true})
 

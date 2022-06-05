@@ -1,6 +1,6 @@
 import {reactive} from "vue"
 
-type ResponseOption = { key: string, file: 'string' }
+type ResponseOption = { key: string, file: string }
 export type CounterSelectionConfig = {
     prompts: {
         type: 'image',
@@ -106,8 +106,9 @@ export const useGameState = (config: CounterSelectionConfig) => {
             }
 
             if (gameState.currentRound.prompt.drawOptions?.includes(counter)) {
-                gameState.status = 'draw'
-                gameState.currentRound = null
+                setRound(gameState.currentRound, gameState.currentRound.num)
+                // gameState.status = 'draw'
+                // gameState.currentRound = null
             } else {
                 gameState.status = 'lost'
                 gameState.currentRound = null

@@ -3,6 +3,7 @@
     <template v-for="(option, i) in options" :key="i">
       <button class="btn" :class="sc.isActive(option) && activeClass"
               @click.prevent="sc.toggleActive(option)"
+              :disabled="disabled || sc.optionIsDisabled(option)"
       >{{ option.label }}</button>
     </template>
 
@@ -15,6 +16,8 @@ import selectionUtils from "@src/modules/Typeful/inputs/utils/selectionUtils"
 
 export default defineComponent({
   props: {
+    disabled: {type: Boolean},
+
     ...selectionUtils.props,
 
     size: {type: String},

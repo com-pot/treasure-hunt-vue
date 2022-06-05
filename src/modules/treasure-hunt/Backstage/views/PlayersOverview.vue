@@ -2,27 +2,30 @@
   <h1>Přehled hráčů</h1>
   <div class="backstage -players">
     <div class="list">
-      <div class="player" v-for="player in players" :key="player.user"
+      <div class="tile player" v-for="player in players" :key="player.user"
            :class="getPlayerStatus(player)"
       >
         <div class="actions">
           <div class="edit" @click.prevent="editPlayer.toggle(player, 'edit')">🔧</div>
-          <div class="trophy" v-if="player.trophy" @click.prevent="editPlayer.toggle(player, 'trophy')">🏆</div>
         </div>
-
 
         <div class="name">{{ player.user }}</div>
         <div class="progression">{{ challengeName(player.currentChallenge) }}</div>
-        <div class="more" v-if="editPlayer.user === player.user">
-          <div class="input-pair" v-if="editPlayer.mode === 'edit'">
+        <div class="flow more">
+          <div class="chip change-pass" v-if="editPlayer.user === player.user">
             <input v-model="editPlayer.newPass" placeholder="Nové heslo">
             <button @click="editPlayer.changePass()">Ok</button>
           </div>
 
-          <div class="trophy-status -acquired" v-if="editPlayer.mode === 'trophy' && player.trophy">
-            <span>Pořadí: {{ player.trophy.order }} ({{ getTrophyValue(player.trophy) }})</span>
+          <div class="chip chip-trophy" v-if="player.trophy">
+            <div class="span">🏆</div>
+            <span>Pořadí: {{ player.trophy.order }}</span>
+            <span v-if="player._trophyValue">({{ player._trophyValue }})</span>
             <button class="btn -acc-vivid -sm" @click.prevent="redeemTrophy(player)" :disabled="!!player.trophy.redeemedAt">Vyplatit</button>
-            <div v-if="player.trophy.redeemedAt">Vyplaceno {{ new Date(player.trophy.redeemedAt).toLocaleString() }}</div>
+
+            <div class="status" v-if="editPlayer.user === player.user">
+              <div v-if="player.trophy.redeemedAt">Vyplaceno {{ new Date(player.trophy.redeemedAt).toLocaleString() }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -31,17 +34,22 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, reactive, ref} from "vue"
+import {computed, defineComponent, reactive, ref, watch} from "vue"
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
 import {useAlert} from "@src/modules/Layout/components/viewUtils"
-import {PagedResult} from "@src/modules/Typeful/types/Collections"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
+import {useModelCollectionController} from "@src/modules/Typeful/components/useModelController"
+import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
+import useTreasureHuntBackstageApi from "@src/modules/treasure-hunt/api/useTreasureHuntBackstageApi"
+import useGameStaticData from "@src/modules/treasure-hunt/components/useGameStaticData"
 
 export default defineComponent({
   setup() {
     const storySelection = useStorySelection()
     const api = useApiAdapter()
+    const thBackstageApi = useTreasureHuntBackstageApi(api)
     const alert = useAlert()
+    const gameData = useGameStaticData()
 
     const players = ref<any[]>([])
     const editPlayer = reactive({
@@ -50,7 +58,6 @@ export default defineComponent({
       newPass: '',
 
       toggle(player?: any, mode?: string) {
-        console.log('toggle', player)
         editPlayer.newPass = ''
         editPlayer.user = !player || (editPlayer.user === player.user && mode === editPlayer.mode) ? null : player.user
         editPlayer.mode = mode
@@ -77,26 +84,27 @@ export default defineComponent({
           })
           throw err
         })
-
-
     }
-    const storyPartIndex = ref<Record<number, any>>({})
 
-    api.get(`/backstage/treasure-hunt/dashboard/story/${storySelection.story}/players`)
-      .then((res: any) => {
-        const list = res.players as PagedResult['items']
-        list.forEach((p) => {
-          if (!p.currentChallenge) {
-            p.currentChallenge = 0
-          }
-        })
-        list.sort((a, b) => b.currentChallenge - a.currentChallenge)
-        players.value = list
-      })
-    api.get('/backstage/treasure-hunt/story-parts')
-      .then((res: any) => {
-        storyPartIndex.value = Object.fromEntries(res.map((sp: any) => [sp.order, sp]))
-      })
+    const storyParts = useModelCollectionController<PartOfStory>(api, 'treasure-hunt.story-part')
+    const storyPartIndex = computed(() => {
+      let orderEntries = (storyParts.value || []).map((sp: any) => [sp.order, sp])
+      return Object.fromEntries(orderEntries)
+    })
+
+    function reload() {
+      return Promise.all([
+          storyParts.load(1, 100, {story: storySelection.story}),
+          thBackstageApi.listPlayersByChallengeNumber(storySelection.story)
+            .then((list) => {
+              list.forEach((player) => player._trophyValue = getTrophyValue(player.trophy))
+              return list
+            })
+            .then((list) => players.value = list)
+      ])
+    }
+
+    watch(() => storySelection.story, reload, {immediate: true})
 
     const challengeName = (id: number) => {
       if (!id) {
@@ -123,9 +131,16 @@ export default defineComponent({
       return 'finished redeemed'
     }
 
-    const trophyValues = [500, 300, 150]
     const getTrophyValue = (trophy: any) => {
-      return trophyValues[trophy.order - 1] || 50
+      if (!trophy || !gameData.trophyValues) {
+        return
+      }
+      let iValue = trophy.order
+      if (iValue >= gameData.trophyValues.length) {
+        iValue = gameData.trophyValues.length - 1
+      }
+
+      return gameData.trophyValues[iValue]
     }
 
     const redeemTrophy = (player: any) => {
@@ -139,7 +154,6 @@ export default defineComponent({
 
       challengeName,
       getPlayerStatus,
-      getTrophyValue,
 
       redeemTrophy,
     }
@@ -155,15 +169,14 @@ export default defineComponent({
     display: flex;
     flex-wrap: wrap;
     gap: 0.5em;
+
+    > .tile {
+      flex: 1 0 200px;
+    }
   }
 
   .player {
-    flex: 1 0 200px;
-
-    padding: 0.5rem;
-    border-radius: 0.2em;
-    border: dimgray 2px solid;
-
+    border: 2px solid var(--neutral-600);
     display: grid;
     grid-auto-flow: row;
 
@@ -176,6 +189,35 @@ export default defineComponent({
       place-self: start end;
       display: flex;
       order: 1;
+    }
+
+    .more {
+      --flow-spacing: 0.5rem;
+    }
+
+    .chip {
+      padding: 0.2rem;
+      display: flex;
+      gap: 0.2rem;
+      flex-wrap: wrap;
+      align-items: center;
+      background-color: rgba(69, 69, 69, 0.2);
+
+      .status {
+        width: 100%;
+        text-align: center;
+      }
+    }
+    .chip-trophy {
+      button {
+        margin-inline-start: auto;
+      }
+    }
+    .change-pass {
+      input {
+        min-width: 4ch;
+        flex: 1;
+      }
     }
 
 

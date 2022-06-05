@@ -12,6 +12,7 @@ export interface PartOfStory {
     slug: string,
     title: string,
     story: string,
+    order: number,
 
     contentBlocks?: OutputBlockData[],
     contentHtml?: string,

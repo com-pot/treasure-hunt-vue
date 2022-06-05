@@ -24,7 +24,10 @@
       <fieldset class="form-auto-layout" v-if="activePartData.value">
         <TypefulInputPair name="title" type="text" label="Název" v-model="activePartData.value.title"/>
 
-        <TypefulInputPair name="slug" type="text" label="Url klíč" v-model="activePartData.value.slug"/>
+        <TypefulInputPair name="slug" type="text" label="Url klíč"
+                          v-model="activePartData.value.slug"
+                          :disabled="!!activePart"
+        />
 
         <TypefulInputPair name="order" type="number" label="Pořadí" v-model="activePartData.value.order"/>
       </fieldset>
@@ -130,7 +133,6 @@ import TypefulList from "@src/modules/Typeful/components/TypefulList.vue"
 import {useStoryPartCollection, useStoryPartInstance} from "@src/modules/treasure-hunt/model/StoryPart"
 import ClueContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
 import ThContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
-import {useConditionTypeCollection} from "@src/modules/TypefulExecutive/model/ConditionType"
 import {ContentBlockViewMode} from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/contentBlockBase"
 import {resolveAfter} from "@src/utils/promiseUtils"
 

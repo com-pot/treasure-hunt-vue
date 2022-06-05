@@ -1,5 +1,5 @@
 .flow {
   > * + * {
-    margin-top: 1em;
+    margin-top: var(--flow-spacing, 1em);
   }
 }

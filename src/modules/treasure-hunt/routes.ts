@@ -7,9 +7,6 @@ import ThLanding from "@src/modules/treasure-hunt/views/ThLanding.vue";
 import Page404 from "@src/modules/Layout/views/Page404.vue"
 import PassThroughComponent from "@src/routing/PassThroughComponent"
 
-import gameStatic from "@custom/vlm/vlmGame.static.json"
-// import gameStatic from "@custom/sotw/sotwGame.static.json"
-
 const gameRoutes: RouteRecordRaw[] = [
     {
         name: 'th.NodeView',
@@ -49,9 +46,6 @@ const routes: RouteRecordRaw[] = [
         path: '/',
         name: 'Landing.welcome',
         component: ThLanding,
-        props: {
-            gameStatic: gameStatic,
-        },
         meta: {
             skin: 'entrance',
         },
@@ -122,6 +116,15 @@ const routes: RouteRecordRaw[] = [
                 props: true,
             },
         ],
+    },
+
+    {
+        name: 'Backstage.Hack.VlmClues',
+        path: '/backstage/vlm-clues',
+        component: () => import('../../../custom/vlm/QrDoc.vue'),
+        meta: {
+            layout: 'print',
+        },
     },
 
     {

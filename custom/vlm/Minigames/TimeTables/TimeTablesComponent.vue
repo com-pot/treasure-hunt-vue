@@ -28,7 +28,7 @@
 
 <script lang="ts">
 import {computed, defineComponent, PropType, reactive} from "vue"
-import {TimeTablesConfig} from "@custom/vlm/Minigames/TimeTables/timeTablesModel"
+import {TimeTablesConfig} from "./timeTablesModel"
 
 
 export default defineComponent({

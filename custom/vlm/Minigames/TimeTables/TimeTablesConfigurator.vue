@@ -28,7 +28,7 @@
 
 <script lang="ts">
 import {defineComponent, PropType, ref, watch} from "vue"
-import {TimeTablesConfig, DestinationSchema, ConnectionSchema} from "@custom/vlm/Minigames/TimeTables/timeTablesModel"
+import {TimeTablesConfig, DestinationSchema, ConnectionSchema} from "./timeTablesModel"
 import TypefulList from "@src/modules/Typeful/components/TypefulList.vue"
 import {cloneDeep} from "lodash"
 import {useTypeRegistry} from "@src/modules/Typeful/typeRegistry"
@@ -48,7 +48,10 @@ export default defineComponent({
       connections: ConnectionSchema,
     }
 
-    const iw = ref<TimeTablesConfig>({connections: [], destinations: []})
+    const iw = ref<TimeTablesConfig>({
+      connections: [], destinations: [],
+      start: undefined, finish: undefined,
+    })
 
     watch(() => props.challengeConfig, (config) => {
       iw.value = cloneDeep(config)

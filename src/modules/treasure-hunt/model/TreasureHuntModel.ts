@@ -16,6 +16,8 @@ export type TrophyData = {
 
 export type PlayerProgression = {
     storyParts: PartOfStory[],
+
+    reload: () => Promise<void>,
 }
 
 export type ProgressionData = {

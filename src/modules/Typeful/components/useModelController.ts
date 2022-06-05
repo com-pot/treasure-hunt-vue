@@ -190,6 +190,9 @@ export function useModelCollectionController<TEntity extends {} = any>(api: Json
 
 }
 
+/**
+ * Typing helper for extending model
+ */
 export function extendModelController<TCtrl extends object, TExtension extends object>(ctrl: TCtrl, ext: TExtension): TCtrl & TExtension {
     const result: Omit<TCtrl, keyof TExtension> & Partial<TExtension> = ctrl
 

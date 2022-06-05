@@ -3,7 +3,7 @@
 
   <div class="backstage -challenges">
     <div class="list">
-      <div class="story-part" v-for="storyPart in storyParts" :key="storyPart.slug">
+      <div class="tile story-part" v-for="storyPart in storyParts" :key="storyPart.slug">
         <div class="title">{{ storyPart.title }} - /{{storyPart.slug}}</div>
         <div class="counts">
           <span class="new">Právě řeší: {{ storyPart.countByStatus.new }}</span>
@@ -54,10 +54,8 @@ export default defineComponent({
   }
 
   .story-part {
-    padding: 0.5rem;
-    border-radius: 0.2em;
     background: rgba(var(--hsl-vivid), 0.2);
-    border: dimgray 2px solid;
+    border: 2px solid var(--neutral-600);
 
     .title {
       font-weight: bold;

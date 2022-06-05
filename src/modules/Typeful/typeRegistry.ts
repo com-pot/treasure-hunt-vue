@@ -3,10 +3,10 @@ import {inject} from "vue"
 import {AppTypeDeclaration, TypefulAppModule} from "@src/modules/Typeful/defineTypefulModule"
 
 export type TypeRegistry = {
-    getTypeSpec(type: string): TypeSpec|undefined,
+    getTypeSpec(type: string): TypeSpec | undefined,
     getDefaultProps: (field: InputSpec) => object | unknown,
 
-    getDefaultValue<T=any>(field: InputSpec): T,
+    getDefaultValue<T = any, TOptions extends object = {}>(field: InputSpec<TOptions>): T,
 }
 
 export function createTypeRegistry(...modules: TypefulAppModule[]): TypeRegistry {
@@ -20,7 +20,7 @@ export function createTypeRegistry(...modules: TypefulAppModule[]): TypeRegistry
     })
 
     return {
-        getTypeSpec: (type): TypeSpec|undefined => {
+        getTypeSpec: (type): TypeSpec | undefined => {
             return typeMap[type]
         },
         getDefaultProps(field) {
@@ -44,7 +44,7 @@ export function createTypeRegistry(...modules: TypefulAppModule[]): TypeRegistry
             }
 
             return defaultValue
-        }
+        },
     }
 }
 

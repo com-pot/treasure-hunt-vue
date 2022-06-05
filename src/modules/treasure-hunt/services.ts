@@ -1,7 +1,5 @@
 import { watch } from "vue";
 
-import Universe from "./services/Universe"
-import TextsService from "./services/TextsService"
 import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
 import TreasureHuntApi from "./api/TreasureHuntApi";
 import AudioService from "./services/AudioService";
@@ -23,26 +21,6 @@ export const useApiAdapter = () => {
 
 export const useTreasureHuntApi = () => {
     return new TreasureHuntApi(useApiAdapter())
-}
-
-let universeInstance: Universe
-export const useUniverse = () => {
-    if (!universeInstance) {
-        universeInstance = new Universe({
-            'characters.guide.name': 'Tir Zapa',
-            'characters.protagonist.name': '-[-hocha-]-',
-            'company.casino.name': 'Gamble Tour',
-        })
-    }
-    return universeInstance
-}
-
-let textsServiceInstance: TextsService
-export const useTextsService = () => {
-    if (!textsServiceInstance) {
-        textsServiceInstance = new TextsService(useUniverse())
-    }
-    return textsServiceInstance
 }
 
 let sotwAudioInstance: AudioService

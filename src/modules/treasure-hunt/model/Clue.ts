@@ -1,6 +1,6 @@
 import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
 import {
-    extendModelController,
+    extendModelController, ModelControllerOptions,
     useModelCollectionController,
     useModelInstanceController,
 } from "@src/modules/Typeful/components/useModelController"
@@ -11,23 +11,40 @@ export type Clue = {
     name: string,
     slug: string,
     contentBlocks: ThContentBlock[],
-    collectible: boolean,
+    tags: string[],
 
     onReveal?: Action[],
 
     story: string,
 }
 
-export type RevealResult = { content: { html: string } }
+export type RevealResult = Record<string, any>
 export type RevealedClue = Clue & {
     revealResults: RevealResult[],
 }
 
-export function useClueInstance<T extends Clue>(api: JsonApiAdapter) {
-    const ctrl = useModelInstanceController<T>(api, 'treasure-hunt.clue')
+const clueModelOptions: ModelControllerOptions<Clue> = {
+    normalizeItem: (item) => {
+        if (!item.tags) {
+            item.tags = []
+        }
+        return item
+    }
+}
+
+type ClueInstanceOptions<T extends Clue> = {
+    onReveal?: (clue: T) => Promise<T>,
+}
+export function useClueInstance<T extends Clue>(api: JsonApiAdapter, opts?: ClueInstanceOptions<T>) {
+    const ctrl = useModelInstanceController<T>(api, 'treasure-hunt.clue', clueModelOptions as ModelControllerOptions<any>)
     return extendModelController(ctrl, {
         reveal: (key: string) => {
-            return ctrl.awaitValue(api.post<T>('/treasure-hunt/clue/' + key))
+            ctrl.value = null
+            let revealPromise = api.post<T>('/treasure-hunt/clue/' + key)
+            if (opts?.onReveal) {
+                revealPromise = revealPromise.then(opts.onReveal)
+            }
+            return ctrl.awaitValue(revealPromise)
         },
         contentBlocks: {
             ...useThContentBlocks(() => ctrl.value?.contentBlocks),
@@ -49,5 +66,5 @@ export function useClueInstance<T extends Clue>(api: JsonApiAdapter) {
 }
 
 export function useClueCollection(api: JsonApiAdapter) {
-    return useModelCollectionController<Clue>(api, 'treasure-hunt.clue')
+    return useModelCollectionController<Clue>(api, 'treasure-hunt.clue', clueModelOptions)
 }

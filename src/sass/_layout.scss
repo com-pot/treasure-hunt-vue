@@ -26,11 +26,14 @@ html {
     flex: 1;
 
     margin-top: unset;
-    margin-inline-start: var(--hr-padding);
 
     border: unset;
     border-top: 8px dotted var(--neutral-600);
     margin-bottom: -4px;
+
+    &:not(:first-child) {
+      margin-inline-start: var(--hr-padding);
+    }
 
     &:not(:last-child) {
       margin-inline-end: var(--hr-padding);

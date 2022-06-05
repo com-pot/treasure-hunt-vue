@@ -21,8 +21,9 @@
                           v-model="clueWorkingCopy.value.slug"
                           :disabled="!!activeClue"
         />
-        <TypefulInputPair name="collectible" label="Sběratelná" type="bool"
-                          v-model="clueWorkingCopy.value.collectible"
+        <TypefulInputPair name="tags" label="Vlastnosti"
+                          type="list" :inner-type="{type: 'string'}" :create-item="() => ''"
+                          v-model="clueWorkingCopy.value.tags"
         />
       </fieldset>
       <fieldset class="controls">
@@ -104,7 +105,7 @@ export default defineComponent({
 
     const reloadClues = () => clues.fluent()
         .filter({story: storySelection.story})
-        .load()
+        .load(1, 100)
 
     const viewModeOptions = ref([
       {value: 'edit', label: 'Editace'},
@@ -119,6 +120,7 @@ export default defineComponent({
       } else {
         clueWorkingCopy.load(clue)
       }
+      viewMode.value = 'edit'
     }, {immediate: true})
 
     watch(() => storySelection.story, () => reloadClues(), {immediate: true})

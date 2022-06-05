@@ -1,5 +1,5 @@
 <template>
-  <div class="sotw-landing">
+  <div class="th-landing">
     <p>Vítejte ve hře <b>{{ gameStatic.title }}</b></p>
 
     <p v-if="gameStatic.intro" v-html="gameStatic.intro"/>
@@ -14,7 +14,7 @@
       Pro pokračování prosím použijte jeden z následujících formulářů:
 
       <router-link class="option-link -form" :to="{name: 'Authorization', params: {formId: 'TZ-017-U'}}">
-        <span class="title">Uvítací formulář</span>
+        <span class="title">Registrační formuláŕ</span>
         <span class="code">TZ-017-U</span>
         <span class="description">Formulář je určen pro zájemce o vstup do hry</span>
       </router-link>
@@ -29,22 +29,19 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import {defineComponent, inject} from "vue";
 
-import {useTextsService} from "@src/modules/treasure-hunt/services"
 import useUser from "@src/modules/Auth/components/useUser"
+import useGameStaticData from "@src/modules/treasure-hunt/components/useGameStaticData"
 
 export default defineComponent({
-  props: {
-    gameStatic: {type: Object, required: true},
-  },
   setup() {
-    const textsService = useTextsService()
     const user = useUser()
+    const gameStatic = useGameStaticData()
 
     return {
       user,
-      replaceTerm: (term: string) => textsService.replaceTerm(term),
+      gameStatic,
     };
   },
 })

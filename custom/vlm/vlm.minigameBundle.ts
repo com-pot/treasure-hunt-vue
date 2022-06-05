@@ -15,5 +15,10 @@ export default defineMinigameBundle({
             caption: "Counter selection",
             module: () => import('./Minigames/CounterSelection/CounterSelection.vue'),
         })
+
+        registry.registerMinigame('skull-lite', {
+            caption: "Skull lite",
+            module: () => import('./Minigames/SkullLite/SkullLite.vue'),
+        })
     },
 })

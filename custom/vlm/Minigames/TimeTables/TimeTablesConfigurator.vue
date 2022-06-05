@@ -48,7 +48,10 @@ export default defineComponent({
       connections: ConnectionSchema,
     }
 
-    const iw = ref<TimeTablesConfig>({connections: [], destinations: []})
+    const iw = ref<TimeTablesConfig>({
+      connections: [], destinations: [],
+      start: undefined, finish: undefined,
+    })
 
     watch(() => props.challengeConfig, (config) => {
       iw.value = cloneDeep(config)

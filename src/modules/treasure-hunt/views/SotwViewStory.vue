@@ -7,7 +7,8 @@ import {computed, defineComponent, PropType} from "vue";
 
 import {TrophyData} from "../model/TreasureHuntModel"
 import {PartOfStory} from "../model/StoryPart"
-import {useTextsService} from "../services"
+import useUniverseContent from "@src/modules/treasure-hunt/components/useUniverseContent"
+
 
 export default defineComponent({
   emits: ['sotwSignal'],
@@ -16,7 +17,7 @@ export default defineComponent({
     trophies: {type: Object as PropType<TrophyData[]>},
   },
   setup(props) {
-    const textsService = useTextsService()
+    const textsService = useUniverseContent()
 
     const trophyValues = [500, 300, 150]
     const trophy = computed(() => props.trophies && props.trophies[0])

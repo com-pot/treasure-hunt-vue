@@ -4,6 +4,7 @@ import contentBlockBase from "@src/modules/treasure-hunt/Backstage/components/Cl
 import CBText from "./ContentBlock-Text.vue"
 import CBChallenge from "./ContentBlock-Challenge.vue"
 import CBCountdown from "./ContentBlock-Countdown.vue"
+import CBStorySummary from "./ContentBlock-StorySummary.vue"
 
 import {ThContentBlockConfig} from "@src/modules/treasure-hunt/model/treasureHuntContentBlocksController"
 
@@ -11,6 +12,7 @@ const typeToComponent: Record<string, ReturnType<typeof defineComponent>> = {
     text: CBText,
     challenge: CBChallenge,
     countdown: CBCountdown,
+    'story-summary': CBStorySummary,
 }
 
 export default defineComponent({

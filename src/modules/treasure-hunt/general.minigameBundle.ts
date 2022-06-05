@@ -80,6 +80,11 @@ const generalMinigameBundle: MinigameBundle = {
                 ],
             },
         })
+
+        registry.registerMinigame('clue-chase', {
+            caption: 'Clue chase',
+            module: () => import('./Minigames/ClueChase/ClueChase.vue'),
+        })
     }
 }
 

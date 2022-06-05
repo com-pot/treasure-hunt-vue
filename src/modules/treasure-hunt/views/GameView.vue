@@ -56,6 +56,8 @@ export default {
 
     const playerProgression = reactive<PlayerProgression>({
       storyParts: [],
+
+      reload: () => loadPlayerProgression('keep'),
     })
     provide('player.progression', playerProgression)
 
@@ -70,19 +72,30 @@ export default {
       })
     });
 
-    thApi.listStoryParts(storySelection.story)
-        .then((parts) => playerProgression.storyParts = parts)
-        .then(() => {
-          componentStatus.value = 'ready'
-          if ($route.name === 'th.Game') {
-            $router.replace(storyLinks.value[0].to)
-          }
-        })
-        .catch((err) => {
-          componentStatus.value = 'error'
-          $router.replace({name: 'Landing.welcome'})
-          throw err
-        })
+    function loadPlayerProgression(asyncStatus: 'keep' | 'clear' = 'clear') {
+      if (asyncStatus !== 'keep') {
+        componentStatus.value = 'loading'
+      }
+
+      return thApi.listStoryParts(storySelection.story)
+          .then((parts) => playerProgression.storyParts = parts)
+          .then(() => {
+            componentStatus.value = 'ready'
+            if ($route.name === 'th.Game') {
+              $router.replace(storyLinks.value[0].to)
+            }
+          })
+          .catch((err) => {
+            componentStatus.value = 'error'
+            $router.replace({name: 'Landing.welcome'})
+            throw err
+          })
+    }
+
+    if (!playerProgression.storyParts.length) {
+      loadPlayerProgression()
+    }
+
 
     return {
       storyLinks,

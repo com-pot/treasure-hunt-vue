@@ -10,7 +10,7 @@ import {defineComponent, onMounted, PropType, ref, watch} from "vue"
 import qrcode, {QRCodeRenderersOptions} from "qrcode"
 
 function renderQr(canvas: HTMLCanvasElement, data: string, opts: QRCodeRenderersOptions) {
-  qrcode.toCanvas(canvas, data, opts.qrOpts)
+  qrcode.toCanvas(canvas, data, opts)
 }
 
 export default defineComponent({

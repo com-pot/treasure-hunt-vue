@@ -21,12 +21,24 @@
     </div>
 
     <template v-if="progression.value?.storyPart.contentController === 'th-blocks'">
-      <template v-for="block in progression.value?.storyPart.thContentBlocks">
+      <template v-for="(block, iBlock) in progression.value?.storyPart.thContentBlocks">
+        <div class="section-heading story-block-separator" v-if="iBlock"><hr></div>
+
         <ThContentBlock :content-item="block" view-mode="live" :saved-answer="progression.value.data?.[block.id]?.answer"
+                        :block-progression-data="progression.value.data?.[block.id]" :active-timeout="activeTimeout"
+                        :overall-progression="progression.value"
 
                         @expose-minigame-controls="(controls) => minigameControls.acceptMinigame(controls)"
                         @check-solution="(solution) => minigameControls.checkSolution(block.id, solution)"
         />
+        <img src="/vlm/vault-scarp.png" class="hack-image" alt="Obsah trezoru" v-if="block.id === '6704'">
+        <img src="/vlm/pedro.jpg" class="hack-image" alt="Pedro" v-if="block.id === '2340'">
+
+      </template>
+
+      <template v-if="revealResult">
+        <div class="section-heading story-block-separator"><hr></div>
+        <ClueRevealResult :result="revealResult.arguments"/>
       </template>
     </template>
 
@@ -65,7 +77,7 @@
         <router-link class="btn" v-if="nodeLinks.parent" :to="nodeLinks.parent">Pryč</router-link>
 
         <button v-if="minigameControls.getValue" @click="minigameControls.checkSolution()"
-                :class="['btn', minigameControls.status === 'success' ? '-acc-success' :'-acc-vivid']"
+                :class="['btn', minigameControls.status === 'success' ? '-acc-success' :'-acc-primary']"
                 :disabled="minigameControls.status === 'evaluating' || timeout.status === 'ticking'"
         >Vyzkoušet řešení
         </button>
@@ -85,7 +97,7 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, inject, onBeforeUnmount, onMounted, provide, watch} from "vue";
+import {computed, defineComponent, inject, onBeforeUnmount, onMounted, provide, ref, watch} from "vue";
 import {RouteLocationRaw, useRouter} from "vue-router";
 
 import SotwViewStory from "./SotwViewStory.vue";
@@ -103,9 +115,13 @@ import {useModelInstanceController} from "@src/modules/Typeful/components/useMod
 import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 import useCurrentTime, {timePrint} from "@src/modules/treasure-hunt/components/useCurrentTime"
+import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
 
 export default defineComponent({
-  components: {ThContentBlock, LoadingIndicator, MinigameComponent, PlayerTimeoutIndication, SotwViewStory},
+  components: {
+    ClueRevealResult,
+    ThContentBlock, LoadingIndicator, MinigameComponent, PlayerTimeoutIndication, SotwViewStory,
+  },
   props: {
     mode: {type: String, required: true},
     nodeId: {type: String},
@@ -122,6 +138,7 @@ export default defineComponent({
     }
 
     const progression = useModelInstanceController<ProgressionData>(useApiAdapter(), 'treasure-hunt.player-progression')
+    const revealResult = ref<any>(null)
     const storeKey = computed(() => {
       const storyPart = progression.value?.storyPart
       return storyPart ? `${storyPart.story}#${storyPart.slug}-${props.mode}` : null
@@ -146,27 +163,51 @@ export default defineComponent({
 
     const timeout = useTimeout()
     const remainingTime = useCurrentTime({
-      format: (d) => 'Zbývá zhruba ještě ' + timePrint.dateDiffUnits(timeout.end, d, {units: ['hours', 'minutes'], czechCase: 1}) + '.'
+      format: (d) => {
+        let remainingTime = timePrint.dateDiffUnits(timeout.end, d, {units: ['hours', 'minutes'], czechCase: 1})
+        return 'Zbývá zhruba ještě ' + (remainingTime || 'necelá minuta') + '.'}
     })
     watch(() => remainingTime.time, (t) => timeout.now = t, {immediate: true})
-    const activeTimeout = computed(() => progression.value?.timeout)
-    watch(activeTimeout, t => timeout.applyFrom(t), {immediate: true})
+    const currentProgressionTimeout = computed(() => progression.value?.timeout)
+    watch(currentProgressionTimeout, t => timeout.applyFrom(t), {immediate: true})
+    const activeTimeout = computed(() => {
+      if (!timeout.end || timeout.end.getTime() <= remainingTime.time) {
+        return null
+      }
+
+      return timeout
+    })
+    watch(() => activeTimeout.value?.status, (status, prevStatus) => {
+      console.log({status, prevStatus})
+      if (status === 'expired' || (prevStatus && !status)) {
+        loadProgressionData(props.nodeId, 'keep')
+      }
+    })
 
     const viewStateData = createViewStateController(storeKey)
     provide('th.viewStateData', viewStateData)
 
     const playerProgression = inject<PlayerProgression>('player.progression')!
 
-    watch(() => props.nodeId, async (nodeId) => {
-      progression.flush()
+    function loadProgressionData(nodeId: string, persistence: 'flush' | 'keep') {
+      if (persistence === 'flush') {
+        progression.flush()
+        revealResult.value = null
+      }
 
       if (!nodeId) {
         console.warn("No nodeId")
         return
       }
 
+      if (persistence === 'keep') {
+        return treasureHuntApi.loadProgressionData(nodeId)
+          .then((value) => progression.value = value)
+      }
+
       return progression.awaitValue(treasureHuntApi.loadProgressionData(nodeId))
-    }, {immediate: true})
+    }
+    watch(() => props.nodeId, async (nodeId) => loadProgressionData(nodeId, 'flush'),{immediate: true})
 
     const nodeLinks = computed(() => {
       const links: Record<string, RouteLocationRaw> = {}
@@ -197,9 +238,13 @@ export default defineComponent({
     const updateProgression = (storyParts: PartOfStory[]) => {
       playerProgression.storyParts = storyParts
       const lastStoryPart = storyParts[storyParts.length - 1]
-      resolveAfter(500)
-          .then(() => $router.push({name: 'th.NodeView', params: {nodeId: lastStoryPart.slug}}))
 
+      if (props.nodeId !== lastStoryPart.slug) {
+        resolveAfter(500)
+            .then(() => $router.push({name: 'th.NodeView', params: {nodeId: lastStoryPart.slug}}))
+      } else {
+        loadProgressionData(lastStoryPart.slug, 'keep')
+      }
     }
 
     const minigameControls = createMinigameController({
@@ -209,13 +254,15 @@ export default defineComponent({
       evaluateResult: (result) => {
         result.evaluationEffects?.forEach(performGameAction)
         result.progression && updateProgression(result.progression)
+        revealResult.value = result.evaluationEffects?.find((effect) => effect.type === 'treasure-hunt.ui.displayContent')
 
         if (result.status === 'custom') {
           return 'idle'
         }
 
+        let success = result.status === 'ok'
         if (storySelection.story === 'sotw') {
-          sotwAudio.play(result.status === 'ok' ? 'minigameOk' : 'minigameKo')
+          sotwAudio.play(success ? 'minigameOk' : 'minigameKo')
         }
 
 
@@ -224,13 +271,14 @@ export default defineComponent({
     })
     const performGameAction = useGameActionExecutor(minigameControls, $router)
 
-    watch(() => progression.value, (progressionItem) => {
+    watch(() => progression.value, (progressionItem, prevItem) => {
       viewStateData.load()
-      minigameControls.reset = minigameControls.getValue = undefined
+      if (progressionItem?.storyPart && progressionItem?.storyPart.slug !== prevItem?.storyPart?.slug) {
+        minigameControls.reset = minigameControls.getValue = undefined
+      }
+
       minigameControls.status = progressionItem?.status === 'done' ? 'success' : 'idle'
     })
-
-    watch(() => progression.value?.timeout, (timeoutData) => timeout.applyFrom(timeoutData), {immediate: true})
 
     onMounted(() => {
       window.addEventListener('beforeunload', viewStateData.save)
@@ -242,10 +290,12 @@ export default defineComponent({
     return {
       progression,
       title,
+      revealResult,
 
       minigameControls,
       timeout,
       remainingTime,
+      activeTimeout,
 
       performGameAction,
       nodeLinks,
@@ -253,3 +303,16 @@ export default defineComponent({
   },
 })
 </script>
+
+<style lang="scss">
+.section-heading.story-block-separator {
+  hr {
+    flex: unset;
+    width: 4rem;
+    margin: revert;
+  }
+}
+.hack-image {
+  width: 100%;
+}
+</style>

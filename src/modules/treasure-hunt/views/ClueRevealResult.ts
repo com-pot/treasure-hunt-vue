@@ -18,16 +18,9 @@ export default defineComponent({
                 if (!storyPart) {
                     console.warn("No storyPart found for", r.unlockedProgression)
                     return
-
                 }
 
-                return h('div', [
-                    "Pokračuj do ",
-                    h(RouterLink, {to: {name: 'th.NodeView', params: {nodeId: storyPart.slug}}}, [
-                        'další části příběhu'
-                    ]),
-                    '.',
-                ])
+                return renderTemplate(`Pokračuj do "další části příběhu":{to:storyPart:${storyPart.slug}}.`)
             }
 
             if (r.template) {

@@ -3,7 +3,7 @@ import {v4 as uuidV4} from "uuid"
 import {Condition} from "@src/modules/TypefulExecutive/model/Condition"
 
 // FIXME: registry should be used. for now sync with ContentBlocks.ts#typeToComponent
-const types = ['text', 'challenge', 'countdown']
+const types = ['text', 'challenge', 'countdown', 'story-summary']
 
 export function getDefaultBlockConfig(type: string): ThContentBlockConfig | null {
     if (type === 'text') {

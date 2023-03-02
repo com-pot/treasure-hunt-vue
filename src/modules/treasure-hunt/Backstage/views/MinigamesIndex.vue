@@ -1,37 +1,42 @@
 <template>
-  <div class="minigame-index">
-    <div class="links">
-      <template v-for="(link, i) in minigames">
-        <router-link v-if="link.name" :key="'link-' + i" :to="{name: 'minigame.dev.detail', params: {minigame: link.name}}" class="btn btn-vivid">
-          <span>{{ formatOrderNumber(i + 1) }}</span>
-          <span>{{ link.caption }}</span>
+  <h1>Rejstřík miniher</h1>
+
+  <div class="minigame-links">
+    <template v-for="bundle in bundles">
+      <div class="source-heading">
+        <span>{{bundle.caption}}</span>
+      </div>
+
+      <template v-for="(link, i) in bundle.minigames">
+        <router-link v-if="link.name" :key="'link-' + i" class="minigame-link btn -acc-primary"
+                     :to="{name: 'minigame.dev.detail', params: {minigame: link.name}}"
+        >
+          <span class="code">{{ bundle.name }}-{{ formatOrderNumber(i + 1) }}</span>
+          <span class="caption">{{ link.caption }}</span>
         </router-link>
 
-        <div v-else :key="'dead-link-' + i" class="btn btn-bland">
-          <span>{{ formatOrderNumber(i + 1) }}</span>
-          <span>{{ link.caption }}</span>
+        <div v-else :key="'dead-link-' + i" class="minigame-link btn btn-bland">
+          <span class="code">{{ bundle.name }}-{{ formatOrderNumber(i + 1) }}</span>
+          <span class="caption">{{ link.caption }}</span>
         </div>
       </template>
-    </div>
+    </template>
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent, ref} from "vue";
-import {listMinigames} from "../../utils/minigameUtils"
+import {listMinigameBundles} from "../../utils/minigameUtils"
 import {Awaited} from "@src/utils/timingUtils"
 
 export default defineComponent({
-  props: {
-    showBack: {type: Boolean, required: true},
-  },
   setup() {
-    const minigames = ref<Awaited<ReturnType<typeof listMinigames>>>([])
-    listMinigames()
-      .then((list) => minigames.value = list)
+    const bundles = ref<Awaited<ReturnType<typeof listMinigameBundles>>>([])
+    listMinigameBundles()
+      .then((list) => bundles.value = list)
 
     return {
-      minigames,
+      bundles,
       formatOrderNumber: (i: number) => i < 10 ? '0' + i : '' + i,
     };
   },
@@ -39,36 +44,45 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.minigame-index {
+.minigame-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.5em;
 
-  .links {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(120px, 1fr));
-    gap: 0.5em;
+  align-content: center;
 
-    align-content: center;
+  .source-heading {
+    grid-column: 1 / -1;
 
-    > * {
-      height: 90px;
-      padding: 8px;
-      border-radius: 4px;
+    font-size: 2rem;
+  }
 
-      font-weight: bold;
+  .minigame-link {
+    height: 6rem;
+    padding: 0.5rem;
 
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      text-align: start;
-      justify-content: flex-end;
+    font-weight: bold;
 
-      &:last-child {
-        grid-column: 2;
-      }
-    }
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: start;
+    justify-content: space-between;
 
-    > a {
-      text-decoration: none;
+    .code {
+      font-size: 0.75em;
+      position: relative;
+      top: -1rem;
+
+      background: inherit;
+      border: inherit;
+      padding: 0.1rem 0.2rem;
     }
   }
+
+  > a {
+    text-decoration: none;
+  }
 }
+
 </style>

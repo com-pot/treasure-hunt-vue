@@ -13,13 +13,14 @@
   .btn {
     font-size: 1.5rem;
     text-decoration: none;
-  }
-  .btn:not(.-round) {
-    padding: 0.2em;
-  }
-  .btn.-round {
-    width: 1.5em;
-    height: 1.5em;
+
+    &:not(.-round) {
+      padding: 0.2em;
+    }
+    &.-round {
+      width: 1.5em;
+      height: 1.5em;
+    }
   }
 
   .nav-actions {

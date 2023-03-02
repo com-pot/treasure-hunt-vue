@@ -1,10 +1,10 @@
-export type InputSpec = {
+export type BpcInputSpec = {
     name: string,
     caption: string,
 };
 
 export type BpcMinigameData = {
-    inputs: InputSpec[],
+    inputs: BpcInputSpec[],
     check: string,
 }
 

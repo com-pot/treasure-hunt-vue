@@ -1,39 +1,40 @@
 <template>
   <div :class="['mg-bpc']">
 
-    <form class="bpc-container" @submit.prevent="controls.checkSolution()">
-      <div class="input-pair" v-for="input in minigameData.inputs" :key="input.name">
+    <form class="bpc-container" @submit.prevent="$emit('check-solution')">
+      <div class="input-pair" v-for="input in challengeConfig.inputs" :key="input.name">
         <label :for="input.name">{{ input.caption }}</label>
         <input type="number" inputmode="numeric" v-model.number="minigameState.value.inputsModel[input.name]"
                :id="input.name"/>
       </div>
+      <button style="display: none"/>
     </form>
 
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue"
+import {defineComponent, PropType} from "vue"
 
-import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 import * as Model from "./BpcModel"
 
 export default defineComponent({
-  setup() {
-    const minigameData = useMinigameData<Model.BpcMinigameData>()
+  emits: ['check-solution'],
+  props: {
+    challengeConfig: {type: Object as PropType<Model.BpcMinigameData>, required: true},
+  },
+  setup(props, {emit}) {
     const minigameState = useViewState<Model.BpcViewState>(() => ({
-      inputsModel: Object.fromEntries(minigameData.value.inputs.map((input) => [input.name, 0])),
+      inputsModel: Object.fromEntries(props.challengeConfig.inputs.map((input) => [input.name, 0])),
     }))
 
-    const controls = useMinigameControls({
+    exposeMinigameControls({
       getValue: () => Object.values(minigameState.value.inputsModel).map((v) => 's4lty' + v + 'p3pp3ry').join('-'),
-    })
+    }, emit)
 
     return {
-      minigameData,
       minigameState,
-      controls,
     };
   },
 });

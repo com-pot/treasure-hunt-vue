@@ -1,5 +1,6 @@
-import {PartOfStory, ProgressionData} from "../model/TreasureHuntModel";
+import {ProgressionData} from "../model/TreasureHuntModel";
 import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter";
+import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
 
 export default class TreasureHuntApi {
 
@@ -14,14 +15,7 @@ export default class TreasureHuntApi {
         return this.apiAdapter.get("/treasure-hunt/progression/" + slug)
     }
 
-    async checkAnswer(slug: string, answer: {checkSum: any}): Promise<any> {
+    async checkAnswer(slug: string, answer: {block?: string|number, value: any}): Promise<any> {
         return this.apiAdapter.post(`/treasure-hunt/progression/${slug}/answer`, answer)
-            .catch((err) => {
-                if (err.body && err.body.error === 'already-solved') {
-                    err.body.status = 'already-solved'
-                    return err.body
-                }
-                throw err
-            })
     }
 }

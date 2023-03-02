@@ -1,13 +1,9 @@
 import {ref} from "vue";
 import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
-
-type UserData = {
-    login: string,
-    token: string,
-}
+import {UserAuthData} from "@src/modules/Auth/model/AuthModel"
 
 const state = {
-    user: ref<UserData | null>(null),
+    user: ref<UserAuthData | null>(null),
 }
 
 let apiAdapter: JsonApiAdapter
@@ -16,12 +12,12 @@ const actions = {
         apiAdapter = api
     },
 
-    signUp(login: string, pass: string) {
-        return apiAdapter.post<UserData>('/auth/account', {login, pass})
+    signUp(login: string, pass: string): Promise<UserAuthData> {
+        return apiAdapter.post<UserAuthData>('/auth/account', {login, pass})
             .then(() => (actions.signIn(login, pass)))
     },
-    signIn(login: string, pass: string) {
-        return apiAdapter.post<UserData>('/auth/auth-token', {login, pass})
+    signIn(login: string, pass: string): Promise<UserAuthData> {
+        return apiAdapter.post<UserAuthData>('/auth/auth-token', {login, pass})
             .then((userData) => {
                 actions._setUserData({login, token: userData.token})
                 return userData
@@ -29,6 +25,7 @@ const actions = {
     },
     signOut() {
         actions._clearUserData();
+        return Promise.resolve()
     },
     _initUserData() {
         const authDataSerialized = localStorage.getItem('authData')
@@ -48,7 +45,7 @@ const actions = {
             token: userData.token,
         }
     },
-    _setUserData(userData: UserData) {
+    _setUserData(userData: UserAuthData) {
         state.user.value = userData
         const authDataSerialized = JSON.stringify({userData});
         localStorage.setItem('authData', authDataSerialized)

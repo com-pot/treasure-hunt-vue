@@ -1,22 +1,32 @@
 .progressbar {
+  --size: 0.5rem;
   border-radius: 0.25rem;
   overflow: hidden;
   line-height: 0;
 
-  box-shadow: 1px 1px 0 0 var(--hsl-dim);
-  background: rgba(var(--hsl-dim), 0.1);
+  display: flex;
+
+  box-shadow: 1px 1px 0 0 var(--neutral-200);
+  background: rgba(var(--neutral-200), 0.1);
 
   .chunk {
-    display: inline-block;
-    height: 0.5rem;
+    background-color: var(--acc-color, var(--primary-500));
+  }
 
-    width: calc(var(--done) * 100%);
+  &:not(.-vertical) {
+    height: var(--size);
 
-    &.-vivid {
-      background: var(--hsl-vivid);
+    .chunk {
+      width: calc(var(--done) * 100%);
     }
-    &.-vile {
-      background: var(--hsl-vile);
+  }
+
+  &.-vertical {
+    width: var(--size);
+    flex-direction: column;
+
+    .chunk {
+      height: calc(var(--done) * 100%);
     }
   }
 }

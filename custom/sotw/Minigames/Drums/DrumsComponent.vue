@@ -5,7 +5,7 @@
 
     <div class="guide" v-if="currentPattern">
       <span>Měl bych opakovat, co slyším...</span>
-      <button @click="playSamplePattern()" :disabled="isPlaying" class="btn btn-vivid">Poslechnout</button>
+      <button @click="playSamplePattern()" :disabled="isPlaying" class="btn -acc-vivid">Poslechnout</button>
     </div>
 
     <div class="guide" v-else>
@@ -24,7 +24,6 @@
 <script lang="ts">
 import * as Tone from "tone";
 import {computed, defineComponent, onBeforeUnmount, onMounted, ref} from "vue";
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
 import {resolveAfter} from "@src/utils/promiseUtils"
 
 type Drum = {
@@ -32,9 +31,7 @@ type Drum = {
 };
 
 export default defineComponent({
-  setup() {
-    const controls = useMinigameControls()
-
+  setup(props, {emit}) {
     const drums = ref([
       {note: 'C4'},
       {note: 'G4'},
@@ -125,7 +122,7 @@ export default defineComponent({
       }
 
       if (correctPatterns.value === patterns.value.length) {
-        controls.checkSolution(69713 + correctPatterns.value * 48213)
+        emit('check-solution', 69713 + correctPatterns.value * 48213)
       }
     }
 

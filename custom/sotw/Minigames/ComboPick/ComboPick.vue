@@ -1,6 +1,6 @@
 <template>
   <div class="mg-cp">
-    <div class="prompts" v-if="viewData.prompts && viewData.options">
+    <div class="prompts" v-if="challengeConfig.prompts && challengeConfig.options">
       <div class="prompt-row legend">
         <div class="general">Běžný význam</div>
         <div class="prompt">Lapač</div>
@@ -8,12 +8,12 @@
       </div>
 
       <div class="prompt-row" v-for="(prompt, i) in prompts" :key="i">
-        <ComboPickInput :options="viewData.options.default" v-model="state.value.selections[i][0]"
+        <ComboPickInput :options="challengeConfig.options.default" v-model="state.value.selections[i][0]"
                         class="general" mode="select"/>
 
         <div class="prompt" :style="'--color: ' + prompt.color"></div>
 
-        <ComboPickInput :options="viewData.options.war" v-model="state.value.selections[i][1]"
+        <ComboPickInput :options="challengeConfig.options.war" v-model="state.value.selections[i][1]"
                         class="war" mode="select"/>
       </div>
     </div>
@@ -21,10 +21,9 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent} from "vue"
+import {computed, defineComponent, PropType} from "vue"
 
-import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 
 import {ComboPickViewData, initializeState} from "./ComboPickModel"
 import ComboPickInput from "./ComboPickInput.vue"
@@ -34,21 +33,22 @@ export default defineComponent({
   components: {
     ComboPickInput,
   },
-  setup() {
-    const viewData = useMinigameData<ComboPickViewData>()
-    const prompts = computed(() => viewData.value.prompts)
+  props: {
+    challengeConfig: {type: Object as PropType<ComboPickViewData>, required: true},
+  },
+  setup(props, {emit}) {
+    const prompts = computed(() => props.challengeConfig.prompts)
 
-    const state = useViewState(initializeState, viewData)
+    const state = useViewState(initializeState)
 
-    useMinigameControls({
-      reset: () => state.reset(viewData.value),
+    exposeMinigameControls({
+      reset: () => state.reset(props.challengeConfig),
       getValue: () => state.value.selections.join('--'),
-    })
+    }, emit)
 
     return {
       state,
       prompts,
-      viewData,
     }
   },
 })

@@ -1,15 +1,11 @@
 import { watch } from "vue";
 
-import Universe from "./services/Universe"
-import TextsService from "./services/TextsService"
 import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
 import TreasureHuntApi from "./api/TreasureHuntApi";
 import AudioService from "./services/AudioService";
 import authStore from "@src/modules/Auth/authStore"
 
-
-
-let apiAdapterInstance= new JsonApiAdapter(import.meta.env.VITE_API_BASE + '')
+let apiAdapterInstance = new JsonApiAdapter(import.meta.env.VITE_API_BASE + '')
 watch(() => authStore.state.user.value, (user) => {
     if (!user) {
         delete apiAdapterInstance.defaultHeaders.Authorization
@@ -17,35 +13,14 @@ watch(() => authStore.state.user.value, (user) => {
         apiAdapterInstance.defaultHeaders.Authorization = 'Bearer ' + user.token
     }
 }, {immediate: true})
+authStore.actions.bindApiAdapter(apiAdapterInstance)
+
 export const useApiAdapter = () => {
     return apiAdapterInstance
 }
-let sotwApiInstance: TreasureHuntApi
-export const useSotwApi = () => {
-    if (!sotwApiInstance) {
-        sotwApiInstance = new TreasureHuntApi(useApiAdapter())
-    }
-    return sotwApiInstance
-}
 
-let universeInstance: Universe
-export const useUniverse = () => {
-    if (!universeInstance) {
-        universeInstance = new Universe({
-            'characters.guide.name': 'Tir Zapa',
-            'characters.protagonist.name': '-[-hocha-]-',
-            'company.casino.name': 'Gamble Tour',
-        })
-    }
-    return universeInstance
-}
-
-let textsServiceInstance: TextsService
-export const useTextsService = () => {
-    if (!textsServiceInstance) {
-        textsServiceInstance = new TextsService(useUniverse())
-    }
-    return textsServiceInstance
+export const useTreasureHuntApi = () => {
+    return new TreasureHuntApi(useApiAdapter())
 }
 
 let sotwAudioInstance: AudioService

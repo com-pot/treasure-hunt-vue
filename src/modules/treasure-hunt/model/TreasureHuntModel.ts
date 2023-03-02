@@ -1,12 +1,5 @@
-import {OutputBlockData} from "@editorjs/editorjs"
-
-export interface PartOfStory {
-    slug: string,
-    title: string,
-    contentBlocks?: OutputBlockData[],
-    contentHtml: string,
-    challenge?: string,
-}
+import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
+import {Action} from "@src/modules/TypefulExecutive/model/Action"
 
 export type TimeoutData = {
     since?: Date,
@@ -23,21 +16,21 @@ export type TrophyData = {
 
 export type PlayerProgression = {
     storyParts: PartOfStory[],
+
+    reload: () => Promise<void>,
 }
 
 export type ProgressionData = {
     status: 'new'|'done',
-    timeout: TimeoutData,
+    timeout?: TimeoutData,
     challenge: ChallengeData,
     data?: ProgressionChallengeData,
     storyPart: PartOfStory,
     trophies: TrophyData[],
 }
 
-export type GameAction = [string, ...any[]]
 export type CheckResult = {
-    status: 'ok'|'already-solved'|'ko',
-    errorActions?: GameAction[],
+    status: 'ok' | 'ko' | 'custom',
+    evaluationEffects?: Action[],
     progression?: PartOfStory[],
-    timeout?: TimeoutData,
 }

@@ -5,8 +5,10 @@
 <script lang="ts">
 import {computed, defineComponent, PropType} from "vue";
 
-import {PartOfStory, TrophyData} from "../model/TreasureHuntModel"
-import {useTextsService} from "../services"
+import {TrophyData} from "../model/TreasureHuntModel"
+import {PartOfStory} from "../model/StoryPart"
+import useUniverseContent from "@src/modules/treasure-hunt/components/useUniverseContent"
+
 
 export default defineComponent({
   emits: ['sotwSignal'],
@@ -15,7 +17,7 @@ export default defineComponent({
     trophies: {type: Object as PropType<TrophyData[]>},
   },
   setup(props) {
-    const textsService = useTextsService()
+    const textsService = useUniverseContent()
 
     const trophyValues = [500, 300, 150]
     const trophy = computed(() => props.trophies && props.trophies[0])
@@ -41,6 +43,11 @@ export default defineComponent({
 
     const title = computed(() => props.storyData.title || 'Nadpis');
     const preparedHtml = computed(() => {
+      if (!props.storyData.contentHtml) {
+        console.warn("storyData does not have contentHtml", props.storyData)
+        return ''
+      }
+
       let content = textsService.replaceTerms(props.storyData.contentHtml)
       content = content.replaceAll(/{{\s*(\w+)\s*}}/g, (match, name) => getInterpolateStr(name))
 

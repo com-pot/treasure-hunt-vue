@@ -1,0 +1,14 @@
+{
+  "title": "Stezka duchů / Spirit of the Wild",
+  "intro": "V rámci vaší návštěvy westernového světa mate jedinečnou možnost poodhalit tajemství kultury domorodého obyvatelstva. Cesty duchů jsou ovšem nevyzpytatelné a plné nejrůznějších úkladů. <br>Máte-li tedy odvahu vydat se na tuto cestu vězte, že není hambou poprosit o pomoc své strážné duchy v podobě přátel a dalších hráčů, neb temnota si na vás v stínech už brousí drápy.",
+
+  "trophyValues": [500, 300, 150, 50],
+
+  "universe": {
+    "terms": {
+      "characters.guide.name": "Tir Zapa",
+      "characters.protagonist.name": "Ted",
+      "company.casino.name": "Gamble Tour"
+    }
+  }
+}

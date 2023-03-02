@@ -1,14 +1,17 @@
 <template>
   <div class="mg-password">
-    <p class="prompt">{{ data.prompt }}</p>
-    <input v-model="state.value.password" name="password" :disabled="status === 'loading'">
+    <p class="prompt">{{ challengeConfig.prompt }}</p>
+    <form @submit.prevent="$emit('check-solution')">
+      <input v-model="state.value.password" name="password" :disabled="status === 'loading'">
+      <button style="display: none"/>
+    </form>
+
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, reactive} from "vue"
-import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
+import {defineComponent, PropType, reactive} from "vue"
+import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
 import {resolveAfter} from "@src/utils/promiseUtils"
 
@@ -21,18 +24,19 @@ type PasswordViewState = {
 }
 
 export default defineComponent({
-
-  setup() {
-    const data = useMinigameData<PasswordViewData>()
+  props: {
+    challengeConfig: {type: Object as PropType<PasswordViewData>, required: true},
+  },
+  setup(props, {emit}) {
     const state = reactive(useViewState<PasswordViewState>(() => ({
       password: '',
     })))
     const status = hasComponentStatus('ready')
 
-    useMinigameControls({
+    exposeMinigameControls({
       reset: () => untype(),
-      getValue: () => data.value.caseSensitive ? state.value.password : state.value.password.toLowerCase( ),
-    })
+      getValue: () => props.challengeConfig.caseSensitive ? state.value.password : state.value.password.toLowerCase( ),
+    }, emit)
 
     const untype = async () => {
       status.value = 'loading'
@@ -48,7 +52,6 @@ export default defineComponent({
     }
 
     return {
-      data,
       state,
       status,
     }

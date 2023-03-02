@@ -1,7 +1,9 @@
-import {MinigameBundle} from "@src/modules/treasure-hunt/types/minigames"
+import {MinigameBundle} from "@src/modules/treasure-hunt/Minigames"
 
 
 const sotwBundle: MinigameBundle = {
+    name: 'sotw', caption: "Spirit of the Wild",
+
     register(registry) {
         registry.registerMinigame('drums', {
             caption: "Drums",

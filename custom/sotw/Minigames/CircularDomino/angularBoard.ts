@@ -1,4 +1,4 @@
-import {computed, reactive} from "vue"
+import {computed, reactive, ref, watch} from "vue"
 
 import trigonometry, {Degrees, Point2D, PointRad2D, Radians} from "@src/utils/trigonometry"
 import * as Model from "./Model/CircularDominoModel"
@@ -94,8 +94,19 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         })
     })
 
-    const ringsSnaps = computed(() => {
-        return minigameData.rings.map((_, i) => {
+    const ringsSnaps = ref<{snapAngle: number, snapIndex: number}[]>([])
+    watch(() => minigameData.rings, (rings) => {
+        ringsSnaps.value = ringsSnapPoints.value
+            .map(() => ({snapAngle: 0, snapIndex: 0}))
+        updateRingSnaps()
+    }, {immediate: true})
+    function updateRingSnaps() {
+        return minigameData.rings.forEach((_, i) => {
+            let ringSnap = ringsSnaps.value[i]
+            if (!ringSnap) {
+                console.warn(`Ring snap ${i} was not ready`)
+                ringsSnaps.value[i] = ringSnap = {snapAngle: 0, snapIndex: 0}
+            }
             const angleTarget = Math.PI * -0.5 - state.ringsAngles[i]
             const ringSnapPoints = ringsSnapPoints.value[i]
 
@@ -109,9 +120,10 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
                 }
             }
 
-            return {snapIndex, snapAngle: normalizeAngle(Math.PI * -0.5 - ringSnapPoints[snapIndex])}
+            ringSnap.snapIndex = snapIndex
+            ringSnap.snapAngle = normalizeAngle(Math.PI * -0.5 - ringSnapPoints[snapIndex])
         })
-    })
+    }
 
     const getRingDragForce = (iRing: number): Radians | undefined => {
         if (drag.iRing === -1) {
@@ -410,7 +422,11 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         center: computed<Point2D>(() => ({x: ui.renderSize * 0.5, y: ui.renderSize * 0.5})),
         drag,
 
-        update: updateRings,
+        update: (t: number, dt: number) => {
+            const redraw = updateRings(t, dt)
+            updateRingSnaps()
+            return redraw
+        },
         draw,
 
         circuitPosition(angle: Radians, radius: number): Point2D {

@@ -15,29 +15,29 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent} from "vue"
+import {computed, defineComponent, PropType} from "vue"
 
 
 import * as Model from "./AnagramModel";
 import {AnagramMinigameData, AnagramMinigameState} from "./AnagramModel";
-import {useMinigameData, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
-import {useMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
-
+import {exposeMinigameControls, useViewState} from "@src/modules/treasure-hunt/components/minigameData"
 
 export default defineComponent({
-  setup() {
-    const minigameData = useMinigameData<AnagramMinigameData>()
+  props: {
+    challengeConfig: {type: Object as PropType<AnagramMinigameData>, required: true},
+  },
+  setup(props, {emit}) {
     const minigameState = useViewState<AnagramMinigameState>(() => ({
       outputLetters: [],
     }))
-    useMinigameControls({
-      reset: () => minigameState.reset(minigameData.value),
+    exposeMinigameControls({
+      reset: () => minigameState.reset(props.challengeConfig),
       getValue: () =>  outputText.value,
-    })
+    }, emit)
 
     const inputLetters = computed<Model.InputLetter[]>(() => {
 
-      return minigameData.value.inputText.split('')
+      return props.challengeConfig.inputText.split('')
           .map((char, i) => ({
             char,
             picked: minigameState.value.outputLetters.some((letter) => Model.isLetterSelection(letter) && letter.sourceIndex === i)
@@ -57,7 +57,7 @@ export default defineComponent({
 
     const outputText = computed(() => minigameState.value.outputLetters.map(getOutputChar).join(''));
     const outputTextPadded = computed(() => {
-      const padLength = minigameData.value.outputLength - outputText.value.length
+      const padLength = props.challengeConfig.outputLength - outputText.value.length
       return (outputText.value + ' '.repeat(padLength > 0 ? padLength : 0)).split('')
     })
 
@@ -125,7 +125,7 @@ export default defineComponent({
       height: 24px;
       font-style: normal;
 
-      background: var(--hsl-dim);
+      background: var(--neutral-200);
       border: 2px solid;
 
       &:not(.picked):not(.disabled) {

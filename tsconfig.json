@@ -4,7 +4,7 @@
     "useDefineForClassFields": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "strict": true,
+    "strict": false, // Template variables are validated in an undesirably strict manner
     "jsx": "preserve",
     "sourceMap": true,
     "resolveJsonModule": true,
@@ -16,6 +16,8 @@
       "@custom/*": ["custom/*"],
       "@src/*": ["src/*"],
     },
+
+    "skipLibCheck": true, // in @vueform/multiselect there is failing "... extends Vue" clause
 
   },
   "include": [

@@ -1,0 +1,7 @@
+.tf-pair {
+  display: flex;
+
+  &:not(.inline) {
+    flex-direction: column;
+  }
+}

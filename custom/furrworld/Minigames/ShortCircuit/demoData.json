@@ -1,0 +1,35 @@
+{
+    "board": {
+        "dimensions": [10, 10],
+        "displaySize": [4, 3],
+        "openings": [
+            {
+                "wire": {
+                    "color": "red"
+                },
+                "ends": [
+                    [1, 1],
+                    [9, 1]
+                ]
+            },
+            {
+                "wire": {
+                    "color": "blue"
+                },
+                "ends": [
+                    [2, 2],
+                    [8, 2]
+                ]
+            },
+            {
+                "wire": {
+                    "color": "green"
+                },
+                "ends": [
+                    [3, 3],
+                    [7, 3]
+                ]
+            }
+        ]
+    }
+}

@@ -31,6 +31,12 @@
     </div>
 
     <div class="section-heading">
+      <h2>Zkouška řešení</h2>
+      <hr/>
+    </div>
+    <code>{{ {checkHash} }}</code>
+
+    <div class="section-heading">
       <h2>Konfigurace minihry</h2>
       <hr>
       <button class="btn" v-if="configuration.getConfig" @click="configuration.apply">Aplikovat</button>

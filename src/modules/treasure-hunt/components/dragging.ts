@@ -1,39 +1,40 @@
 import { Point2D } from "@src/utils/vectors";
 import { throttle } from "lodash";
-import { onMounted, onUnmounted, Ref, watch } from "vue";
+import { onMounted, onUnmounted, reactive, Ref, watch } from "vue";
 
 export function useDragging(ref: Ref<HTMLElement>, opts: DraggingOpts) {
 
+    const ctx = reactive({
+        isHeld: false,
+    })
+
+    const normalizePoint = opts?.normalizePoint || getNormalizedPointOfEl
+
     function normalizeInputEvent(e: MouseEvent|TouchEvent) {
-        const bounding = ref.value.getBoundingClientRect()
-        const x = e instanceof TouchEvent ? e.touches[0].pageX : e.pageX
-        const y = e instanceof TouchEvent ? e.touches[0].pageY : e.pageY
-        
-        return new MouseEventNormalized(e, [
-            (x - bounding.x) / bounding.width,
-            (y - bounding.y) / bounding.height,
-        ])
+        return new MouseEventNormalized(e, normalizePoint(ref.value, e))
     }
     
     function beginDragging(e: MouseEvent|TouchEvent) {
-        e.preventDefault()
-        opts.start(normalizeInputEvent(e))
+        const result = opts.start?.(normalizeInputEvent(e), ctx)
+        if (result === true) e.preventDefault()
+        ctx.isHeld = true
     }
     let drag = function drag(e: MouseEvent|TouchEvent) {
-        e.preventDefault()
-        opts.move(normalizeInputEvent(e))
+        const result = opts.move?.(normalizeInputEvent(e), ctx)
+        if (result === true) e.preventDefault()
     }
     if (opts.moveThrottle && opts.moveThrottle > 0) {
         drag = throttle(drag, opts.moveThrottle)
     }
     function stopDragging(e: MouseEvent|TouchEvent) {
         if (!isWithinRef(e, ref.value)) {
-            opts.end()
-            return
+            opts.end?.(undefined, ctx)
+        } else {
+            const result = opts.end?.(normalizeInputEvent(e), ctx)
+            if (result === true) e.preventDefault()
         }
         
-        e.preventDefault()
-        opts.end(normalizeInputEvent(e))
+        ctx.isHeld = false
     }
     function isWithinRef(e: MouseEvent|TouchEvent, el: HTMLElement): boolean {
         const {target} = e
@@ -70,7 +71,19 @@ export function useDragging(ref: Ref<HTMLElement>, opts: DraggingOpts) {
     })
 }
 
-class MouseEventNormalized {
+export function getNormalizedPointOfEl(el: HTMLElement, e: MouseEvent|TouchEvent): Point2D {
+    const bounding = el.getBoundingClientRect()
+
+    const x = e instanceof TouchEvent ? e.touches[0].pageX : e.pageX
+    const y = e instanceof TouchEvent ? e.touches[0].pageY : e.pageY
+
+    return [
+        (x - window.scrollX - bounding.x) / bounding.width,
+        (y - window.scrollY - bounding.y) / bounding.height,
+    ]
+}
+
+export class MouseEventNormalized {
     constructor(public readonly original: MouseEvent | TouchEvent, public readonly point: Point2D) {
         
     }
@@ -87,9 +100,15 @@ class MouseEventNormalized {
 }
 
 type DraggingOpts = {
-    start: (e: MouseEventNormalized) => void,
-    move: (e: MouseEventNormalized) => void,
-    end: (e?: MouseEventNormalized) => void,
+    normalizePoint?(el: HTMLElement, e: MouseEvent | TouchEvent): Point2D,
+
+    start?: (e: MouseEventNormalized, ctx: DraggingEventCtx) => boolean | void,
+    move?: (e: MouseEventNormalized, ctx: DraggingEventCtx) => boolean | void,
+    end?: (e: MouseEventNormalized | undefined, ctx: DraggingEventCtx) => boolean | void,
 
     moveThrottle?: number,
+}
+
+type DraggingEventCtx = {
+    isHeld: boolean,
 }

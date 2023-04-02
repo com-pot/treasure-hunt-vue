@@ -13,7 +13,7 @@ type ResetableViewState<T, TData extends object = any> = ViewState<T, TData> & {
     reset: (viewData?: TData) => void,
 }
 
-export function createViewStateController(key: ComputedRef<string|null>, ) {
+export function createViewStateController(key: ComputedRef<string|null>) {
     const viewStateData = reactive({
         value: null,
         save() {

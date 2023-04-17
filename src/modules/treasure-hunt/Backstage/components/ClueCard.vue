@@ -1,10 +1,3 @@
-<template>
-  <div class="clue-card">
-    <canvas class="qr-canvas" ref="qrCanvas"/>
-    <slot></slot>
-  </div>
-</template>
-
 <script lang="ts">
 import {defineComponent, onMounted, PropType, ref, watch} from "vue"
 import qrcode, {QRCodeRenderersOptions} from "qrcode"
@@ -27,6 +20,7 @@ export default defineComponent({
         console.warn('canvas not ready')
         return
       }
+      
       renderQr(canvas, props.text, props.qrOpts)
     }
 
@@ -41,3 +35,16 @@ export default defineComponent({
   },
 })
 </script>
+
+<template>
+  <div class="clue-card">
+    <div class="qr-wrapper">
+      <canvas class="qr-canvas" ref="qrCanvas"/>
+      <slot name="codeInner" />
+    </div>
+    
+    <slot></slot>
+  </div>
+</template>
+
+

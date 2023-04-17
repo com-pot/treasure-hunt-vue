@@ -26,8 +26,7 @@ export default defineComponent({
                 return ''
             }
 
-            // console.log(route.matched.map((match) => match.name))
-            const metaDefiner = route.matched.find((record) => record.meta.layout)
+            const metaDefiner = route.matched.findLast((record) => record.meta.layout)
             const requiredLayout = metaDefiner?.meta.layout as string || 'default'
             if (!layoutIndex[requiredLayout]) {
                 console.warn(`Unknown layout '${requiredLayout}', using default`)

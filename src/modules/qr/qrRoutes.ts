@@ -1,6 +1,7 @@
 import { RouteRecordRaw } from "vue-router";
 
-import qrData from "@custom/vlm/qrData";
+// import qrData from "@custom/vlm/qrData";
+import qrData from "@custom/furrworld/qrData";
 
 export const qrRoutes: RouteRecordRaw[] = [
     {
@@ -12,8 +13,9 @@ export const qrRoutes: RouteRecordRaw[] = [
 
         component: () => import('./views/QrDoc.vue'),
         props: (match) => ({
-            viewMode: match.query.mode,
             clueData: qrData,
+            viewMode: match.query.mode,
+            cutBorder: match.query.cutBorder !== 'false',
         }),
     },
 ]

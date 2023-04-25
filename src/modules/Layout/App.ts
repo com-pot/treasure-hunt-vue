@@ -1,5 +1,5 @@
 import {computed, defineComponent, h, onMounted, ref, shallowRef, watch} from "vue"
-import {useRoute} from "vue-router"
+import {RouteLocationMatched, useRoute} from "vue-router"
 
 import packageData from "../../../package.json"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
@@ -26,8 +26,7 @@ export default defineComponent({
                 return ''
             }
 
-            const metaDefiner = route.matched.reverse().find((record) => record.meta.layout)
-            const requiredLayout = metaDefiner?.meta.layout as string || 'default'
+            const requiredLayout = inferLayout(route.matched)
             if (!layoutIndex[requiredLayout]) {
                 console.warn(`Unknown layout '${requiredLayout}', using default`)
                 return 'default'
@@ -70,3 +69,8 @@ export default defineComponent({
     },
 })
 
+function inferLayout(matched: readonly RouteLocationMatched[]) {
+    const iDefiner = matched.findLastIndex((record) => record.meta.layout)
+    const metaDefiner = matched[iDefiner]
+    return  metaDefiner?.meta.layout as string || 'default'
+}

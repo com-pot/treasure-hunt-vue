@@ -25,7 +25,7 @@ import {RevealedClue, useClueInstance} from "@src/modules/treasure-hunt/model/Cl
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
 import ContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ContentBlock"
 import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
-import {PlayerProgression} from "@src/modules/treasure-hunt/model/TreasureHuntModel"
+import {usePlayerProgression} from "@src/modules/treasure-hunt/model/playerProgression"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
 
 export default defineComponent({
@@ -40,7 +40,7 @@ export default defineComponent({
   },
   setup() {
     const api = useApiAdapter()
-    const playerProgression = inject<PlayerProgression>('player.progression')
+    const playerProgression = usePlayerProgression()
     const currentStep = useClueInstance<RevealedClue>(api, {
       onReveal: async (clue) => {
         const progressUpdate = clue.revealResults?.find((result) => result.unlockedProgression)

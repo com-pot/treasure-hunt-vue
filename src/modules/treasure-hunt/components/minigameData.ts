@@ -1,4 +1,4 @@
-import {ComputedRef, inject, reactive, Ref} from "vue"
+import {ComputedRef, inject, reactive, Ref, watch} from "vue"
 import {hashCode} from "@src/utils/stringUtils"
 import {CheckResult} from "../model/TreasureHuntModel"
 import * as viewStateStore from "@src/modules/treasure-hunt/viewStateStore"
@@ -30,11 +30,18 @@ export type ViewStateInitializer<TData, TState> = ((viewData: TData, currentStat
 export function useViewState(): Ref<any>
 export function useViewState<TState extends object, TData extends object = any>(init: ViewStateInitializer<TData, TState>, viewData?: Ref<TData>): ResetableRef<TState>
 export function useViewState<TState extends object, TData extends object = any>(init?: ViewStateInitializer<TData, TState>, viewData?: Ref<TData>)  {
+    if (viewData) {
+        console.log("FIXME: Passing viewData through useViewState is deprecated")
+    }
     const stateValue = inject<Ref<TState>|null>('th.viewStateData', null)
 
     const stateObj = reactive({
-        value: stateValue
+        value: null
     }) as ViewStateRef<TState>
+    if (stateValue) {
+        stateObj.value = stateValue.value
+        watch(() => stateObj.value, (value) => stateValue.value = value, {immediate: true, deep: true})
+    }
 
     if (!init) {
         return stateObj

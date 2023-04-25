@@ -18,7 +18,7 @@ const props = defineProps({
 const challengeConfig = computed(() => props.challengeConfig)
 
 const resources = useAsyncState(async () => {
-    const resources = new Resources(prepareImageResourceIndex(props.challengeConfig.units.map((unit) => {
+    const resources = new Resources(prepareImageResourceIndex(challengeConfig.value.units.map((unit) => {
         return [unit.name, unit.img] as const
     })))
     await resources.whenReady()
@@ -28,7 +28,7 @@ const resources = useAsyncState(async () => {
 
 const minigameData = useViewState<MinigameState>(() => {
     const jointMap = Object.fromEntries(
-        props.challengeConfig.units.map((unit) => [unit.name, {}]),
+        challengeConfig.value.units.map((unit) => [unit.name, {}]),
     )
     return {
         jointMap: jointMap,

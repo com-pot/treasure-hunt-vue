@@ -2,8 +2,8 @@
   <div class="condition">
     <div class="condition-spec">
       <span v-if="label">{{ label }}</span>
-      <TypefulInputPair label="Je splněno" name="shouldBeMet"
-                        type="bool" placeholder="Vždy"
+      <TypefulInputPair :label="modelValue?.shouldBeMet !== false ? 'Je splněno' : 'Není splněno'" name="shouldBeMet"
+                        type="bool" placeholder="Zobrazit vždy"
                         :model-value="modelValue ? modelValue.shouldBeMet : true"
                         @update:model-value="modelValue.shouldBeMet = $event"
                         :disabled="!modelValue"
@@ -13,7 +13,7 @@
     </div>
     <TypefulInputPair name="conditionType"
                       type="relation" target="typeful-executive.condition-type"
-                      placeholder="Vždy"
+                      placeholder="Zobrazit vždy"
                       v-model="typeStr"
                       @update:selected-item="selectConditionType($event)"
 
@@ -98,8 +98,22 @@ export default defineComponent({
   align-items: center;
   gap: 0.5rem;
 
+  > span {
+    order: 1;
+  }
+  input {
+    order: 2;
+  }
+  label {
+    order: 3;
+  }
+
   [data-name="shouldBeMet"] {
     display: contents;
+
+    input {
+      width: initial;
+    }
   }
 }
 </style>

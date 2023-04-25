@@ -51,7 +51,7 @@ import {produceMutable} from "@src/utils/immutable"
 import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
 import ClueCamera from "@src/modules/treasure-hunt/components/ClueCamera.vue"
 import ContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ContentBlock"
-import {PlayerProgression} from "@src/modules/treasure-hunt/model/TreasureHuntModel"
+import {usePlayerProgression} from "@src/modules/treasure-hunt/model/playerProgression"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
 
 export default defineComponent({
@@ -63,7 +63,7 @@ export default defineComponent({
     const router = useRouter()
 
     const api = useApiAdapter()
-    const playerProgression = inject<PlayerProgression>('player.progression')
+    const playerProgression = usePlayerProgression()
     const clue = useClueInstance<RevealedClue>(api, {
       onReveal: async (clue) => {
         const progressUpdate = clue.revealResults?.find((result) => result.unlockedProgression)

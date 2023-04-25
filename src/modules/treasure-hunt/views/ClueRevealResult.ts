@@ -1,5 +1,5 @@
-import {defineComponent, h, inject} from "vue"
-import {PlayerProgression} from "@src/modules/treasure-hunt/model/TreasureHuntModel"
+import {defineComponent, h} from "vue"
+import { usePlayerProgression } from "../model/playerProgression"
 import {RouterLink} from "vue-router"
 
 export default defineComponent({
@@ -8,7 +8,7 @@ export default defineComponent({
     },
 
     setup(props) {
-        const playerProgression = inject<PlayerProgression>('player.progression')
+        const playerProgression = usePlayerProgression()
 
         return () => {
             const r = props.result

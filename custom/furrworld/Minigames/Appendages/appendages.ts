@@ -51,10 +51,6 @@ export type MinigameState = {
 }
 
 export function composePlacementList(anchor: MinigameConfig['anchor'], jointMap: MinigameState['jointMap'], knownUnits: Record<string, Appendages.UnitScaleRef>) {
-    if (!knownUnits) {
-        debugger
-    }
-
     const toWalk: Appendages.UnitPlacement[] = [
         {...anchor},
     ]

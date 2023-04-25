@@ -56,8 +56,9 @@ export default {
     const storySelection = useStorySelection()
 
     const stories = ref([
-      {key: 'sotw', title: "Spirit of the Wild"},
-      {key: 'vlm', title: "Viva la Mexico"},
+      // {key: 'sotw', title: "Spirit of the Wild"},
+      // {key: 'vlm', title: "Viva la Mexico"},
+      {key: 'fw', title: "FurrWorld"},
     ])
 
     const navItems = computed(() => {

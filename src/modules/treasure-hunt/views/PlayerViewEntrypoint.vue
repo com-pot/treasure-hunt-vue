@@ -97,11 +97,12 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, inject, onBeforeUnmount, onMounted, provide, ref, watch} from "vue";
+import {computed, defineComponent, onBeforeUnmount, onMounted, provide, ref, watch} from "vue";
 import {RouteLocationRaw, useRouter} from "vue-router";
 
 import SotwViewStory from "./SotwViewStory.vue";
-import {PlayerProgression, ProgressionData} from "../model/TreasureHuntModel"
+import {ProgressionData} from "../model/TreasureHuntModel"
+import { usePlayerProgression } from "../model/playerProgression";
 import {createMinigameController, createViewStateController} from "../components/minigameData"
 import {useApiAdapter, useSotwAudio, useTreasureHuntApi} from "../services"
 import {resolveAfter} from "@src/utils/promiseUtils"
@@ -187,7 +188,7 @@ export default defineComponent({
     const viewStateData = createViewStateController(storeKey)
     provide('th.viewStateData', viewStateData)
 
-    const playerProgression = inject<PlayerProgression>('player.progression')!
+    const playerProgression = usePlayerProgression()
 
     function loadProgressionData(nodeId: string, persistence: 'flush' | 'keep') {
       if (persistence === 'flush') {
@@ -220,6 +221,8 @@ export default defineComponent({
           links.child = {name: 'th.NodeView.challenge', params: {nodeId: props.nodeId!}}
         }
 
+        console.log('PlayerViewEntrypoint', playerProgression);
+        
         const currentPartIndex = playerProgression.storyParts.findIndex((sp) => sp.slug === props.nodeId)
         if (currentPartIndex > 0 && props.mode === 'story') {
           const prevPart = playerProgression.storyParts[currentPartIndex - 1]

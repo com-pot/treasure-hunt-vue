@@ -15,7 +15,7 @@ export default defineConfig({
         compilerOptions: {
           isCustomElement: (name) => !!knownElements[name],
         }
-      }
+      },
     }),
     tsconfigPaths({
       extensions: ['.vue'],

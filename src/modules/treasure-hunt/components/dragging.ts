@@ -40,7 +40,7 @@ export function useDragging(ref: Ref<HTMLElement>, opts: DraggingOpts) {
         const {target} = e
         if (!(target instanceof Element)) return false
 
-        return el.contains(target)
+        return el?.contains(target)
     }
 
     onMounted(() => {

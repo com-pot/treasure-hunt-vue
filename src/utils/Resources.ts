@@ -10,29 +10,39 @@ export function waitForAll(resources: Resource[]): Promise<void> {
             res.onload = resolve
         })
     }))
-        .then(() => {
-        })
+        .then(() => {})
 }
 
-export default class Resources<T extends { [name: string]: Resource }> {
+export default class Resources<T extends { [name: string]: Resource } = { [name: string]: Resource }> {
     private _ready?: Promise<void>
-    private _status: AsyncStatus = 'pending'
 
-    constructor(private readonly resources: T) {
+    constructor(private readonly resourceIndex: T) {
     }
 
     public get<K extends keyof T>(name: K): T[K] {
-        return this.resources[name]
+        return this.resourceIndex[name]
     }
 
     public whenReady(): Promise<void> {
         if (!this._ready) {
-            this._ready = waitForAll(Object.values(this.resources))
+            this._ready = waitForAll(Object.values(this.resourceIndex))
         }
         return this._ready
     }
+}
 
-    public get status(): AsyncStatus {
-        return this._status
-    }
+export function prepareImageResourceIndex(specIndex: Record<string, string | HTMLImageElement> | (readonly [string, string | HTMLImageElement])[]) {
+    const specEntries = Array.isArray(specIndex) ? specIndex : Object.entries(specIndex)
+
+    const entries = specEntries.map((entry) => {
+        if (entry[1] instanceof HTMLImageElement) {
+            return entry as [string, HTMLImageElement]
+        }
+        const image = new Image()
+        image.src = entry[1]
+        return [entry[0], image] as const
+    })
+
+    
+    return Object.fromEntries(entries)
 }

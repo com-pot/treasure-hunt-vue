@@ -3,7 +3,7 @@ import {computed, reactive, ref, watch} from "vue"
 import trigonometry, {Degrees, Point2D, PointRad2D, Radians} from "@src/utils/trigonometry"
 import * as Model from "./Model/CircularDominoModel"
 import velocityUtils from "@src/utils/velocityUtils"
-import Resources from "@src/utils/Resources"
+import Resources, { prepareImageResourceIndex } from "@src/utils/Resources"
 
 export type UiConfig = {
     debug: boolean,
@@ -403,17 +403,8 @@ export function useAngularBoard(minigameData: Model.CircularDominoData, state: M
         },
     }
 
-    const resPrepared: { [name: string]: HTMLImageElement } = Object.fromEntries(Object.entries(ui.resources).map((entry) => {
-        if (entry[1] instanceof HTMLImageElement) {
-            return entry as [string, HTMLImageElement]
-        }
-        const image = new Image()
-        image.src = entry[1]
-        return [entry[0], image]
-    }))
-
     const board = reactive({
-        resources: new Resources(resPrepared),
+        resources: new Resources(prepareImageResourceIndex(ui.resources)),
 
         ringTileCounts,
         ringsSnapPoints,

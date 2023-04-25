@@ -1,4 +1,4 @@
-import { manhattanDistanceVec, Point2D, pointAdd, pointsEqual, Vector2D } from "./shortCircuit"
+import { manhattanDistanceVec, Point2D, pointsSum, pointsEqual, Vector2D } from "./shortCircuit"
 
 export function createCircuitLiner() {
     const snap = (l: number) => Math.sign(l)
@@ -29,7 +29,7 @@ export function createCircuitLiner() {
                 else step = step.map((l) => snap(l)) as any
                 
 
-                currentPoint = pointAdd(currentPoint, step)
+                currentPoint = pointsSum(currentPoint, step)
 
                 target.push(currentPoint)
 
@@ -49,7 +49,7 @@ type LineOptions = {
 }
 
 type DimensionDistance = {
-    dim: number,
+    dim: number,    
     l: number, lAbs: number,
 }
 function findMaxDistance(distances: DimensionDistance[]): DimensionDistance {

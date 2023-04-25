@@ -27,5 +27,5 @@
 }
 
 @function toHSL($color) {
-  @return '#{hue($color), saturation($color), lightness($color)}'
+  @return '#{hue($color) saturation($color) lightness($color)}'
 }

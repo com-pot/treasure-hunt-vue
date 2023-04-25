@@ -117,6 +117,11 @@ type MinigameControlsOptions<T = string> = {
     reset?: () => any,
     getValue?: () => T | Promise<T>,
 }
+
+export const minigameEmits = {
+    'check-solution': (value: any) => true,
+}
+
 export const exposeMinigameControls = <T>(options: MinigameControlsOptions<T>, emitFn: any): MinigameControlsOptions<T> => {
     emitFn('expose-minigame-controls', options)
     return options

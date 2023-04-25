@@ -1,6 +1,7 @@
 import {defineMinigameBundle} from "@src/modules/treasure-hunt/Minigames"
 import { EQConfig } from "./Minigames/EQ/eq"
 import {MinigameConfig as AppendagesConfig, Appendages} from "./Minigames/Appendages/appendages"
+import { MinigameConfig as CkSequenceConfig } from "./Minigames/CkSequence/cqSequence"
 
 export default defineMinigameBundle({
     name: 'furrworld', caption: "Furrworld",
@@ -150,5 +151,46 @@ export default defineMinigameBundle({
                 }
             },
         })
+
+        return {
+            'ckSequence': {
+                caption: "CK Sequence",
+                module: () => import("./Minigames/CkSequence/CkSequence.vue"),
+                demoData: (): CkSequenceConfig => {
+                    const s = `
+                    r	b	r	g	b	b	k	g	k
+                    r	g	b	b	k	g	b	r	k                                
+                    k	r	g	b	r	k	g	k	b
+                    g	g	k	r	b	g	b	k	k
+                    k	k	g	k	r	b	r	b	g
+                    k	k	b	b	g	g	k	r	b
+                    k	r	b	r	b	g	k	r	b
+                    g	b	r	r	b	g	r	k	b
+                    r	k	r	k	r	k	b	g	b
+                    b	g	k	r	k	g	b	g	r
+                    k	g	k	r	b	g	b	b	r
+                    r	b	r	g	r	b	r	b	r
+                    `
+                        .split('\n')
+                        .map((row) => row.replace(/\s/g, ''))
+                        .filter(Boolean)
+
+                    const options = s.map((sequence, i) => {
+                        const h = (i * 2)
+                        const HH = h.toString().padStart(2, '0')
+                        return {value: HH + '00', label: `${HH}:00`, sequence}
+                    })
+
+                    return {
+                        colorSquence: {
+                            options: options,
+                        },
+                        code: {
+                            length: s[0].length,
+                        },
+                    }
+                },
+            },
+        }
     },
 })

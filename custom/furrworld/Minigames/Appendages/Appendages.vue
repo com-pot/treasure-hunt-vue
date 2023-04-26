@@ -136,7 +136,7 @@ onMounted(() => {
 
 <style lang="scss">
 .mg.-appendages {
-    --drawer-tile-size: 6rem;
+    --drawer-tile-size: min(10vw, 6rem);
     display: grid;
     > * {
         grid-area: 1 / 1;

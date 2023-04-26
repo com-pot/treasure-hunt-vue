@@ -32,6 +32,7 @@ const gameRoutes: RouteRecordRaw[] = [
         component: () => import("./views/ClueReveal.vue"),
         props: (match) => ({
             clueKey: match.query.key,
+            fieldInteraction: match.query.fieldInteraction,
         }),
     },
 ];

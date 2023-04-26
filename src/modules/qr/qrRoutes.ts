@@ -14,7 +14,7 @@ export const qrRoutes: RouteRecordRaw[] = [
         component: () => import('./views/QrDoc.vue'),
         props: (match) => ({
             clueData: qrData,
-            viewMode: match.query.mode,
+            viewMode: match.query.viewMode,
             cutBorder: match.query.cutBorder !== 'false',
         }),
     },

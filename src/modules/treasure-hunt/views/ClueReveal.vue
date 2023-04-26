@@ -1,3 +1,63 @@
+<script lang="ts">
+import {defineComponent, inject, watch} from "vue";
+
+import {RevealedClue, useClueInstance} from "@src/modules/treasure-hunt/model/Clue"
+import {useApiAdapter} from "@src/modules/treasure-hunt/services"
+import {useRouter} from "vue-router"
+import {produceMutable} from "@src/utils/immutable"
+import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
+import ClueCamera from "@src/modules/treasure-hunt/components/ClueCamera.vue"
+import ContentBlock from "@src/modules/treasure-hunt/content/ContentBlock"
+import {usePlayerProgression} from "@src/modules/treasure-hunt/model/playerProgression"
+import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
+
+export default defineComponent({
+  components: {LoadingIndicator, ContentBlock, ClueCamera, ClueRevealResult},
+  props: {
+    clueKey: {type: String, required: true},
+    fieldInteraction: {type: String},
+  },
+  setup(props) {
+    const router = useRouter()
+
+    const api = useApiAdapter()
+    const playerProgression = usePlayerProgression()
+    const clue = useClueInstance<RevealedClue>(api, {
+      onReveal: async (clue) => {
+        const progressUpdate = clue.revealResults?.find((result) => result.unlockedProgression)
+        if (progressUpdate) {
+          await playerProgression.reload()
+        }
+        return clue
+      },
+    })
+
+    const checkForClue = (key: string) => {
+      if (key === props.clueKey) {
+        return
+      }
+
+      router.push(produceMutable(router.currentRoute.value, (to) => {
+        to.query.key = key
+      }))
+    }
+
+
+
+    watch(() => props.clueKey, (str) => {
+      str ? clue.reveal(str) : clue.flush()
+    }, {immediate: true})
+
+    return {
+      clue,
+
+      checkForClue,
+    }
+  },
+})
+
+</script>
+
 <template>
   <div class="clue-chase flow" :data-status="clue.status">
     <h1>Hledání stop</h1>
@@ -41,64 +101,7 @@
   </div>
 </template>
 
-<script lang="ts">
-import {defineComponent, inject, watch} from "vue";
 
-import {RevealedClue, useClueInstance} from "@src/modules/treasure-hunt/model/Clue"
-import {useApiAdapter} from "@src/modules/treasure-hunt/services"
-import {useRouter} from "vue-router"
-import {produceMutable} from "@src/utils/immutable"
-import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
-import ClueCamera from "@src/modules/treasure-hunt/components/ClueCamera.vue"
-import ContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ContentBlock"
-import {usePlayerProgression} from "@src/modules/treasure-hunt/model/playerProgression"
-import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
-
-export default defineComponent({
-  components: {LoadingIndicator, ContentBlock, ClueCamera, ClueRevealResult},
-  props: {
-    clueKey: {type: String, required: true},
-  },
-  setup(props) {
-    const router = useRouter()
-
-    const api = useApiAdapter()
-    const playerProgression = usePlayerProgression()
-    const clue = useClueInstance<RevealedClue>(api, {
-      onReveal: async (clue) => {
-        const progressUpdate = clue.revealResults?.find((result) => result.unlockedProgression)
-        if (progressUpdate) {
-          await playerProgression.reload()
-        }
-        return clue
-      },
-    })
-
-    const checkForClue = (key: string) => {
-      if (key === props.clueKey) {
-        return
-      }
-
-      router.push(produceMutable(router.currentRoute.value, (to) => {
-        to.query.key = key
-      }))
-    }
-
-
-
-    watch(() => props.clueKey, (str) => {
-      str ? clue.reveal(str) : clue.flush()
-    }, {immediate: true})
-
-    return {
-      clue,
-
-      checkForClue,
-    }
-  },
-})
-
-</script>
 
 <style lang="scss">
 .revealed-clue-content {

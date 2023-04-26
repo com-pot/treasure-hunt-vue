@@ -1,20 +1,7 @@
 import {v4 as uuidV4} from "uuid"
 
 import {Condition} from "@src/modules/TypefulExecutive/model/Condition"
-
-// FIXME: registry should be used. for now sync with ContentBlocks.ts#typeToComponent
-const types = ['text', 'challenge', 'countdown', 'story-summary']
-
-export function getDefaultBlockConfig(type: string): ThContentBlockConfig | null {
-    if (type === 'text') {
-        return {blocks: [], html: ''}
-    }
-    if (types.includes(type)) {
-        return {}
-    }
-
-    return null
-}
+import { useContentBlockRegistry } from "../content/contentBlockRegistry"
 
 const getUniqueId = (list: ThContentBlock[]): string => {
     let id: string
@@ -26,7 +13,8 @@ const getUniqueId = (list: ThContentBlock[]): string => {
 }
 
 export const useThContentBlocks = (getList: () => ThContentBlock[] | undefined) => {
-
+    const contentBlockRegistry = useContentBlockRegistry()
+    
     return {
         addContent(type: string) {
             const list = getList()
@@ -35,7 +23,7 @@ export const useThContentBlocks = (getList: () => ThContentBlock[] | undefined) 
                 return
             }
 
-            const config = getDefaultBlockConfig(type)
+            const config = contentBlockRegistry.getDefaultBlockConfig(type)
             if (!config) {
                 console.warn("Unsupported content type " + type)
                 return
@@ -44,7 +32,7 @@ export const useThContentBlocks = (getList: () => ThContentBlock[] | undefined) 
             list.push({type, config, id: getUniqueId(list)})
         },
 
-        getAvailableTypes: () => types,
+        getAvailableTypes: () => contentBlockRegistry.availableTypes,
     }
 }
 

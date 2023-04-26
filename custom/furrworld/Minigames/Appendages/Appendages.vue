@@ -222,7 +222,7 @@ onMounted(() => {
             place-content: center;
 
             &[aria-selected] {
-                --hsl: 328 100% 54%;
+                --hsl: var(--hsl-primary-components);
             }
 
             &.-placed {

@@ -20,9 +20,10 @@ body.theme-sotw {
 
   --nav-bg: #{hsl(42deg, 60%, 60%)};
   --nav-border-color: #{darken(hsl(42deg, 60%, 60%), 20%)};
-
+  
   @each $name, $color in $accents {
-    --hsl-#{$name}: #{$color};
+    --hsl-#{$name}-components: #{hue($color)} #{saturation($color)} #{lightness($color)};
+    --hsl-#{$name}: hsl(var(--hsl-#{$name}-components));
   }
 }
 

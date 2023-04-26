@@ -30,8 +30,8 @@
 import {defineComponent} from "vue"
 import TypefulInputPair from "@src/modules/Typeful/components/TypefulInputPair"
 import Condition from "@src/modules/TypefulExecutive/components/Condition.vue"
-import ContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ContentBlock"
-import contentBlockBase from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/contentBlockBase"
+import ContentBlock from "@src/modules/treasure-hunt/content/ContentBlock"
+import contentBlockBase from "@src/modules/treasure-hunt/content/contentBlockTypes/contentBlockBase"
 
 export default defineComponent({
   inheritAttrs: false,

@@ -3,6 +3,13 @@ import {computed, defineComponent, h, PropType, reactive, withModifiers} from "v
 import {useInputRegistry} from "@src/modules/Typeful/inputs/inputRegistry"
 import {InputSpec} from "@src/modules/Typeful/types/InputSpec"
 
+type BtnSpec = {
+  caption: string,
+  action: () => unknown,
+  class?: string,
+  disabled?: boolean,
+}
+
 export default defineComponent({
   props: {
     modelValue: {type: Array},
@@ -39,18 +46,43 @@ export default defineComponent({
           }
         }
         return props.removeItem
-      })
+      }),
+      shift(index: number, dPos: number) {
+        if (!dPos) return
+        const targetPosition = index + dPos
+        if (targetPosition < 0 || targetPosition >= props.modelValue.length) {
+          console.warn("Attempted to shift item out of bounds: ", {index, dPos})
+          return
+        }
+        const itemsToBeShifted = props.modelValue.splice(index, 1)
+        props.modelValue.splice(targetPosition, 0, ...itemsToBeShifted)
+      },
     })
 
-    const itemsControlButtons = computed(() => (props.modelValue || []).map((item, i) => {
-      const btns = []
+    const itemsControlButtons = computed(() => (props.modelValue || []).map((item, i, allItems) => {
+      const btns: BtnSpec[] = []
       if (typeof listCtrl.remove === 'function') {
         const removeFn = listCtrl.remove
         btns.push({
           caption: 'R',
-          action: () => removeFn(item, i)
+          action: () => removeFn(item, i),
+          class: '-acc-danger',
         })
       }
+
+      btns.push(
+        {
+          caption: "⇑",
+          action: () => listCtrl.shift(i, -1),
+          disabled:  i <= 0,
+        },
+        {
+          caption: "⇓",
+          action: () => listCtrl.shift(i, +1),
+          disabled: i >= allItems.length - 1,
+        },
+      )
+
       return btns
     }))
 
@@ -77,8 +109,9 @@ export default defineComponent({
     return () => {
       const itemElements = props.modelValue?.map((item, i) => {
         const controlBtnEls = itemsControlButtons.value[i].map((btn) => h('button', {
-          class: 'btn',
+          class: ['btn', btn.class],
           onClick: withModifiers(btn.action, ['prevent']),
+          disabled: btn.disabled === true ? true : undefined,
         }, btn.caption))
         const controlsEl = h('div', {class: 'controls'}, controlBtnEls)
         const contentEl = createContentElement(item, i)

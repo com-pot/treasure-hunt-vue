@@ -1,74 +1,71 @@
-<script lang="ts">
-import {defineComponent, inject, watch} from "vue";
+<script lang="ts" setup>
 
 import {RevealedClue, useClueInstance} from "@src/modules/treasure-hunt/model/Clue"
+import { useFieldInteractionInstance } from "@src/modules/treasure-hunt/model/FieldInteraction"
+
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
 import {useRouter} from "vue-router"
-import {produceMutable} from "@src/utils/immutable"
 import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
 import ClueCamera from "@src/modules/treasure-hunt/components/ClueCamera.vue"
 import ContentBlock from "@src/modules/treasure-hunt/content/ContentBlock"
 import {usePlayerProgression} from "@src/modules/treasure-hunt/model/playerProgression"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
 
-export default defineComponent({
-  components: {LoadingIndicator, ContentBlock, ClueCamera, ClueRevealResult},
-  props: {
-    clueKey: {type: String, required: true},
-    fieldInteraction: {type: String},
-  },
-  setup(props) {
-    const router = useRouter()
+const props = defineProps({
+  fieldInteraction: {type: String},
+})
 
-    const api = useApiAdapter()
-    const playerProgression = usePlayerProgression()
-    const clue = useClueInstance<RevealedClue>(api, {
-      onReveal: async (clue) => {
-        const progressUpdate = clue.revealResults?.find((result) => result.unlockedProgression)
-        if (progressUpdate) {
-          await playerProgression.reload()
-        }
-        return clue
-      },
-    })
+const router = useRouter()
 
-    const checkForClue = (key: string) => {
-      if (key === props.clueKey) {
-        return
-      }
-
-      router.push(produceMutable(router.currentRoute.value, (to) => {
-        to.query.key = key
-      }))
+const api = useApiAdapter()
+const playerProgression = usePlayerProgression()
+const clue = useClueInstance<RevealedClue>(api, {
+  onReveal: async (clue) => {
+    const progressUpdate = clue.revealResults?.find((result) => result.unlockedProgression)
+    if (progressUpdate) {
+      await playerProgression.reload()
     }
-
-
-
-    watch(() => props.clueKey, (str) => {
-      str ? clue.reveal(str) : clue.flush()
-    }, {immediate: true})
-
-    return {
-      clue,
-
-      checkForClue,
-    }
+    return clue
   },
 })
+
+const fieldInteraction = useFieldInteractionInstance(api)
+
+const checkForClue = (key: string) => {
+  clue.reveal(key)
+}
+const resetClueCheck = () => clue.flush()
 
 </script>
 
 <template>
   <div class="clue-chase flow" :data-status="clue.status">
     <h1>Hledání stop</h1>
+    
+    <p v-if="!fieldInteraction">
+      Pokud myslíš, že máš stopu (typicky QR kód), naskenuj jí a zjisti, jestli se jedná o něco užitečného.
+      Alternativně zadej ručně její kód níže.
+    </p>
+    <template v-else-if="false">
+      <template v-if="!fieldInteraction">
+        <p>Načítám informace o interakci</p>
+        <LoadingIndicator />
+      </template>
+
+      <template v-else>
+        <template v-for="entry of fieldInteraction.value?.entries">
+          <div class="interaction-entry" :data-type="entry.type">
+              {{ entry }}
+          </div>
+        </template>
+      </template>
+    </template>
+    
+
+    <ClueCamera @clue-found="checkForClue($event)" fallback-form/>
 
     <template v-if="clue.status === 'uninitialized'">
-      <p>
-        Pokud myslíš, že máš stopu (typicky QR kód), naskenuj jí a zjisti, jestli se jedná o něco užitečného.
-        Alternativně zadej ručně její kód níže.
-      </p>
 
-      <ClueCamera @clue-found="checkForClue($event)" fallback-form/>
     </template>
 
     <template v-else-if="clue.status === 'loading'">
@@ -96,7 +93,7 @@ export default defineComponent({
     <p v-else>Nepodařilo se načíst nápovědu</p>
 
     <nav class="clue-nav">
-      <router-link :to="{name: 'th.ClueReveal'}" replace class="btn" v-if="clueKey">Zpět</router-link>
+      <button class="btn" v-if="clue.status === 'ready'" @click.prevent="resetClueCheck()">Zpět</button>
     </nav>
   </div>
 </template>

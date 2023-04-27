@@ -1,164 +1,80 @@
+<script lang="ts" setup>
+import { PropType, defineComponent, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+
+import UnderstandApi from "./UnderstandApi";
+import VocabularyEntry from "./Model/VocabularyEntry";
+import { useGameLoop } from "@src/modules/treasure-hunt/components/gameLoop"
+import { exposeMinigameControls, minigameEmits } from "@src/modules/treasure-hunt/components/minigameData"
+import { useUnderstandController } from "./understandVueController"
+
+const emit = defineEmits({
+  ...minigameEmits,
+})
+type UnderstandComponentConfig = {
+  wordsPerRound: number,
+  optionsPerWord: number,
+  stepTimeLimit: number,
+
+  wordsPreset?: string,
+  inputMode?: 'button' | 'picture',
+}
+const props = defineProps({
+  challengeConfig: {type: Object as PropType<UnderstandComponentConfig>, required: true},
+})
+
+const ctrl = useUnderstandController(props.challengeConfig, emit)
+
+const gameLoop = useGameLoop(24, (t, dt) => ctrl.updateTimeLimit(t, dt))
+exposeMinigameControls({
+  reset: () => ctrl.beginAttempt(),
+}, emit)
+
+onMounted(async () => {
+  let words = await UnderstandApi.loadVocabulary(props.challengeConfig.wordsPreset)
+  ctrl.vocabulary.value = words
+
+  gameLoop.start()
+
+})
+onBeforeUnmount(() => {
+  gameLoop.stop()
+})
+
+</script>
+
 <template>
-  <div class="mg-understand">
-    <template v-if="gameState === 'idle'">
-      <button class="btn -acc-vivid" @click.prevent="beginAttempt">Začít</button>
+  <div class="mg -understand">
+    <template v-if="ctrl.gameState.value === 'idle'">
+      <button class="btn -acc-primary" @click.prevent="ctrl.beginAttempt">Začít</button>
     </template>
 
-    <div class="play-area" :class="gameState" v-else>
-      <div class="current-word" v-if="currentWord">
-        <div>{{round.currentStep}} / {{wordsPerRound}}</div>
+    <div class="play-area" :class="ctrl.gameState.value" v-else>
+      <div class="current-word" v-if="ctrl.currentWord.value">
+        <div class="current-step">{{ ctrl.round.currentStep }} / {{ challengeConfig.wordsPerRound }}</div>
         <div class="img-wrapper">
-          <img :src="currentWord.pictureUrl" alt="Neznámé slovo">
+          <img :src="ctrl.currentWord.value.pictureUrl" alt="Neznámé slovo">
         </div>
       </div>
 
-      <div class="understand-options">
-        <span v-for="(option, i) in round.optionIndices" :key="i" class="btn -acc-vivid"
-              @click="selectOption(option)">{{ vocabulary[option].word }}</span>
+      <div class="understand-options -picture" v-if="challengeConfig.inputMode === 'picture'">
+        <button v-for="(option, i) in ctrl.round.optionIndices" :key="i" class="btn" @click="ctrl.selectOption(option)">
+          <img :src="ctrl.vocabulary.value[option].pictureUrl" alt="" />
+      </button>
+      </div>
+      <div class="understand-options" v-else>
+        <button v-for="(option, i) in ctrl.round.optionIndices" :key="i" class="btn" @click="ctrl.selectOption(option)">{{
+          ctrl.vocabulary.value[option].word }}</button>
       </div>
     </div>
 
     <div class="progressbar">
-      <div class="chunk -vivid" :style="'--done: ' + remainingTimePct + ';'"></div>
+      <div class="chunk -acc-primary" :style="'--done: ' + ctrl.remainingTimePct.value + ';'"></div>
     </div>
-
   </div>
 </template>
 
-<script lang="ts">
-import {defineComponent} from "vue";
-
-import arrays from "@src/utils/arrays";
-
-import UnderstandApi from "./UnderstandApi";
-import VocabularyEntry from "./Model/VocabularyEntry";
-import {useGameLoop} from "@src/modules/treasure-hunt/components/gameLoop"
-import {exposeMinigameControls} from "@src/modules/treasure-hunt/components/minigameData"
-
-export default defineComponent({
-  props: {
-    wordsPerRound: {
-      type: Number,
-      default: 3,
-    },
-    optionsPerWord: {
-      type: Number,
-      default: 4,
-    },
-    stepTimeLimit: {
-      type: Number,
-      default: 6.6,
-    },
-  },
-  data() {
-    return {
-      gameLoop: useGameLoop(24, (t, dt) => this.updateTimeLimit(t, dt)),
-      controls: exposeMinigameControls({
-        reset: () => this.beginAttempt(),
-      }, this.$emit),
-      gameState: 'idle',
-      vocabulary: [] as VocabularyEntry[],
-      round: {
-        currentStep: -1,
-        wordIndices: [] as number[],
-        currentWordIndex: -1,
-        optionIndices: [] as number[],
-      },
-      step: {
-        remainingTime: 0,
-      },
-      tickInterval: -1,
-    };
-  },
-  computed: {
-    isReady(): boolean {
-      return this.vocabulary.length > 0;
-    },
-    currentWordIndex(): number {
-      let number = this.round.wordIndices[this.round.currentStep]
-      if (typeof number === "undefined") {
-        number = this.round.wordIndices[this.round.currentStep - 1]
-      }
-
-      return number
-    },
-    currentWord(): VocabularyEntry {
-      return this.vocabulary[this.currentWordIndex];
-    },
-    remainingTimePct(): number {
-      return this.step.remainingTime / this.stepTimeLimit;
-    },
-  },
-  methods: {
-    startRound() {
-      let indices = this.vocabulary.map((entry, i) => i) as number[];
-      arrays.shuffleFisherYates(indices);
-      this.round.wordIndices = indices.slice(0, this.wordsPerRound);
-      this.round.currentStep = 0;
-      this.initializeOptions();
-    },
-    initializeOptions() {
-      if (!this.vocabulary || this.round.currentStep === -1) {
-        console.log("No updato");
-        return;
-      }
-      let indices = this.vocabulary.map((entry, i) => i) as number[];
-      let optionIndices = arrays.shuffleFisherYates(indices).slice(0, this.optionsPerWord);
-      if (!optionIndices.includes(this.currentWordIndex)) {
-        let i = Math.floor(Math.random() * optionIndices.length);
-        optionIndices[i] = this.currentWordIndex;
-      }
-      this.round.optionIndices = optionIndices;
-      this.step.remainingTime = this.stepTimeLimit;
-    },
-    selectOption(option: number) {
-      if (option !== this.currentWordIndex) {
-        this.endAttempt('failed')
-        return
-      }
-
-      this.nextStep()
-    },
-    nextStep() {
-      this.round.currentStep++;
-      if (this.round.currentStep === this.wordsPerRound) {
-        this.endAttempt('won')
-      } else {
-        this.initializeOptions();
-      }
-    },
-    updateTimeLimit(t: number, dt: number) {
-      this.step.remainingTime -= dt * 0.001;
-      if (this.step.remainingTime <= 0) {
-        this.step.remainingTime = 0
-        this.endAttempt('failed')
-      }
-    },
-
-    beginAttempt() {
-      this.startRound()
-      this.gameState = 'started'
-      !this.gameLoop.redrawInterval && this.gameLoop.start()
-    },
-    endAttempt(state: string) {
-      this.gameLoop.stop()
-      this.gameState = state
-
-      this.$emit('check-solution', 777 * this.round.currentStep + 1847)
-    },
-  },
-  mounted() {
-    UnderstandApi.loadVocabulary()
-        .then((entries) => this.vocabulary = entries)
-  },
-  beforeUnmount() {
-    this.gameLoop.stop()
-  },
-});
-</script>
-
 <style lang="scss">
-.mg-understand {
+.mg.-understand {
   .play-area {
     display: flex;
     flex-direction: column;
@@ -169,6 +85,7 @@ export default defineComponent({
     &.failed {
       filter: saturate(0.2) brightness(0.8);
     }
+
     &.won {
       filter: saturate(0.8) brightness(1.2);
     }
@@ -185,10 +102,24 @@ export default defineComponent({
   }
 
   .current-word {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    place-content: stretch;
+    min-height: 10rem;
+
+    >* {
+      grid-area: 1 / 1;
+    }
+
+    .current-step {
+      place-self: end start;
+
+      padding: 0.25rem 0.5rem;
+      z-index: 2;
+
+      font-size: 2rem;
+
+      background: var(--neutral-950);
+    }
 
     .img-wrapper {
       flex: 1;
@@ -196,6 +127,8 @@ export default defineComponent({
       display: flex;
       align-items: center;
       justify-content: center;
+
+      min-height: 10rem;
 
       img {
         max-width: 100%;
@@ -213,11 +146,26 @@ export default defineComponent({
     justify-content: space-evenly;
     align-items: center;
 
-    > span {
+    > button {
       padding: 0.50em 1.25em;
       font-weight: bold;
 
       cursor: pointer;
+    }
+
+    &.-picture {
+      flex-wrap: nowrap;
+      justify-content: center;
+
+      button {
+        box-shadow: inset 0 0 0.5em 2em white;
+        max-height: 20vh;
+
+        img {
+          max-width: 100%;
+          max-height: 19vh;
+        }
+      }
     }
   }
 }

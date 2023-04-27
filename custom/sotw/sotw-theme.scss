@@ -20,10 +20,33 @@ body.theme-sotw {
 
   --nav-bg: #{hsl(42deg, 60%, 60%)};
   --nav-border-color: #{darken(hsl(42deg, 60%, 60%), 20%)};
+
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-size: 14pt;
   
   @each $name, $color in $accents {
     --hsl-#{$name}-components: #{hue($color)} #{saturation($color)} #{lightness($color)};
     --hsl-#{$name}: hsl(var(--hsl-#{$name}-components));
+  }
+
+  .root-container {
+    border-radius: 2rem;
+    background: var(--container-bg);
+    box-shadow: 0 0 0.25rem 0.25rem var(--container-bg);
+
+    transition: all 0.5s ease;
+
+    &[data-skin="entrance"] {
+      --container-bg: #{hsla(42, 20%, 60%, 0.2)};
+
+      + .bg {
+        filter: opacity(0.2) saturate(0.2);
+
+        .cloud {
+          opacity: 0;
+        }
+      }
+    }
   }
 }
 
@@ -39,6 +62,16 @@ button {
 
 .bg {
   background: #e69833;
+
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  pointer-events: none;
+  overflow: hidden;
+
+  transition: filter 0.5s ease;
 
   .texture {
     background-image: url("/sotw/photo_2021-04-17_20-59-02.jpg");
@@ -56,6 +89,8 @@ button {
     height: 666px;
 
     filter: hue-rotate(234deg) brightness(0.4);
+
+    transition: opacity 0.5s ease;
   }
 
   .cloud-top-left {

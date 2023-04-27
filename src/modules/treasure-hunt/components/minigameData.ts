@@ -127,6 +127,7 @@ type MinigameControlsOptions<T = string> = {
 
 export const minigameEmits = {
     'check-solution': (value: any) => true,
+    'expose-minigame-controls': (controls: MinigameControlsOptions<any>) => true,
 }
 
 export const exposeMinigameControls = <T>(options: MinigameControlsOptions<T>, emitFn: any): MinigameControlsOptions<T> => {

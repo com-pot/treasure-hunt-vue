@@ -2,7 +2,7 @@
 
 @mixin mixColorVars($name, $color, $steps: 5, $mixColorLow: black, $mixColorHigh: white) {
   @if ($steps == null) {
-    $steps: 5;
+    $steps: 10;
   }
 
   $stepWeight: calc(50% / $steps);

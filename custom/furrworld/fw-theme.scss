@@ -1,0 +1,84 @@
+$accents: (
+        primary: hsl(240, 85%, 50%),
+        success: hsl(160, 80%, 56%),
+
+        vivid: hsl(66, 100%, 50%),
+        vile: rgb(76, 175, 80),
+);
+$accentSteps: (
+  primary: 10,
+  neutral: 10,
+);
+
+body.theme-fw {
+  background: var(--neutral-950);
+  color: var(--neutral-50);
+}
+
+.theme-fw {
+  --bg-hsl: 90deg 60% 85%;
+  --container-bg: hsl(var(--bg-hsl) / 0.75);
+
+  --nav-bg: hsl(var(--bg-hsl));
+  --nav-border-color: var(--hsl-primary);
+  
+  @each $name, $color in $accents {
+    --hsl-#{$name}-components: #{hue($color)} #{saturation($color)} #{lightness($color)};
+    --hsl-#{$name}: hsl(var(--hsl-#{$name}-components));
+  }
+
+  .root-container {
+    position: relative; // To enable z-index manipulation
+    z-index: 2;
+    border-radius: 0.5rem;
+    background: var(--container-bg);
+    box-shadow: 0 0 0.25rem 0 var(--hsl-primary);
+
+    transition: all 0.5s ease;
+
+    &[data-skin="entrance"] {
+      --container-bg: #{hsla(42, 20%, 60%, 0.2)};
+
+      + .bg {
+        filter: opacity(0.2) saturate(0.2);
+
+        .cloud {
+          opacity: 0;
+        }
+      }
+    }
+  }
+
+  .bg {
+    z-index: 1;
+    background: hsl(var(--bg-hsl) / 0.4);
+    pointer-events: none;
+    
+
+    filter: brightness(1.25);
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+
+    &::after {
+      content: '';
+      display: block;
+      position: absolute;
+      inset: 0;
+
+      background-image: url("./assets/wallpaperflare.com_wallpaper.jpg");
+      background-size: cover;
+      background-attachment: fixed;
+      filter: opacity(0.1);
+    }
+  }
+}
+
+@each $name, $color in $accents {
+  .-acc-#{$name} {
+    --acc-color: var(--hsl-#{$name});
+  }
+}
+
+button {
+  color: var(--neutral-50);
+}

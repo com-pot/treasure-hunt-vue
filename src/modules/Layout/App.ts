@@ -8,7 +8,7 @@ type componentModule = {
     default: ReturnType<typeof defineComponent>
 }
 const layoutIndex: Record<string, () => Promise<componentModule>> = {
-    default: () => import('@custom/sotw/SotwLayout.vue'),
+    default: () => import('@custom/furrworld/FwLayout.vue'),
     print: () => import('./views/PrintLayout.vue'),
     backstage: () => import('@src/modules/treasure-hunt/Backstage/BackstageLayout.vue'),
 }
@@ -36,7 +36,7 @@ export default defineComponent({
 
         const layoutComponent = shallowRef<ReturnType<typeof defineComponent>>(null)
 
-        const theme = computed(() => layoutName.value === 'print' ? undefined : 'theme-sotw')
+        const theme = computed(() => layoutName.value === 'print' ? undefined : 'theme-fw')
 
         onMounted(function() {
             watch(theme, (theme, prevValue) => {

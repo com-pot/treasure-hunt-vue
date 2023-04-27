@@ -5,6 +5,7 @@ import authStore from "@src/modules/Auth/authStore";
 
 import 'normalize.css';
 import "@src/sass/main.scss";
+import "@custom/furrworld/fw-theme.scss";
 
 import titleRouting from './routing/titleRouting';
 import * as Typeful from './modules/Typeful';

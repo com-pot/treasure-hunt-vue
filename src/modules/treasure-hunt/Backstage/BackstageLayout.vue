@@ -38,10 +38,10 @@
 </template>
 
 <script lang="ts">
-import BackstageNavigation from "./components/BackstageNavigation.vue";
 import {computed, ref} from "vue"
+import {useRoute} from "vue-router"
+import BackstageNavigation from "./components/BackstageNavigation.vue";
 import useUser from "@src/modules/Auth/components/useUser"
-import {useRoute, useRouter} from "vue-router"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 import {NavigationItem} from "@src/modules/treasure-hunt/Backstage/navigation/NavigationModel"
 

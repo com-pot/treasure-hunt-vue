@@ -15,6 +15,7 @@
 
   background: var(--bg-color);
   color: var(--fg-color);
+  text-decoration: none;
 
   &:not(:is(.disabled, [disabled])) {
     cursor: pointer;
@@ -40,6 +41,12 @@
 
   &.-sm {
     padding: 0.1em 0.2em;
+  }
+
+  &.-inline {
+    display: grid;
+    grid-auto-flow: column;
+    gap: 0.5em;
   }
 }
 

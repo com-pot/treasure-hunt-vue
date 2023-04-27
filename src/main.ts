@@ -16,7 +16,7 @@ authStore.actions._initUserData();
 const rootSelector = '#treasure-hunt-app'
 createApp(App, {rootSelector})
     .use(router)
-    .use(titleRouting, {appName: 'Viva la Mexico', router})
+    .use(titleRouting, {appName: 'FurrWorld', router})
     .use(Typeful.plugin)
     .use(narrativePlugin)
     .mount(rootSelector);

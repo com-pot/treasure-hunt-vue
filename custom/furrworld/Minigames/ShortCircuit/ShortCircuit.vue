@@ -19,7 +19,7 @@ const props = defineProps({
 })
 
 const ctrl = createaShortCircuitVueController(props.challengeConfig.board)
-if (import.meta.env.DEV && props.challengeConfig.initState?.paths) {
+if (props.challengeConfig.initState?.paths) {
     // Regex for compact point formatting
     //  \[\n\s+(\d+),\n\s+(\d+)\n\s+\]
     ctrl.paths = props.challengeConfig.initState.paths
@@ -46,10 +46,12 @@ const lineOptions: Parameters<typeof circuitLiner['createShortest']>[2] = {
 }
 
 
+let lastEvent = ref('none')
 const drag = useDragging(boardEl, {
     moveThrottle: 100,
 
     start(e) {
+        lastEvent.value = 'start'
         const point = ctrl.snap([e.x, e.y])
 
         let removePathIndex = e.isTouch ? ctrl.find.pathIndexAtPoint(point) :  activePathIndex.value
@@ -72,8 +74,10 @@ const drag = useDragging(boardEl, {
                 looseEnd.p,
             ],
         }
+        return true
     },
     move(e) {
+        lastEvent.value = 'move'
         const currentPoint = cursor.value = ctrl.snap([e.x, e.y])
         cursorVisible.value = !e.isTouch
         if (!ctrl.draft) return
@@ -83,12 +87,20 @@ const drag = useDragging(boardEl, {
         snipLoops(ctrl.draft)
         ctrl.mutate.cutExistingWires(ctrl.draft, currentLength)
 
-        const snapResult = ctrl.mutate.checkDraftClosings(currentLength)
+        const snapResult = ctrl.mutate.checkDraftClosings(currentLength, 'auto-close')
+        if (snapResult === 'snap-ok') {
+            if (ctrl.boardState.allClosed) {
+                emit('check-solution', ctrl.boardState.openingsClosed.length)
+            }
+            return true
+        }
         if (snapResult === 'snap-error') {
             emit('check-solution', 'buzz')
         }
+        return true
     },
     end(e) {
+        lastEvent.value = 'end'
         if (!ctrl.draft) return
         const opening = ctrl.board.openings[ctrl.draft.iOpening]
         const draft = ctrl.draft
@@ -117,11 +129,6 @@ onBeforeUnmount(() => gameLoop.stop())
 
 <template>
     <div class="mg -short-circuit">
-        <div>
-            {{ ctrl.status }}
-            {{ ctrl.boardState }}
-        </div>
-        
         <svg :viewBox="`0 0 ${ctrl.view.size[0]} ${ctrl.view.size[1]}`" xmlns:svg="http://www.w3.org/2000/svg"
             class="board" :style="`--w: ${ctrl.view.size[0]}; --h: ${ctrl.view.size[1]};`"
 
@@ -154,7 +161,7 @@ onBeforeUnmount(() => gameLoop.stop())
                 .bg {
                     stroke: gold;
                     stroke-width: 0.075;
-                    fill: darkgreen;
+                    fill: #064c06;
                 }
                 .wire {
                     fill: none;
@@ -181,6 +188,8 @@ onBeforeUnmount(() => gameLoop.stop())
             </ul>
             <div role="separator"/>
             <div class="indicator" data-name="cursorPosition">{{ cursorLocationStr }}</div>
+            <div role="separator"></div>
+            {{ lastEvent }}
         </div>
     </div>
 </template>

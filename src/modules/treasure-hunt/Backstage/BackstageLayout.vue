@@ -139,10 +139,14 @@ export default {
 
     }
     padding: 0.5rem;
+
+    + main {
+      width: calc(100% - var(--aside-width));
+    }
   }
 
   > main {
-    width: calc(100% - var(--aside-width));
+    width: 100%;
     overflow-x: auto;
     padding: 0 0.5rem 4rem;
 

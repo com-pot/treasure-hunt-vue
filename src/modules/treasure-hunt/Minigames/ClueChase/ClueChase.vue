@@ -2,7 +2,7 @@
 import ClueCamera from "@src/modules/treasure-hunt/components/ClueCamera.vue"
 import {RevealedClue, useClueInstance} from "@src/modules/treasure-hunt/model/Clue"
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
-import ContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ContentBlock"
+import ContentBlock from "@src/modules/treasure-hunt/content/ContentBlock"
 import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
 import {usePlayerProgression} from "@src/modules/treasure-hunt/model/playerProgression"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"

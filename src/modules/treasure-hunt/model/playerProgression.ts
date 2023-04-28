@@ -17,9 +17,11 @@ export function createPlayerProgression(opts: {reload: () => Promise<void>}, di?
     return playerProgression
 }
 
-export function usePlayerProgression() {
+export function usePlayerProgression(need?: 'optional') {
     const progression = inject<PlayerProgression>('player.progression')
     if (!progression) {
+        if (need === 'optional') return progression
+
         throw new Error("'player.progression' is not provided")
     }
     return progression

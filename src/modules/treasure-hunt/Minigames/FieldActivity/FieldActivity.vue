@@ -6,11 +6,9 @@ import { ActivityConfig } from "./fieldActivity"
 import useCurrentTime from "../../components/useCurrentTime";
 import { minigameEmits } from "../../components/minigameData";
 import { useApiAdapter } from "../../services";
-import { usePlayerBag } from "../../model/playerProgression";
+import { usePlayerBag, usePlayerProgression } from "../../model/playerProgression";
 import { RevealedClue, useClueInstance } from "../../model/Clue";
 import { shuffleFisherYates } from "@src/utils/arrays";
-import { debug } from "tone";
-
 
 const emit = defineEmits({
     ...minigameEmits,
@@ -22,6 +20,11 @@ const props = defineProps({
 const api = useApiAdapter()
 const playerBag = usePlayerBag(api)
 const clue = useClueInstance<RevealedClue>(api)
+const playerProgression = usePlayerProgression('optional') || {
+    reload() {
+        console.log("Reload player progression");
+    },
+}
 const updateViewState = inject('update-view-state') as () => Promise<unknown>
 
 
@@ -83,7 +86,7 @@ type FieldACtivityController = {
 }
 const clueController = computed((): FieldACtivityController => {
     const c = props.challengeConfig
-    if (c.type === 'sprint') {
+    if (c?.type === 'sprint') {
         return {
             testClue(clue) {
                 const clueIndex = c.checkPoints.findIndex((cp) => cp.clue === clue)
@@ -101,12 +104,12 @@ const clueController = computed((): FieldACtivityController => {
                 return totalTimeTaken < c.timeLimit * 1_000 ? 'ok' : 'err'
             },
             render() {
-                return h('span', [time.formatted])
+                return h('div', {class: 'text'}, [time.formatted])
             },
         }
     }
 
-    if (c.type === 'repeat') {
+    if (c?.type === 'repeat') {
         return {
             testClue(clue) {
                 const nextClue = c.repeatClues[sequence.value]
@@ -126,12 +129,19 @@ const clueController = computed((): FieldACtivityController => {
                 return 'ok'
             },
             render() {
-                return h('span', [`${counter.value} / ${c.count}`])
+                let sequenceIndicators = []
+                for (let i = 0; i < c.repeatClues.length; i++) {
+                    sequenceIndicators.push(h('div', {class: ['seq', i === sequence.value && 'active']}))
+                }
+                return h('div', {class: 'text'}, [
+                    h('div', {class: 'seq-progress'}, sequenceIndicators),
+                    h('span', `${counter.value} / ${c.count}`),
+                ])
             },
         }
     }
 
-    if (c.type === 'collect-all') {
+    if (c?.type === 'collect-all') {
         return {
             init: () => playerBag.load(c.list.map((entry) => entry.item)),
             async testClue(clueStr) {
@@ -153,7 +163,7 @@ const clueController = computed((): FieldACtivityController => {
         }
     }
 
-    if (c.type === 'collect-some') {
+    if (c?.type === 'collect-some') {
         const localRequiredItems = _getLocalRequiredItems(c.list.map((entry) => entry.item), 'hack.field-activity.requiredItems')
             .slice(0, c.n)
 
@@ -167,7 +177,6 @@ const clueController = computed((): FieldACtivityController => {
                 const foundItemsCount = localRequiredItems
                     .filter((item) => playerBag.hasItem(item))
                     .length
-                console.log(foundItemsCount)
 
                 if (foundItemsCount >= c.n) {
                     emit('check-solution', 'ok')
@@ -204,15 +213,14 @@ const clueController = computed((): FieldACtivityController => {
             },
         }
     }
-
-    console.error("Invalid controller", c);
     
     return {
-        testClue(clue) {
-            console.warn("Invalid controller", c)
+        async testClue(clueStr) {
+            await clue.reveal(clueStr)
+            await playerProgression.reload()
         },
         render() {
-            return h('span', ['invalid controller ', c])
+            return ''
         },
     }
 })
@@ -267,23 +275,59 @@ onMounted(async () => {
 
 <template>
     <div class="mg -field-activity">
+        <div class="activity-ui">
+            <component :is="() => clueController.render()"></component>
+        </div>
         <ClueCamera fallback-form @clue-found="testClue"/>
-
-        <p>
-            <button @click="testClue('act:squat')">Squat</button>
-            <button @click="testClue('act#rise')">Rise</button>
-        </p>
-
-        <component :is="() => clueController.render()"></component>
     </div>
 </template>
   
   
   <style lang="scss">
-  .field-interaction-block {
+  .activity-ui {
+
     &[data-mode="live"] {
       display: flex;
       justify-content: center;
+    }
+
+    > div.text {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+    > .text {
+        font-size: 2rem;
+        text-align: center;
+    }
+
+    .seq-progress {
+        .seq {
+            width: 0.5em;
+            height: 0.5em;
+            background: var(--neutral-400);
+
+            &.active {
+                background: var(--hsl-primary);
+            }
+        }
+    }
+
+    .collect-items {
+        margin: 0;
+        padding: 0;
+
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(15ch, 1fr));
+        gap: 0.25rem 1rem;
+        padding: 0.25rem 0.5rem 0;
+
+        background-color: white;
+
+        li {
+            list-style: none;
+            background-color: var(--neutral-950);
+        }
     }
   }
   </style>

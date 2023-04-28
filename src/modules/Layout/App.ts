@@ -70,7 +70,11 @@ export default defineComponent({
 })
 
 function inferLayout(matched: readonly RouteLocationMatched[]) {
-    const iDefiner = matched.findLastIndex((record) => record.meta.layout)
-    const metaDefiner = matched[iDefiner]
+
+    const iDefiner = matched
+        .map((loc, i) => ({loc, i}))
+        .reverse()
+        .find((record) => record.loc.meta.layout)
+    const metaDefiner = matched[iDefiner?.i]
     return  metaDefiner?.meta.layout as string || 'default'
 }

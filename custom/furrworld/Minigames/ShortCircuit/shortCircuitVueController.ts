@@ -98,7 +98,6 @@ export function createaShortCircuitVueController(board: CircuitBoard) {
                 if (!endPointRef) continue
 
                 const [point, ref] = endPointRef
-                console.warn("EndPoint found", draft.value.iOpening, ref);
 
                 if (draft.value.iOpening !== ref.iOpening) {
                     draft.value.status = 'receding'

@@ -85,7 +85,7 @@
         >Vyzkoušet řešení
         </button>
 
-        <router-link :to="{name: 'th.ClueReveal'}" class="btn">🔍</router-link>
+        <!-- <router-link :to="{name: 'th.ClueReveal'}" class="btn">🔍</router-link> -->
       </div>
 
       <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>

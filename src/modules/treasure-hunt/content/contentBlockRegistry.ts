@@ -4,7 +4,6 @@ import CBText from "./contentBlockTypes/ContentBlock-Text.vue"
 import CBChallenge from "./contentBlockTypes/ContentBlock-Challenge.vue"
 import CBCountdown from "./contentBlockTypes/ContentBlock-Countdown.vue"
 import CBStorySummary from "./contentBlockTypes/ContentBlock-StorySummary.vue"
-import CBFieldInteraction from "./contentBlockTypes/ContentBlock-FieldInteraction.vue"
 import { ThContentBlockConfig } from "../model/treasureHuntContentBlocksController";
 
 type ContentBlockTypeEntry = {
@@ -22,9 +21,6 @@ const typeToComponent: Record<string, ContentBlockTypeEntry> = {
     },
     countdown: {
         component: CBCountdown,
-    },
-    'field-interaction': {
-        component: CBFieldInteraction,
     },
     'story-summary': {
         component: CBStorySummary,

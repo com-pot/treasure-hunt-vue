@@ -33,6 +33,9 @@
         />
         <img src="/vlm/vault-scarp.png" class="hack-image" alt="Obsah trezoru" v-if="block.id === '6704'">
         <img src="/vlm/pedro.jpg" class="hack-image" alt="Pedro" v-if="block.id === '2340'">
+        <p v-if="block.id === 'f179'">
+          Podklady pro složení kódu jsou k nahlédnutí v čajovně anebo <a :href="codePage" target="_blank">digitálně zde</a>.
+        </p>
 
       </template>
 
@@ -82,7 +85,7 @@
         >Vyzkoušet řešení
         </button>
 
-        <!-- <router-link :to="{name: 'th.ClueReveal'}" class="btn">🔍</router-link> -->
+        <router-link :to="{name: 'th.ClueReveal'}" class="btn">🔍</router-link>
       </div>
 
       <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
@@ -117,6 +120,8 @@ import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 import useCurrentTime, {timePrint} from "@src/modules/treasure-hunt/components/useCurrentTime"
 import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
+
+import codePage from "@custom/furrworld/assets/code-pages.png"
 
 export default defineComponent({
   components: {
@@ -238,6 +243,8 @@ export default defineComponent({
       return links
     })
 
+    provide('update-view-state', () => loadProgressionData(props.nodeId, 'keep'))
+
     const updateProgression = (storyParts: PartOfStory[]) => {
       playerProgression.storyParts = storyParts
       const lastStoryPart = storyParts[storyParts.length - 1]
@@ -302,6 +309,9 @@ export default defineComponent({
 
       performGameAction,
       nodeLinks,
+
+
+      codePage,
     }
   },
 })

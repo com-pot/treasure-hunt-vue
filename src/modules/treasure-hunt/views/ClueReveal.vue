@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 
 import {RevealedClue, useClueInstance} from "@src/modules/treasure-hunt/model/Clue"
-import { useFieldInteractionInstance } from "@src/modules/treasure-hunt/model/FieldInteraction"
 
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
 import {useRouter} from "vue-router"
@@ -15,8 +14,6 @@ const props = defineProps({
   fieldInteraction: {type: String},
 })
 
-const router = useRouter()
-
 const api = useApiAdapter()
 const playerProgression = usePlayerProgression()
 const clue = useClueInstance<RevealedClue>(api, {
@@ -28,8 +25,6 @@ const clue = useClueInstance<RevealedClue>(api, {
     return clue
   },
 })
-
-const fieldInteraction = useFieldInteractionInstance(api)
 
 const checkForClue = (key: string) => {
   clue.reveal(key)
@@ -46,7 +41,7 @@ const resetClueCheck = () => clue.flush()
       Pokud myslíš, že máš stopu (typicky QR kód), naskenuj jí a zjisti, jestli se jedná o něco užitečného.
       Alternativně zadej ručně její kód níže.
     </p>
-    <template v-else-if="false">
+    <!-- <template v-else-if="false">
       <template v-if="!fieldInteraction">
         <p>Načítám informace o interakci</p>
         <LoadingIndicator />
@@ -59,7 +54,7 @@ const resetClueCheck = () => clue.flush()
           </div>
         </template>
       </template>
-    </template>
+    </template> -->
     
 
     <ClueCamera @clue-found="checkForClue($event)" fallback-form/>

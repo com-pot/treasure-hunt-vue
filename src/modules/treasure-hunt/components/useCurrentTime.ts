@@ -3,6 +3,7 @@ import {lingualJoin, pluralizeFn} from "@src/modules/treasure-hunt/utils/localiz
 import {dateDiff} from "@src/modules/treasure-hunt/utils/timeUtils"
 
 type CurrentTimeOptions<TFormatted> = {
+    interval?: number,
     format?: (d: Date) => TFormatted,
 }
 
@@ -21,7 +22,7 @@ export default <TFormatted=unknown>(opts?: CurrentTimeOptions<TFormatted>) => {
             if (opts?.format) {
                 currentTime.formatted = opts.format(date) as any
             }
-        }, 1000)
+        }, opts?.interval ?? 1000)
     })
     onBeforeUnmount(() => {
         clearInterval(interval)

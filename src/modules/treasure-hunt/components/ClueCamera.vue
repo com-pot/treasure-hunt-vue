@@ -144,6 +144,5 @@ export default defineComponent({
   90% {
     --indicator-color: transparent;
   }
-
 }
 </style>

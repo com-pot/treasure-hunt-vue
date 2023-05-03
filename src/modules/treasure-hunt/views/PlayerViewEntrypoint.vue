@@ -72,7 +72,7 @@
 
 
         <button v-if="minigameControls.reset" @click="minigameControls.reset"
-                class="btn btn-bland"
+                class="btn -acc-secondary"
                 :disabled="minigameControls.status === 'evaluating' || timeout.status === 'ticking'"
         >Začít znovu
         </button>

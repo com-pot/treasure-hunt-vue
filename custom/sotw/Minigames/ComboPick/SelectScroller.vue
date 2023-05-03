@@ -1,7 +1,7 @@
 <template>
   <div class="select-scroller" ref="scrollContainer">
     <button v-for="(option, i) in optionsOrdered" :key="i + '-' + option"
-            :class="['btn', modelValue === option ? '-acc-success' :'btn-bland']"
+            :class="['btn', modelValue === option ? '-acc-success' :'-acc-secondary']"
             @click="$emit('update:modelValue', option)">
       <span>{{ option }}</span>
     </button>

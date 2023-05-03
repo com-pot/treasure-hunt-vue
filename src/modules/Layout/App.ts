@@ -1,6 +1,9 @@
 import {computed, defineComponent, h, onMounted, ref, shallowRef, watch} from "vue"
 import {RouteLocationMatched, useRoute} from "vue-router"
 
+import authStore from "@src/modules/Auth/authStore";
+authStore.actions._initUserData();
+
 import packageData from "../../../package.json"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
 

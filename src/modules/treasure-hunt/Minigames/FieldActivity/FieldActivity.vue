@@ -218,6 +218,7 @@ const clueController = computed((): FieldACtivityController => {
         async testClue(clueStr) {
             await clue.reveal(clueStr)
             await playerProgression.reload()
+            await updateViewState()
         },
         render() {
             return ''

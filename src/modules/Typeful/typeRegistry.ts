@@ -33,6 +33,10 @@ export function createTypeRegistry(...modules: TypefulAppModule[]): TypeRegistry
         },
 
         getDefaultValue(field) {
+            if (!field) {
+                console.warn("No field given")
+                return null
+            }
             if ('defaultValue' in field) {
                 return field.defaultValue
             }

@@ -49,7 +49,7 @@ function setSelectedChallengeType(value: ChallengeType|null) {
     props.block.challengeConfig = {}
     paramsSchema.value = null
   } else {
-    paramsSchema.value = {type: 'schema', fields: value.params}
+    paramsSchema.value = {type: 'object', properties: value.params}
     if (!props.block.challengeConfig || prevValue) {
       props.block.challengeConfig = typeRegistry.getDefaultValue(paramsSchema.value)
       if (value.type === 'choice.value-label') {

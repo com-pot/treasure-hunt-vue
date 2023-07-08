@@ -12,14 +12,14 @@ const modelRegistry = new AsyncRegistry<TypefulModel>()
 export default function useModelService<TEntity extends {} = any>(api: JsonApiAdapter): ModelService<TEntity> {
     const typeRegistry = useTypeRegistry()
 
-    const fetchModel = (name: string) => api.get<TypefulModel>('/backstage/typeful/schema/' + name)
+    const fetchModel = (name: string) => api.get<TypefulModel>('/backstage/typeful/model/' + name)
 
     let modelService: ModelService<any> = {
         preload: async (...models) => modelRegistry.ensureLoaded(models, fetchModel).then(() => {}),
 
         async createModelItem(fullName, defaults) {
-            const schema = (await modelService.getModelAsync(fullName)).schema
-            let value = typeRegistry.getDefaultValue(schema)
+            const model = await modelService.getModelAsync(fullName)
+            let value = typeRegistry.getDefaultValue(model.schema)
 
             return merge(value, defaults)
         },
@@ -81,7 +81,7 @@ export type TypefulModel = {
     primaryKey: string,
     stringify?: StringifySpec,
 }
-type ModelSchema = InputSpec & { type: 'object' | 'schema' }
+type ModelSchema = InputSpec & { type: 'object' }
 
 export type ModelServiceQueryTypes = {
     filter: string | SearchParams,

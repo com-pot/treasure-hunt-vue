@@ -20,11 +20,11 @@
                       class="inline"
     />
 
-    <template v-if="selectedType?.arguments && modelValue?.arguments">
+    <template v-if="selectedType?.argumentsSchema && modelValue?.arguments">
       <hr>
 
       <TypefulAutoSection
-          :inputs="selectedType.arguments"
+          :inputs="selectedType.argumentsSchema.properties"
           v-model="modelValue.arguments"
       />
     </template>
@@ -82,7 +82,7 @@ export default defineComponent({
           props.modelValue.arguments = {}
         } else {
           if (!props.modelValue.arguments || prevValue) {
-            props.modelValue.arguments = typeRegistry.getDefaultValue({type: 'schema', fields: type.arguments})
+            props.modelValue.arguments = typeRegistry.getDefaultValue(type.argumentsSchema)
           }
         }
       },

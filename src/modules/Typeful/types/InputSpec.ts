@@ -13,4 +13,4 @@ export type InputSpec<TOptions extends object = {}> = {
 
     name?: string,
     defaultValue?: any
-} & TOptions
+} & TOptions & Record<string, unknown>

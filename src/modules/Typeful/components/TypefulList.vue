@@ -18,7 +18,7 @@ export default defineComponent({
     tag: {type: String, default: 'div'},
     label: {type: String},
 
-    innerType: {type: Object as PropType<InputSpec>},
+    items: {type: Object as PropType<InputSpec>},
     createItem: {type: Function},
     addItem: {type: [Function, Boolean], default: false},
     removeItem: {type: [Function, Boolean], default: true},
@@ -41,7 +41,6 @@ export default defineComponent({
       remove: computed(() => {
         if (props.removeItem === true && props.modelValue) {
           return (item: unknown, index: number) => {
-            console.log('splice', index)
             return props.modelValue.splice(index, 1)
           }
         }
@@ -91,10 +90,10 @@ export default defineComponent({
         return h(slots.item, {item, index})
       }
 
-      const itemTypeInput = props.innerType?.type && inputRegistry.get(props.innerType.type)
+      const itemTypeInput = props.items?.type && inputRegistry.get(props.items.type)
       if (itemTypeInput) {
         return h(itemTypeInput, {
-          ...props.innerType,
+          ...props.items,
           key: index,
           modelValue: item,
           'onUpdate:modelValue': (value) => {

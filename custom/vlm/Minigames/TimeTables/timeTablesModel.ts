@@ -12,27 +12,29 @@ export type TimeTablesConfig = {
 }
 
 export const DestinationSchema = {
-    type: 'schema',
-    fields: {
+    type: 'object',
+    properties: {
         key: {type: 'string'},
         name: {type: 'string'},
-    }
+    },
+    required: ["key", "name"],
 }
 
 export const ConnectionDepartureSchema = {
-    type: 'schema',
-    fields: {
+    type: 'object',
+    properties: {
         label: {type: 'string'},
-    }
+    },
+    required: ["label"],
 }
 export const ConnectionSchema = {
-    type: 'schema',
-    fields: {
+    type: 'object',
+    properties: {
         from: {type: 'string'},
         to: {type: 'string'},
         departures: {
-            type: 'list',
-            innerType: ConnectionDepartureSchema,
+            type: 'array',
+            items: ConnectionDepartureSchema,
         },
     },
 }

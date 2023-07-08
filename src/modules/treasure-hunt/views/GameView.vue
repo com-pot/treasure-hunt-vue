@@ -22,8 +22,8 @@
   <router-view v-if="componentStatus === 'ready'"></router-view>
 </template>
 
-<script lang="ts">
-import {computed, provide, reactive, ref} from "vue";
+<script lang="ts" setup>
+import {computed, ref} from "vue";
 import {RouteLocationRaw, useRoute, useRouter} from "vue-router";
 
 import Navigation from "@src/modules/Layout/components/Navigation.vue";
@@ -31,7 +31,7 @@ import authStore from "@src/modules/Auth/authStore";
 
 import {hasComponentStatus} from "@src/modules/Layout/utils/componentHelpers"
 import {useTreasureHuntApi} from "../services"
-import {PlayerProgression} from "../model/TreasureHuntModel"
+import { createPlayerProgression } from "../model/playerProgression"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 
 type StoryLink = {
@@ -39,27 +39,21 @@ type StoryLink = {
   to: RouteLocationRaw,
 }
 
-export default {
-  components: {
-    Navigation,
-  },
-
-  setup() {
     const $router = useRouter();
     const $route = useRoute();
     const storySelection = useStorySelection()
     const thApi = useTreasureHuntApi()
 
+    console.log("GameView setup ", $route.fullPath)
+
     const elNavigation = ref<typeof Navigation|null>(null)
 
     const componentStatus = hasComponentStatus('loading')
 
-    const playerProgression = reactive<PlayerProgression>({
-      storyParts: [],
-
+    console.log("GameView setup")
+    const playerProgression = createPlayerProgression({
       reload: () => loadPlayerProgression('keep'),
-    })
-    provide('player.progression', playerProgression)
+    }, 'provide')
 
     const storyLinks = computed<StoryLink[]>(() => {
       return playerProgression.storyParts.map((partOfStory) => {
@@ -96,17 +90,8 @@ export default {
       loadPlayerProgression()
     }
 
-
-    return {
-      storyLinks,
-      signOut: () => {
-        authStore.actions.signOut()
-        $router.push({name: 'Landing.welcome'})
-      },
-      componentStatus,
-
-      elNavigation,
+    const signOut = () => {
+      authStore.actions.signOut()
+      $router.push({name: 'Landing.welcome'})
     }
-  },
-}
 </script>

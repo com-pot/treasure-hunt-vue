@@ -1,6 +1,6 @@
 import {MinigameBundle, MinigameSpecInternal} from "@src/modules/treasure-hunt/Minigames"
 
-type MinigameSpecRegisterObj = Omit<MinigameSpecInternal, 'name'> & {
+export type MinigameSpecRegisterObj = Omit<MinigameSpecInternal, 'name'> & {
     aliases?: string[],
 }
 
@@ -60,7 +60,9 @@ export default class MinigameRegistry {
                 this._bundles[spec.name] = this._activeBundle = {
                     name: spec.name, caption: spec.caption, minigames: [],
                 }
-                spec.register(this)
+                const specs = spec.register(this)
+
+                specs && Object.entries(specs).forEach(([name, regSpec]) => this.registerMinigame(name, regSpec))
             }
             this.status = 'ready'
         } catch (err) {

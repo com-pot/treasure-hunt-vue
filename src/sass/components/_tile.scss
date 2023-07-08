@@ -2,10 +2,10 @@
   padding: var(--tile-padding, 0.5rem);
 
   &[data-bg="brighten"] {
-    background-color: hsl(var(--hsl-light), 0.2);
+    background-color: hsl(var(--hsl-light) / 0.2);
   }
 
   &[data-bg="darken"] {
-    background-color: hsl(var(--hsl-dark), 0.2);
+    background-color: hsl(var(--hsl-dark) / 0.2);
   }
 }

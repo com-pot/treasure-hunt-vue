@@ -2,7 +2,20 @@ import VocabularyEntry from "./Model/VocabularyEntry";
 
 export default class UnderstandApi {
 
-    public static async loadVocabulary(): Promise<VocabularyEntry[]> {
+    public static async loadVocabulary(preset: string): Promise<VocabularyEntry[]> {
+        console.log("loadVocabulary", preset)
+        if (preset === 'fw') {
+            const loaders = import.meta.globEager("../../../furrworld/assets/robo-calibration/*.png")
+            const files = Object.entries(loaders)
+                .map(([file, loader]): VocabularyEntry => {
+                    const lastSlash = file.lastIndexOf('/')
+                    const word = file.substring(lastSlash + 1)
+                    return {word, pictureUrl: loader.default as string}
+                })
+
+            return files
+        }
+
         return [
             {word: 'Pít', pictureUrl: '/minigames/understand/drink.png'},
             {word: 'Jít', pictureUrl: '/minigames/understand/walk.png'},

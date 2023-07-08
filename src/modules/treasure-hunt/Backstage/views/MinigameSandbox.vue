@@ -15,20 +15,26 @@
 
       <div class="nav-actions">
         <button v-if="mgController.reset" @click="mgController.reset"
-                class="btn btn-bland"
+                class="btn -acc-secondary"
                 :disabled="mgController.status === 'evaluating'"
         >Začít znovu</button>
 
         <router-link class="btn" :to="{name: 'minigame.dev.index'}">Pryč</router-link>
 
         <button v-if="mgController.getValue" @click="mgController.checkSolution()"
-                :class="['btn', mgController.status === 'success' ? '-acc-success' :'-acc-vivid']"
+                :class="['btn', mgController.status === 'success' ? '-acc-success' :'-acc-primary']"
                 :disabled="mgController.status === 'evaluating'"
         >Vyzkoušet řešení</button>
       </div>
 
       <div class="spacer"/>
     </div>
+
+    <div class="section-heading">
+      <h2>Zkouška řešení</h2>
+      <hr/>
+    </div>
+    <code>{{ {checkHash} }}</code>
 
     <div class="section-heading">
       <h2>Konfigurace minihry</h2>

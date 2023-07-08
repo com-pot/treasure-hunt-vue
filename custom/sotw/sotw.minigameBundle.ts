@@ -23,6 +23,13 @@ const sotwBundle: MinigameBundle = {
         registry.registerMinigame('quick-pick', {
             caption: "Quick pick",
             module: () => import('./Minigames/Understand/UnderstandComponent.vue'),
+            demoData: {
+                wordsPerRound: 3,
+                optionsPerWord: 4,
+                stepTimeLimit: 7,
+                wordsPreset: "fw",
+                inputMode: "picture",
+            },
         })
         registry.registerMinigame('comboPick', {
             caption: "Combo pick",

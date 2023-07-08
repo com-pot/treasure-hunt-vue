@@ -4,6 +4,7 @@ export default {
     props: {
         viewMode: {type: String as PropType<ContentBlockViewMode>, required: true},
         block: {type: Object, required: true},
+        overallProgression: {type: Object},
     },
 }
 

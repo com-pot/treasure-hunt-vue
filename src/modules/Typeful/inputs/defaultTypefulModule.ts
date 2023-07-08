@@ -18,11 +18,10 @@ import TimeInput from "@src/modules/Typeful/inputs/components/TimeInput.vue"
 
 type ArrayTypeProps = {
     items?: InputSpec,
-    innerType?: InputSpec,
 }
 type ObjectTypeProps = {
-    fields?: Record<string, InputSpec>,
     properties?: Record<string, InputSpec>,
+    additionalProperties?: true | InputSpec,
 }
 
 export default defineTypefulModule({
@@ -43,7 +42,6 @@ export default defineTypefulModule({
         },
         relation: {component: RelationInput},
 
-        // json-schema structure types
         array: defineAppType<ArrayTypeProps>({
             component: TypefulList,
             aliases: ['list'],
@@ -51,14 +49,11 @@ export default defineTypefulModule({
             defaults: (typeRegistry, field) => {
                 let defaults: Record<string, unknown> = {}
 
-                const innerType = field.items || field.innerType
-                const typeStr = innerType?.type
-                const type = typeStr && typeRegistry.getTypeSpec(typeStr)
+                const itemsSchema = field.items
+                const type = itemsSchema?.type && typeRegistry.getTypeSpec(itemsSchema.type)
                 if (type) {
-                    defaults.createItem = () => typeRegistry.getDefaultValue(innerType)
+                    defaults.createItem = () => typeRegistry.getDefaultValue(itemsSchema)
                 }
-
-                console.log('list defaults', defaults, 'from', field)
 
                 return defaults
             },
@@ -66,21 +61,23 @@ export default defineTypefulModule({
         object: defineAppType<ObjectTypeProps>({
             component: function (props: any) {
                 return h(TypefulAutoSection, produceMutable(props, (props: any) => {
-                    props.inputs = props.fields
-                    delete props.fields
+                    props.inputs = props.properties
+                    delete props.properties
                 }))
             },
             aliases: ['schema'],
-            defaultValue: (typeRegistry, field) => {
-                const fields = field.fields || field.properties
-                if (!fields) {
-                    console.warn('Invalid spec for', field)
+            defaultValue: (typeRegistry, schema) => {
+                const properties = schema.properties
+                if (!properties) {
+                    if (schema.additionalProperties) return {}
+
+                    console.warn('Invalid spec for', schema)
                     return null
                 }
 
                 const defaultValue: Record<string, unknown> = {}
-                Object.entries(fields).forEach(([name, field]) => {
-                    defaultValue[name] = typeRegistry.getDefaultValue(field)
+                Object.entries(properties).forEach(([name, propSchema]) => {
+                    defaultValue[name] = typeRegistry.getDefaultValue(propSchema)
                 })
 
                 return defaultValue

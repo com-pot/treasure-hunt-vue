@@ -4,7 +4,9 @@ node_modules
 /dist-ssr
 
 # local env files
-*.local
+*.env
+*.env.*
+!*.sample
 
 # Log files
 npm-debug.log*

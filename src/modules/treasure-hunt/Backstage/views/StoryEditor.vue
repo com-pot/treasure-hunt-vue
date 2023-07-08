@@ -131,15 +131,13 @@ import TypefulAutoSection from "@src/modules/Typeful/components/TypefulAutoSecti
 import EntityPicker from "@src/modules/treasure-hunt/Backstage/views/StoryEditor/EntityPicker.vue"
 import TypefulList from "@src/modules/Typeful/components/TypefulList.vue"
 import {useStoryPartCollection, useStoryPartInstance} from "@src/modules/treasure-hunt/model/StoryPart"
-import ClueContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
-import ThContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
-import {ContentBlockViewMode} from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/contentBlockBase"
+import ThContentBlock from "@src/modules/treasure-hunt/content/ThContentBlock.vue"
+import {ContentBlockViewMode} from "@src/modules/treasure-hunt/content/contentBlockTypes/contentBlockBase"
 import {resolveAfter} from "@src/utils/promiseUtils"
 
 export default defineComponent({
   components: {
     ThContentBlock,
-    ClueContentBlock,
     TypefulList,
     EntityPicker,
     TypefulAutoSection,

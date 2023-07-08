@@ -1,4 +1,4 @@
-import MinigameRegistry from "./services/MinigameRegistry"
+import MinigameRegistry, { MinigameSpecRegisterObj } from "./services/MinigameRegistry"
 
 export type MinigameSpec = {
     caption: string,
@@ -14,7 +14,7 @@ export type MinigameSpecInternal = MinigameSpec & {
 
 export type MinigameBundle = {
     name: string, caption: string,
-    register(registry: MinigameRegistry): void,
+    register(registry: MinigameRegistry): void | Record<string, MinigameSpecRegisterObj>,
 }
 
 export const defineMinigameBundle = <T extends MinigameBundle>(bundle: T): T => bundle

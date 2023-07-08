@@ -5,6 +5,7 @@ const registry = new MinigameRegistry([
     () => import("../general.minigameBundle"),
     () => import("@custom/sotw/sotw.minigameBundle"),
     () => import("@custom/vlm/vlm.minigameBundle"),
+    () => import("@custom/furrworld/furrworld.minigameBundle"),
 ])
 
 

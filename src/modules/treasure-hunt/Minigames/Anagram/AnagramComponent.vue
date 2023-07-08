@@ -120,24 +120,25 @@ export default defineComponent({
     justify-content: center;
 
     i {
-      display: inline-block;
-      width: 32px;
-      height: 24px;
+      display: inline-grid;
+      width: 2em;
+      height: 2em;
       font-style: normal;
+      place-content: center;
 
-      background: var(--neutral-200);
+      background: var(--neutral-900);
       border: 2px solid;
 
       &:not(.picked):not(.disabled) {
         cursor: pointer;
-        border-color: deeppink;
-        color: deeppink;
+        border-color: var(--hsl-primary);
+        color: var(--hsl-primary);
       }
 
       &.picked, &.disabled {
         filter: opacity(0.75);
-        border-color: #ccc;
-        color: #ccc;
+        border-color: var(--neutral-600);
+        color: var(--neutral-600);
       }
     }
   }

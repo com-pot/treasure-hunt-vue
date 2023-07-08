@@ -85,6 +85,13 @@ const generalMinigameBundle: MinigameBundle = {
             caption: 'Clue chase',
             module: () => import('./Minigames/ClueChase/ClueChase.vue'),
         })
+
+        return {
+            'field-activity': {
+                caption: "Field activity",
+                module: () => import("./Minigames/FieldActivity/FieldActivity.vue"),
+            },
+        }
     }
 }
 

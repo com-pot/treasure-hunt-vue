@@ -6,6 +6,7 @@ import GameView from "./views/GameView.vue";
 import ThLanding from "@src/modules/treasure-hunt/views/ThLanding.vue";
 import Page404 from "@src/modules/Layout/views/Page404.vue"
 import PassThroughComponent from "@src/routing/PassThroughComponent"
+import { qrRoutes } from "../qr/qrRoutes";
 
 const gameRoutes: RouteRecordRaw[] = [
     {
@@ -30,7 +31,7 @@ const gameRoutes: RouteRecordRaw[] = [
         path: '/clue',
         component: () => import("./views/ClueReveal.vue"),
         props: (match) => ({
-            clueKey: match.query.key,
+            fieldInteraction: match.query.fieldInteraction,
         }),
     },
 ];
@@ -115,16 +116,9 @@ const routes: RouteRecordRaw[] = [
                 component: () => import("src/modules/treasure-hunt/Backstage/views/MinigameSandbox.vue"),
                 props: true,
             },
-        ],
-    },
 
-    {
-        name: 'Backstage.Hack.VlmClues',
-        path: '/backstage/vlm-clues',
-        component: () => import('../../../custom/vlm/QrDoc.vue'),
-        meta: {
-            layout: 'print',
-        },
+            ...qrRoutes,
+        ],
     },
 
     {

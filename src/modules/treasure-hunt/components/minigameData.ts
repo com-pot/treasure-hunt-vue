@@ -1,19 +1,16 @@
-import {ComputedRef, inject, reactive, Ref} from "vue"
+import {ComputedRef, inject, reactive, Ref, watch} from "vue"
 import {hashCode} from "@src/utils/stringUtils"
 import {CheckResult} from "../model/TreasureHuntModel"
 import * as viewStateStore from "@src/modules/treasure-hunt/viewStateStore"
 
 type MinigameStatus = 'idle' | 'evaluating' | 'error' | 'success'
 
-type ViewState<T, TData=any> = {
-    value: T,
-}
-
-type ResetableViewState<T, TData extends object = any> = ViewState<T, TData> & {
+type ViewStateRef<T> = {value: T}
+export type ResetableRef<T, TData extends object = any> = ViewStateRef<T> & {
     reset: (viewData?: TData) => void,
 }
 
-export function createViewStateController(key: ComputedRef<string|null>, ) {
+export function createViewStateController(key: ComputedRef<string|null>) {
     const viewStateData = reactive({
         value: null,
         save() {
@@ -30,20 +27,27 @@ export function createViewStateController(key: ComputedRef<string|null>, ) {
 }
 
 export type ViewStateInitializer<TData, TState> = ((viewData: TData, currentState?: TState) => TState)
-export function useViewState(): ViewState<any>
-export function useViewState<TState extends object, TData extends object = any>(init: ViewStateInitializer<TData, TState>, viewData?: Ref<TData>): ResetableViewState<TState>
+export function useViewState(): Ref<any>
+export function useViewState<TState extends object, TData extends object = any>(init: ViewStateInitializer<TData, TState>, viewData?: Ref<TData>): ResetableRef<TState>
 export function useViewState<TState extends object, TData extends object = any>(init?: ViewStateInitializer<TData, TState>, viewData?: Ref<TData>)  {
+    if (viewData) {
+        console.log("FIXME: Passing viewData through useViewState is deprecated")
+    }
     const stateValue = inject<Ref<TState>|null>('th.viewStateData', null)
 
     const stateObj = reactive({
-        value: stateValue
-    }) as ViewState<TState>
+        value: null
+    }) as ViewStateRef<TState>
+    if (stateValue) {
+        stateObj.value = stateValue.value
+        watch(() => stateObj.value, (value) => stateValue.value = value, {immediate: true, deep: true})
+    }
 
     if (!init) {
         return stateObj
     }
 
-    const resetableStateObj = stateObj as ResetableViewState<TState>
+    const resetableStateObj = stateObj as ResetableRef<TState>
     resetableStateObj.reset = () => resetableStateObj.value = init(viewData?.value!) // FIXME: ts! oof
 
     if (!resetableStateObj.value) {
@@ -120,6 +124,12 @@ type MinigameControlsOptions<T = string> = {
     reset?: () => any,
     getValue?: () => T | Promise<T>,
 }
+
+export const minigameEmits = {
+    'check-solution': (value: any) => true,
+    'expose-minigame-controls': (controls: MinigameControlsOptions<any>) => true,
+}
+
 export const exposeMinigameControls = <T>(options: MinigameControlsOptions<T>, emitFn: any): MinigameControlsOptions<T> => {
     emitFn('expose-minigame-controls', options)
     return options

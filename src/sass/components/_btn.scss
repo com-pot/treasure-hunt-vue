@@ -15,6 +15,7 @@
 
   background: var(--bg-color);
   color: var(--fg-color);
+  text-decoration: none;
 
   &:not(:is(.disabled, [disabled])) {
     cursor: pointer;
@@ -41,8 +42,10 @@
   &.-sm {
     padding: 0.1em 0.2em;
   }
-}
 
-.btn-bland {
-  --acc-color: #{hsl(42deg, 45%, 40%)};
+  &.-inline {
+    display: grid;
+    grid-auto-flow: column;
+    gap: 0.5em;
+  }
 }

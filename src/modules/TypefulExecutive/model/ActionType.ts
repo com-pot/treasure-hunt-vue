@@ -4,7 +4,7 @@ import {InputSpec} from "@src/modules/Typeful/types/InputSpec"
 
 export type ActionType = {
     name: string,
-    arguments: Record<string, InputSpec>,
+    argumentsSchema: InputSpec<{properties: Record<string, InputSpec>}> & {type: "object"},
 }
 
 export function useActionTypeCollection(api: JsonApiAdapter) {

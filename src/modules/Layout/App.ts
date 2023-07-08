@@ -1,5 +1,8 @@
 import {computed, defineComponent, h, onMounted, ref, shallowRef, watch} from "vue"
-import {useRoute} from "vue-router"
+import {RouteLocationMatched, useRoute} from "vue-router"
+
+import authStore from "@src/modules/Auth/authStore";
+authStore.actions._initUserData();
 
 import packageData from "../../../package.json"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
@@ -8,7 +11,7 @@ type componentModule = {
     default: ReturnType<typeof defineComponent>
 }
 const layoutIndex: Record<string, () => Promise<componentModule>> = {
-    default: () => import('@custom/sotw/SotwLayout.vue'),
+    default: () => import('@custom/furrworld/FwLayout.vue'),
     print: () => import('./views/PrintLayout.vue'),
     backstage: () => import('@src/modules/treasure-hunt/Backstage/BackstageLayout.vue'),
 }
@@ -26,9 +29,7 @@ export default defineComponent({
                 return ''
             }
 
-            // console.log(route.matched.map((match) => match.name))
-            const metaDefiner = route.matched.find((record) => record.meta.layout)
-            const requiredLayout = metaDefiner?.meta.layout as string || 'default'
+            const requiredLayout = inferLayout(route.matched)
             if (!layoutIndex[requiredLayout]) {
                 console.warn(`Unknown layout '${requiredLayout}', using default`)
                 return 'default'
@@ -38,7 +39,7 @@ export default defineComponent({
 
         const layoutComponent = shallowRef<ReturnType<typeof defineComponent>>(null)
 
-        const theme = computed(() => layoutName.value === 'print' ? undefined : 'theme-sotw')
+        const theme = computed(() => layoutName.value === 'print' ? undefined : 'theme-fw')
 
         onMounted(function() {
             watch(theme, (theme, prevValue) => {
@@ -71,3 +72,12 @@ export default defineComponent({
     },
 })
 
+function inferLayout(matched: readonly RouteLocationMatched[]) {
+
+    const iDefiner = matched
+        .map((loc, i) => ({loc, i}))
+        .reverse()
+        .find((record) => record.loc.meta.layout)
+    const metaDefiner = matched[iDefiner?.i]
+    return  metaDefiner?.meta.layout as string || 'default'
+}

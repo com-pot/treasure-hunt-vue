@@ -46,7 +46,7 @@
 
         <TypefulList :model-value="clueWorkingCopy.value.contentBlocks">
           <template #item="{item}">
-            <ClueContentBlock :content-item="item" :view-mode="viewMode"/>
+            <ThContentBlock :content-item="item" :view-mode="viewMode"/>
           </template>
         </TypefulList>
 
@@ -78,18 +78,17 @@ import {Clue, useClueCollection, useClueInstance} from "@src/modules/treasure-hu
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
 import {useRouter} from "vue-router"
 import TypefulList from "@src/modules/Typeful/components/TypefulList.vue"
-import ClueContentBlock from "src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
-import {useConditionTypeCollection} from "@src/modules/TypefulExecutive/model/ConditionType"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 import {produceMutable} from "@src/utils/immutable"
 import {useToast} from "@src/modules/Layout/components/viewUtils"
-import {ContentBlockViewMode} from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/contentBlockBase"
+import ThContentBlock from "src/modules/treasure-hunt/content/ThContentBlock.vue"
+import {ContentBlockViewMode} from "@src/modules/treasure-hunt/content/contentBlockTypes/contentBlockBase"
 import {resolveAfter} from "@src/utils/promiseUtils"
 import TabFrame from "@src/modules/Layout/components/Tabs/TabFrame.vue"
 import StoryAction from "@src/modules/treasure-hunt/Backstage/components/StoryAction.vue"
 
 export default defineComponent({
-  components: {StoryAction, TabFrame, ClueContentBlock, TypefulList, EntityPicker, TypefulInputPair, TypefulInput},
+  components: {StoryAction, TabFrame, ThContentBlock, TypefulList, EntityPicker, TypefulInputPair, TypefulInput},
   props: {
     activeClue: {type: String},
   },

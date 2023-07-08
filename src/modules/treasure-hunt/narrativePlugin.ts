@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import UniverseContent from "./components/UniverseContent"
 
-import gameStatic from "@custom/vlm/vlmGame.static.json"
 import {GameStaticData} from "@src/modules/treasure-hunt/components/useGameStaticData"
 // import gameStatic from "@custom/sotw/sotwGame.static.json"
+// import gameStatic from "@custom/vlm/vlmGame.static.json"
+import gameStatic from "@custom/furrworld/furrworldGame.static.json"
 
 
 

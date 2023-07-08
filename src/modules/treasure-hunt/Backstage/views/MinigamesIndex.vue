@@ -15,7 +15,7 @@
           <span class="caption">{{ link.caption }}</span>
         </router-link>
 
-        <div v-else :key="'dead-link-' + i" class="minigame-link btn btn-bland">
+        <div v-else :key="'dead-link-' + i" class="minigame-link btn -acc-secondary">
           <span class="code">{{ bundle.name }}-{{ formatOrderNumber(i + 1) }}</span>
           <span class="caption">{{ link.caption }}</span>
         </div>

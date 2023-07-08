@@ -33,6 +33,9 @@
         />
         <img src="/vlm/vault-scarp.png" class="hack-image" alt="Obsah trezoru" v-if="block.id === '6704'">
         <img src="/vlm/pedro.jpg" class="hack-image" alt="Pedro" v-if="block.id === '2340'">
+        <p v-if="block.id === 'f179'">
+          Podklady pro složení kódu jsou k nahlédnutí v čajovně anebo <a :href="codePage" target="_blank">digitálně zde</a>.
+        </p>
 
       </template>
 
@@ -69,7 +72,7 @@
 
 
         <button v-if="minigameControls.reset" @click="minigameControls.reset"
-                class="btn btn-bland"
+                class="btn -acc-secondary"
                 :disabled="minigameControls.status === 'evaluating' || timeout.status === 'ticking'"
         >Začít znovu
         </button>
@@ -82,7 +85,7 @@
         >Vyzkoušet řešení
         </button>
 
-        <router-link :to="{name: 'th.ClueReveal'}" class="btn">🔍</router-link>
+        <!-- <router-link :to="{name: 'th.ClueReveal'}" class="btn">🔍</router-link> -->
       </div>
 
       <router-link v-if="nodeLinks.next" class="btn -round" :to="nodeLinks.next">&gt;</router-link>
@@ -97,11 +100,12 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, inject, onBeforeUnmount, onMounted, provide, ref, watch} from "vue";
+import {computed, defineComponent, onBeforeUnmount, onMounted, provide, ref, watch} from "vue";
 import {RouteLocationRaw, useRouter} from "vue-router";
 
 import SotwViewStory from "./SotwViewStory.vue";
-import {PlayerProgression, ProgressionData} from "../model/TreasureHuntModel"
+import {ProgressionData} from "../model/TreasureHuntModel"
+import { usePlayerProgression } from "../model/playerProgression";
 import {createMinigameController, createViewStateController} from "../components/minigameData"
 import {useApiAdapter, useSotwAudio, useTreasureHuntApi} from "../services"
 import {resolveAfter} from "@src/utils/promiseUtils"
@@ -110,12 +114,14 @@ import {useTimeout} from "../components/playerTimeout"
 import {useGameActionExecutor} from "@src/modules/treasure-hunt/components/GameAction"
 import MinigameComponent from "@src/modules/treasure-hunt/components/MinigameComponent.vue"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
-import ThContentBlock from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/ThContentBlock.vue"
+import ThContentBlock from "@src/modules/treasure-hunt/content/ThContentBlock.vue"
 import {useModelInstanceController} from "@src/modules/Typeful/components/useModelController"
 import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
 import useCurrentTime, {timePrint} from "@src/modules/treasure-hunt/components/useCurrentTime"
 import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
+
+import codePage from "@custom/furrworld/assets/code-pages.png"
 
 export default defineComponent({
   components: {
@@ -187,7 +193,7 @@ export default defineComponent({
     const viewStateData = createViewStateController(storeKey)
     provide('th.viewStateData', viewStateData)
 
-    const playerProgression = inject<PlayerProgression>('player.progression')!
+    const playerProgression = usePlayerProgression()
 
     function loadProgressionData(nodeId: string, persistence: 'flush' | 'keep') {
       if (persistence === 'flush') {
@@ -220,6 +226,8 @@ export default defineComponent({
           links.child = {name: 'th.NodeView.challenge', params: {nodeId: props.nodeId!}}
         }
 
+        console.log('PlayerViewEntrypoint', playerProgression);
+        
         const currentPartIndex = playerProgression.storyParts.findIndex((sp) => sp.slug === props.nodeId)
         if (currentPartIndex > 0 && props.mode === 'story') {
           const prevPart = playerProgression.storyParts[currentPartIndex - 1]
@@ -234,6 +242,8 @@ export default defineComponent({
 
       return links
     })
+
+    provide('update-view-state', () => loadProgressionData(props.nodeId, 'keep'))
 
     const updateProgression = (storyParts: PartOfStory[]) => {
       playerProgression.storyParts = storyParts
@@ -299,6 +309,9 @@ export default defineComponent({
 
       performGameAction,
       nodeLinks,
+
+
+      codePage,
     }
   },
 })

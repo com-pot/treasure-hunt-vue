@@ -1,19 +1,11 @@
-import {defineComponent, h, PropType} from "vue"
-import contentBlockBase from "@src/modules/treasure-hunt/Backstage/components/ClueEditor/contentBlockBase"
+import {defineComponent, h} from "vue"
+import contentBlockBase from "./contentBlockTypes/contentBlockBase"
 
-import CBText from "./ContentBlock-Text.vue"
-import CBChallenge from "./ContentBlock-Challenge.vue"
-import CBCountdown from "./ContentBlock-Countdown.vue"
-import CBStorySummary from "./ContentBlock-StorySummary.vue"
 
 import {ThContentBlockConfig} from "@src/modules/treasure-hunt/model/treasureHuntContentBlocksController"
+import { useContentBlockRegistry } from "./contentBlockRegistry"
 
-const typeToComponent: Record<string, ReturnType<typeof defineComponent>> = {
-    text: CBText,
-    challenge: CBChallenge,
-    countdown: CBCountdown,
-    'story-summary': CBStorySummary,
-}
+
 
 export default defineComponent({
     inheritAttrs: false,
@@ -26,8 +18,9 @@ export default defineComponent({
     emits: ['update:model-value'],
 
     setup(props, {emit, attrs}) {
+        const contentBlockRegistry = useContentBlockRegistry()
         return () => {
-            const component = typeToComponent[props.type]
+            const component = contentBlockRegistry.typeToComponent[props.type]?.component
             if (!component) {
                 return h('div', {class: 'content-block -invalid-spec'}, `Unknown content block type=${props.type}`)
             }

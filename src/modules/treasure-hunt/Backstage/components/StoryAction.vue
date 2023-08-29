@@ -12,7 +12,7 @@
     </template>
     <p v-else>Akce není parametrizovatelná</p>
 
-    <Condition class="tile" data-bg="brighten"
+    <Condition class="tile tile-body" data-bg="brighten"
                label="Provést když"
                v-model="action.if"
     />

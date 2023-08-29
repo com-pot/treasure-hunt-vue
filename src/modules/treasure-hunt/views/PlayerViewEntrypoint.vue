@@ -122,6 +122,7 @@ import useCurrentTime, {timePrint} from "@src/modules/treasure-hunt/components/u
 import ClueRevealResult from "@src/modules/treasure-hunt/views/ClueRevealResult"
 
 import codePage from "@custom/furrworld/assets/code-pages.png"
+import { useModelService } from "@src/modules/Typeful/vueUtils";
 
 export default defineComponent({
   components: {
@@ -143,7 +144,7 @@ export default defineComponent({
           .then(() => console.log("Audio ready"))
     }
 
-    const progression = useModelInstanceController<ProgressionData>(useApiAdapter(), 'treasure-hunt.player-progression')
+    const progression = useModelInstanceController<ProgressionData>(useModelService(useApiAdapter()), 'treasure-hunt.player-progression')
     const revealResult = ref<any>(null)
     const storeKey = computed(() => {
       const storyPart = progression.value?.storyPart

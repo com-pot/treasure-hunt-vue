@@ -1,8 +1,8 @@
 <template>
   <div class="code-example" :class="expanded && 'expanded'">
-    <div class="header" @click="expanded = !expanded">
+    <div class="header">
       <slot name="header"><span>{{ header }}</span></slot>
-      <span class="toggle">&gt;</span>
+      <span class="toggle" @click="expanded = !expanded">&gt;</span>
     </div>
 
     <pre class="code"><slot></slot></pre>

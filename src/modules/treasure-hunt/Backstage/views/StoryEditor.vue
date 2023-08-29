@@ -8,7 +8,8 @@
 
   <div class="backstage story-editor content-auto-layout">
     <EntityPicker
-        :items="storyParts.value" item-key="slug"
+        :items="storyParts.value.items"
+        item-key="slug"
         :model-value="activePart" @update:model-value="selectPart"
         :add="() => selectPart()"
 
@@ -134,6 +135,7 @@ import {useStoryPartCollection, useStoryPartInstance} from "@src/modules/treasur
 import ThContentBlock from "@src/modules/treasure-hunt/content/ThContentBlock.vue"
 import {ContentBlockViewMode} from "@src/modules/treasure-hunt/content/contentBlockTypes/contentBlockBase"
 import {resolveAfter} from "@src/utils/promiseUtils"
+import { useModelService } from "@src/modules/Typeful/vueUtils";
 
 export default defineComponent({
   components: {
@@ -160,12 +162,12 @@ export default defineComponent({
     const viewState = useAsyncIndicator()
 
     const storyParts = useStoryPartCollection(api)
-    const challengeTypes = useChallengeTypeList(api)
+    const challengeTypes = useChallengeTypeList(useModelService(api))
     challengeTypes.load()
 
     const activePartData = useStoryPartInstance(api)
     const activePartChallenge = useChallengeInstance(api, useMinigameRegistry())
-    const selectedChallengeType = computed(() => challengeTypes.value?.find((type) => type.type === activePartChallenge.value?.type))
+    const selectedChallengeType = computed(() => challengeTypes.value?.items?.find((type) => type.type === activePartChallenge.value?.type))
 
     const editorTabs = computed(() => {
       const tabs: TabEntry[] = [
@@ -195,11 +197,10 @@ export default defineComponent({
     const viewMode = ref<ContentBlockViewMode>('edit')
 
     const reloadStoryParts = () => {
-      storyParts.fluent()
-        .filter(storySelection.story ? {story: storySelection.story} : undefined)
-        .load(1, 50)
+      const filter = storySelection.story ? {story: storySelection.story} : undefined
+      storyParts.load(1, 50, filter)
         .then(() => {
-          if (!storyParts.value?.find(({slug}) => slug === props.activePart)) {
+          if (!storyParts.value?.items?.find(({slug}) => slug === props.activePart)) {
             selectPart()
           }
         })

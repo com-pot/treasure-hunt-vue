@@ -1,4 +1,4 @@
-import {computed, defineComponent, h, onMounted, ref, shallowRef, watch} from "vue"
+import {computed, defineComponent, h, onMounted, provide, ref, shallowRef, watch} from "vue"
 import {RouteLocationMatched, useRoute} from "vue-router"
 
 import authStore from "@src/modules/Auth/authStore";
@@ -6,6 +6,7 @@ authStore.actions._initUserData();
 
 import packageData from "../../../package.json"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
+import { createDialogController } from "./components/dialogController";
 
 type componentModule = {
     default: ReturnType<typeof defineComponent>
@@ -40,6 +41,9 @@ export default defineComponent({
         const layoutComponent = shallowRef<ReturnType<typeof defineComponent>>(null)
 
         const theme = computed(() => layoutName.value === 'print' ? undefined : 'theme-fw')
+
+        const dialogController = createDialogController()
+        provide("layout:dialogController", dialogController)
 
         onMounted(function() {
             watch(theme, (theme, prevValue) => {

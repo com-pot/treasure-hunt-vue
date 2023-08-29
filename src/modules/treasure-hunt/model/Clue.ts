@@ -6,6 +6,7 @@ import {
 } from "@src/modules/Typeful/components/useModelController"
 import {ThContentBlock, useThContentBlocks} from "@src/modules/treasure-hunt/model/treasureHuntContentBlocksController"
 import {Action} from "@src/modules/TypefulExecutive/model/Action"
+import { useModelService } from "@src/modules/Typeful/vueUtils"
 
 export type Clue = {
     name: string,
@@ -36,7 +37,7 @@ type ClueInstanceOptions<T extends Clue> = {
     onReveal?: (clue: T) => Promise<T>,
 }
 export function useClueInstance<T extends Clue>(api: JsonApiAdapter, opts?: ClueInstanceOptions<T>) {
-    const ctrl = useModelInstanceController<T>(api, 'treasure-hunt.clue', clueModelOptions as ModelControllerOptions<any>)
+    const ctrl = useModelInstanceController<T>(useModelService(api), 'treasure-hunt.clue', clueModelOptions as ModelControllerOptions<any>)
     return extendModelController(ctrl, {
         reveal: (key: string) => {
             ctrl.value = null
@@ -66,5 +67,5 @@ export function useClueInstance<T extends Clue>(api: JsonApiAdapter, opts?: Clue
 }
 
 export function useClueCollection(api: JsonApiAdapter) {
-    return useModelCollectionController<Clue>(api, 'treasure-hunt.clue', clueModelOptions)
+    return useModelCollectionController<Clue>(useModelService(api), 'treasure-hunt.clue', clueModelOptions)
 }

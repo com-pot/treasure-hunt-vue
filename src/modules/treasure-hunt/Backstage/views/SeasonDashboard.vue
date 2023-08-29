@@ -19,6 +19,7 @@ const navItems = computed(() => {
         {to: {name: 'Backstage.StoryEditor'}, caption: "Editor příběhů"},
     )
   }
+  
   return items
 })
 

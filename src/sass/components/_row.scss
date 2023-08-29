@@ -1,0 +1,37 @@
+.row {
+    display: flex;
+    gap: var(--gap, var(--gap-b, 0.5rem) var(--gap-i, 1rem));
+    flex-wrap: wrap;
+
+    > .col {
+        flex: 1;
+
+        &.fit-content {
+            flex: unset;
+        }
+
+        &.-full {
+            width: 100%;
+            flex: unset;
+        }
+    }
+
+    > hr {
+        width: 100%;
+    }
+
+    &.-align {
+        align-items: center;
+    }
+    &[data-layout="buttons"] {
+        justify-content: center;
+    }
+
+    + .row {
+        margin-block-start: var(--gap-b, 0.5rem);
+    }
+}
+
+.collapse-gap-i {
+    --gap-i: 0;
+}

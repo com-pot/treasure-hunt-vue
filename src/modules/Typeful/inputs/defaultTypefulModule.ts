@@ -27,7 +27,20 @@ type ObjectTypeProps = {
 export default defineTypefulModule({
     name: 'typeful',
     types: {
-        text: {component: TextInput, aliases: ['string'], defaultValue: () => ''},
+        text: defineAppType<any>({
+            component: TextInput,
+            aliases: ['string'],
+            defaultValue: () => '',
+            defaults: (typeRegistry, field) => {
+                let defaults: Record<string, unknown> = {}
+
+                if (field["x-multiline"]) {
+                    defaults.mode = "block"
+                }
+
+                return defaults
+            },
+        }),
         number: {component: NumberInput, defaultValue: () => 0},
         bool: {component: BoolInput, defaultValue: () => false},
         time: {component: TimeInput},
@@ -60,10 +73,15 @@ export default defineTypefulModule({
         }),
         object: defineAppType<ObjectTypeProps>({
             component: function (props: any) {
-                return h(TypefulAutoSection, produceMutable(props, (props: any) => {
+                if (!props) {
+                    debugger
+                    props = {}
+                }
+                props = produceMutable(props, (props: any) => {
                     props.inputs = props.properties
                     delete props.properties
-                }))
+                })
+                return h(TypefulAutoSection, props)
             },
             aliases: ['schema'],
             defaultValue: (typeRegistry, schema) => {

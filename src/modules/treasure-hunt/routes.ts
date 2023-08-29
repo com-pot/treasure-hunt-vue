@@ -7,6 +7,7 @@ import ThLanding from "@src/modules/treasure-hunt/views/ThLanding.vue";
 import Page404 from "@src/modules/Layout/views/Page404.vue"
 import PassThroughComponent from "@src/routing/PassThroughComponent"
 import { qrRoutes } from "../qr/qrRoutes";
+import typefulRoutes from "@src/modules/Typeful/typefulRoutes";
 
 const gameRoutes: RouteRecordRaw[] = [
     {
@@ -118,6 +119,7 @@ const routes: RouteRecordRaw[] = [
             },
 
             ...qrRoutes,
+            ...typefulRoutes,
         ],
     },
 

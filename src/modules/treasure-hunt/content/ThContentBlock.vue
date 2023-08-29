@@ -4,7 +4,7 @@
                 v-bind="$attrs"
   />
 
-  <div class="flow tile content-item" v-else
+  <div class="flow tile tile-body content-item" v-else
        data-bg="darken">
     <div class="header">
       <div class="content-type">
@@ -12,14 +12,14 @@
       </div>
     </div>
 
-    <div class="body tile" data-bg="brighten">
+    <div class="body tile tile-body" data-bg="brighten">
       <ContentBlock :type="contentItem.type" v-model="contentItem.config" :view-mode="viewMode"
                     v-bind="$attrs"
       />
     </div>
 
     <Condition
-        class="tile" data-bg="brighten"
+        class="tile tile-body" data-bg="brighten"
         label="Zobrazit když"
         v-model="contentItem.if"
     />

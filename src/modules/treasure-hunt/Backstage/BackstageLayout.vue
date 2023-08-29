@@ -4,6 +4,7 @@ import {useRoute} from "vue-router"
 
 import useUser from "@src/modules/Auth/components/useUser"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
+import DialogStack from "@src/modules/Layout/components/DialogStack.vue"
 
 const user = useUser()
 const route = useRoute()
@@ -74,6 +75,8 @@ const logInTo = ref({
   <main :class="contentClass">
     <router-view/>
   </main>
+
+  <DialogStack/>
 </template>
 
 <style lang="scss">

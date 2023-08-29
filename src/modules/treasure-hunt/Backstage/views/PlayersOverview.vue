@@ -2,7 +2,7 @@
   <h1>Přehled hráčů</h1>
   <div class="backstage -players">
     <div class="list">
-      <div class="tile player" v-for="player in players" :key="player.user"
+      <div class="tile tile-body player" v-for="player in players" :key="player.user"
            :class="getPlayerStatus(player)"
       >
         <div class="actions">
@@ -42,6 +42,7 @@ import {useModelCollectionController} from "@src/modules/Typeful/components/useM
 import {PartOfStory} from "@src/modules/treasure-hunt/model/StoryPart"
 import useTreasureHuntBackstageApi from "@src/modules/treasure-hunt/api/useTreasureHuntBackstageApi"
 import useGameStaticData from "@src/modules/treasure-hunt/components/useGameStaticData"
+import { useModelService } from "@src/modules/Typeful/vueUtils"
 
 export default defineComponent({
   setup() {
@@ -86,9 +87,9 @@ export default defineComponent({
         })
     }
 
-    const storyParts = useModelCollectionController<PartOfStory>(api, 'treasure-hunt.story-part')
+    const storyParts = useModelCollectionController<PartOfStory>(useModelService(useApiAdapter()), 'treasure-hunt.story-part')
     const storyPartIndex = computed(() => {
-      let orderEntries = (storyParts.value || []).map((sp: any) => [sp.order, sp])
+      let orderEntries = (storyParts.value.items || []).map((sp: any) => [sp.order, sp])
       return Object.fromEntries(orderEntries)
     })
 

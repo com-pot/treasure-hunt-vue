@@ -14,31 +14,13 @@ export default defineComponent({
     setup(props, context) {
         const typeRegistry = useTypeRegistry()
 
-        function getComponent(type: string, inputProps: Record<string, unknown>) {
-            const typeSpec = typeRegistry.getTypeSpec(props.type)
-            if (!typeSpec) {
-                return null
-            }
-            let component: AppTypeDeclaration['component'] = typeSpec?.component
-            const discriminator = (typeSpec.componentDiscriminator ?? 'mode') as string
-
-            if (typeof component === 'function') {
-                const discriminatorValue = inputProps[discriminator]
-                delete inputProps[discriminator]
-
-                component = component(discriminatorValue)
-            }
-
-            return component ?? null
-        }
-
         return () => {
             const inputProps = Object.assign({}, context.attrs, props.inOpts)
             if (typeof context.attrs.name === 'string') {
                 inputProps.key = context.attrs.name
             }
 
-            const component = getComponent(props.type, inputProps)
+            const component = getComponent(typeRegistry, props.type, inputProps)
             if (component) {
                 return h(component, inputProps, context.slots)
             }
@@ -51,3 +33,23 @@ export default defineComponent({
         }
     },
 })
+
+
+function getComponent(typeRegistry: ReturnType<typeof useTypeRegistry>, type: string, inputProps: Record<string, unknown>) {
+    const typeSpec = typeRegistry.getTypeSpec(type)
+    if (!typeSpec) {
+        return null
+    }
+    let component: AppTypeDeclaration['component'] = typeSpec?.component
+    // const discriminator = (typeSpec.componentDiscriminator ?? 'mode') as string
+
+    if (typeof component === 'function') {
+        // const discriminatorValue = inputProps[discriminator]
+        // delete inputProps[discriminator]
+
+        // component = component(discriminatorValue)
+        component = inputProps
+    }
+
+    return component ?? null
+}

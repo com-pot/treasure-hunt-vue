@@ -3,6 +3,7 @@ import {useModelCollectionController} from "@src/modules/Typeful/components/useM
 import {useApiAdapter} from "@src/modules/treasure-hunt/services"
 import LoadingIndicator from "@src/modules/Layout/components/LoadingIndicator.vue"
 import Multiselect from "@vueform/multiselect"
+import { getAsyncModelFn, useModelService } from "../../vueUtils"
 
 export default defineComponent({
     inheritAttrs: false,
@@ -16,17 +17,18 @@ export default defineComponent({
 
     setup(props, {attrs, emit}) {
         const api = useApiAdapter()
-        const targetController = useModelCollectionController(api, props.target, {
+        const modelService = useModelService(api)
+        const targetController = useModelCollectionController(modelService, props.target, {
             stringifyTo: '_label',
         })
-        const model = targetController.getModel()
+        const model = getAsyncModelFn(modelService, props.target)
         targetController.load(1, props.perPage)
 
         const valueProp = computed(() => model.value?.primaryKey)
         const selectedItem = computed(() => {
             const key = valueProp.value
             return key && props.modelValue && targetController.status === 'ready' && targetController.value
-                ?.find((item) => props.modelValue === item[key]) || null
+                ?.items?.find((item) => props.modelValue === item[key]) || null
         })
 
         watch(selectedItem, (item) => {
@@ -43,7 +45,7 @@ export default defineComponent({
             return h(Multiselect, {
                 ...attrs,
                 modelValue: props.modelValue,
-                options: targetController.value,
+                options: targetController.value.items,
                 valueProp: valueProp.value,
                 label: '_label',
             })

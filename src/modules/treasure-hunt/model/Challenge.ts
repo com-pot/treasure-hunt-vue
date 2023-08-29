@@ -1,6 +1,7 @@
 import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
 import MinigameRegistry from "@src/modules/treasure-hunt/services/MinigameRegistry"
 import {extendModelController, useModelInstanceController} from "@src/modules/Typeful/components/useModelController"
+import { useModelService } from "@src/modules/Typeful/vueUtils"
 
 export type Challenge = {
     type: string,
@@ -25,7 +26,7 @@ export type ChallengeCluesSetup = {
 }
 
 export function useChallengeInstance(api: JsonApiAdapter, minigameRegistry?: MinigameRegistry) {
-    const ctrl = useModelInstanceController<Challenge>(api, 'treasure-hunt.challenge', {
+    const ctrl = useModelInstanceController<Challenge>(useModelService(api), 'treasure-hunt.challenge', {
         normalizeItem: !minigameRegistry ? undefined : async (challenge) => {
             await minigameRegistry.whenReady()
             challenge.type = minigameRegistry.toCanonicalName(challenge.type) || ''

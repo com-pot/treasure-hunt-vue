@@ -3,7 +3,7 @@
 
   <div class="backstage clue-editor content-auto-layout">
     <EntityPicker
-        :items="clues.value"
+        :items="clues.value.items"
         item-key="slug"
         :model-value="activeClue" @update:model-value="selectClue"
         :add="() => selectClue()"
@@ -12,8 +12,8 @@
       <template #item="{item}">{{ item.name }}</template>
     </EntityPicker>
 
-    <form class="app-form -auto-spacing -container" @submit.prevent="save" v-if="clueWorkingCopy.value">
-      <fieldset class="form-auto-layout">
+    <form class="app-form -auto-spacing tile -bg tile-body" @submit.prevent="save" v-if="clueWorkingCopy.value">
+      <fieldset class="form-auto-layout -plain">
         <TypefulInputPair name="name" label="Název" type="text"
                           v-model="clueWorkingCopy.value.name"
         />
@@ -22,13 +22,13 @@
                           :disabled="!!activeClue"
         />
         <TypefulInputPair name="tags" label="Vlastnosti"
-                          type="list" :inner-type="{type: 'string'}" :create-item="() => ''"
+                          type="list" :items="{type: 'string'}" :create-item="() => ''"
                           v-model="clueWorkingCopy.value.tags"
         />
       </fieldset>
-      <fieldset class="controls">
+      <div class="controls">
         <button class="btn -fill -acc-primary">Uložit</button>
-      </fieldset>
+      </div>
     </form>
 
     <TabFrame :tabs="clueEditorTabs" v-model="activeTab"
@@ -86,6 +86,7 @@ import {ContentBlockViewMode} from "@src/modules/treasure-hunt/content/contentBl
 import {resolveAfter} from "@src/utils/promiseUtils"
 import TabFrame from "@src/modules/Layout/components/Tabs/TabFrame.vue"
 import StoryAction from "@src/modules/treasure-hunt/Backstage/components/StoryAction.vue"
+import {printErrorsToHtml} from "@src/utils/errors"
 
 export default defineComponent({
   components: {StoryAction, TabFrame, ThContentBlock, TypefulList, EntityPicker, TypefulInputPair, TypefulInput},
@@ -102,9 +103,7 @@ export default defineComponent({
 
     const clues = useClueCollection(api)
 
-    const reloadClues = () => clues.fluent()
-        .filter({story: storySelection.story})
-        .load(1, 100)
+    const reloadClues = () => clues.load(1, 100, { story: storySelection.story })
 
     const viewModeOptions = ref([
       {value: 'edit', label: 'Editace'},
@@ -136,8 +135,9 @@ export default defineComponent({
         return resolveAfter(200).then(save)
       }
 
-      if (!props.activeClue) {
-        return clues.createNew(clueWorkingCopy.value!)
+      const savePromise = props.activeClue
+        ? clueWorkingCopy.persist()
+        : clues.createNew(clueWorkingCopy.value!)
             .then((clue) => {
               toast.success("OK", {timer: 1000})
 
@@ -147,22 +147,13 @@ export default defineComponent({
 
               return clue
             })
-            .catch((err) => {
-              const {body, response} = err
-              const errors = body?.details?.errors
+      return savePromise
+        .catch((err) => {
+            const toastText = printErrorsToHtml(err)
+            toast.error('', {title: 'Nepodařilo se uložit stopu', timer: 2000, html: toastText})
 
-              let toastText = ''
-              if (errors && errors.length) {
-                const errorItems = errors.map((error) => `<li>${JSON.stringify(error)}</li>`)
-                toastText = `<ul>${errorItems.join('\n')}</ul>`
-              }
-              toast.error('', {title: 'Nepodařilo se uložit stopu', timer: 2000, html: toastText})
-
-              throw err
-            })
-      }
-
-      return clueWorkingCopy.persist()
+            throw err
+        })
     }
 
     return {

@@ -7,6 +7,7 @@ import {
     useModelCollectionController,
     useModelInstanceController,
 } from "@src/modules/Typeful/components/useModelController"
+import { useModelService } from "@src/modules/Typeful/vueUtils"
 
 export interface PartOfStory {
     slug: string,
@@ -34,7 +35,7 @@ const options: ModelControllerOptions<PartOfStory> = {
 }
 
 export const useStoryPartInstance = (api: JsonApiAdapter) => {
-    const ctrl = useModelInstanceController<PartOfStory>(api, 'treasure-hunt.story-part', options)
+    const ctrl = useModelInstanceController<PartOfStory>(useModelService(api), 'treasure-hunt.story-part', options)
 
     return extendModelController(ctrl, {
         thContentBlocks: useThContentBlocks(() => ctrl.value?.thContentBlocks),
@@ -65,5 +66,5 @@ export const useStoryPartInstance = (api: JsonApiAdapter) => {
 }
 
 export const useStoryPartCollection = (api: JsonApiAdapter) => {
-    return useModelCollectionController<PartOfStory>(api, 'treasure-hunt.story-part')
+    return useModelCollectionController<PartOfStory>(useModelService(api), 'treasure-hunt.story-part')
 }

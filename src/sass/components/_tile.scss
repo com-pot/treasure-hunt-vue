@@ -1,5 +1,7 @@
 .tile {
-  padding: var(--tile-padding, 0.5rem);
+  &.-bg {
+    background: var(--neutral-900);
+  }
 
   &[data-bg="brighten"] {
     background-color: hsl(var(--hsl-light) / 0.2);
@@ -7,5 +9,14 @@
 
   &[data-bg="darken"] {
     background-color: hsl(var(--hsl-dark) / 0.2);
+  }
+}
+.tile-body {
+  padding: var(--tile-padding, 0.5rem);
+}
+
+:is(.tile, .tile-body).row {
+  .actions {
+    margin-inline-start: auto;
   }
 }

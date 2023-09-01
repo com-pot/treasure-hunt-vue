@@ -5,8 +5,8 @@ import {TypeRegistry} from "@src/modules/Typeful/typeRegistry"
 export default <T extends TypefulAppModule>(module: T): T => module
 
 export type AppTypeDeclaration<T extends {} = {}, TValue = any> = {
-    component?: InputComponent | ((componentDiscriminator: string) => InputComponent),
-    componentDiscriminator?: string,
+    component?: InputComponent // | ((componentDiscriminator: string) => InputComponent),
+    // componentDiscriminator?: string,
     defaults?: Record<string, unknown> | ((typeRegistry: TypeRegistry, field: InputSpec<T>) => Record<string, unknown> | undefined),
 
     aliases?: string[],

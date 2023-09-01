@@ -123,7 +123,7 @@ onMounted(() => {
 
         <div class="drawer">
             <template v-for="unitRef of placementController.knownUnits" :key="unitRef.unit.name">
-                <div class="tile" :class="placementController.isPlaced(unitRef.unit.name) && '-placed'"
+                <div class="tile tile-body" :class="placementController.isPlaced(unitRef.unit.name) && '-placed'"
                     :aria-selected="controlScheme.selectedUnit.value === unitRef.unit.name || undefined"
                     @click="controlScheme.maybeSelectUnit(unitRef.unit.name)"
                 >

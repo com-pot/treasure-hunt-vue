@@ -1,6 +1,7 @@
 import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
 import {useModelCollectionController} from "@src/modules/Typeful/components/useModelController"
 import {InputSpec} from "@src/modules/Typeful/types/InputSpec"
+import { useModelService } from "@src/modules/Typeful/vueUtils"
 
 export type ConditionType = {
     name: string,
@@ -8,5 +9,5 @@ export type ConditionType = {
 }
 
 export function useConditionTypeCollection(api: JsonApiAdapter) {
-    return useModelCollectionController<ConditionType>(api, 'typeful-executive.condition-type')
+    return useModelCollectionController<ConditionType>(useModelService(api), 'typeful-executive.condition-type')
 }

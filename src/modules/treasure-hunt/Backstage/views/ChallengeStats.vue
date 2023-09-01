@@ -3,7 +3,7 @@
 
   <div class="backstage -challenges">
     <div class="list">
-      <div class="tile story-part" v-for="storyPart in storyParts" :key="storyPart.slug">
+      <div class="tile tile-body story-part" v-for="storyPart in storyParts" :key="storyPart.slug">
         <div class="title">{{ storyPart.title }} - /{{storyPart.slug}}</div>
         <div class="counts">
           <span class="new">Právě řeší: {{ storyPart.countByStatus.new }}</span>

@@ -4,6 +4,7 @@ import {useRoute} from "vue-router"
 
 import useUser from "@src/modules/Auth/components/useUser"
 import useStorySelection from "@src/modules/treasure-hunt/components/useStorySelection"
+import DialogStack from "@src/modules/Layout/components/DialogStack.vue"
 
 const user = useUser()
 const route = useRoute()
@@ -14,6 +15,21 @@ const stories = ref([
   // {key: 'vlm', title: "Viva la Mexico"},
   {key: 'fw', title: "FurrWorld"},
 ])
+
+const modules = [
+  {
+    caption: "treasure-hunt",
+    to: "/backstage ",
+  },
+  {
+    caption: "Minihry",
+    to: {name: 'minigame.dev.index'},
+  },
+  {
+    caption: "Data",
+    to: {name: "Typeful.ModelIndex"},
+  },
+]
 
 const contentClass = computed(() => {
   for (let i = route.matched.length - 1; i >= 0; i--) {
@@ -38,13 +54,17 @@ const logInTo = ref({
 
 <template>
   <header>
-    <router-link class="brand" :to="{name: 'Backstage.SeasonDashboard'}">
-      <div class="title">com-pot / treasure-hunt</div>
+    <router-link class="brand chip" :to="{name: 'Backstage.SeasonDashboard'}">
+      <div class="title">com-pot</div>
       <div class="subtitle">Zákulisí</div>
     </router-link>
 
     <nav>
-      <router-link class="item" :to="{name: 'minigame.dev.index'}">Minihry</router-link>
+      <template v-for="mod of modules">
+        <router-link class="item" :to="mod.to">
+          <span>{{ mod.caption }}</span>
+        </router-link>
+      </template>
     </nav>
 
 
@@ -53,12 +73,13 @@ const logInTo = ref({
     </div>
 
     <div class="user-panel dropdown" v-else>
-      <div class="user-frame">
-        <span class="login">{{ user.data.login }}</span>
+      <div class="chip user-frame">
+        <span class="login">{{ user.initials }}</span>
       </div>
 
       <div class="dropdown-container">
         <div class="items">
+          <div>{{ user.data.login }}</div>
           <button v-for="story in stories" :key="story.key"
                 :class="storySelection.story === story.key && '-acc-primary'"
                 @click="storySelection.story = story.key"
@@ -74,6 +95,8 @@ const logInTo = ref({
   <main :class="contentClass">
     <router-view/>
   </main>
+
+  <DialogStack/>
 </template>
 
 <style lang="scss">
@@ -82,21 +105,31 @@ const logInTo = ref({
 
   header {
     --header-padding: 0.5rem;
-    --header-border-size: 2px;
+    --header-height: 3rem;
+    --header-border-size: 0px;
     width: 100%;
+    height: var(--header-height);
     padding: var(--header-padding);
     
     
-    border-bottom: var(--header-border-size) solid hsl(var(--hsl-primary-components));
-    background-color: hsl(var(--hsl-primary-components) / 0.25);
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--hsl-primary-components) / 0.25) 0%,
+      hsl(var(--hsl-primary-components) / 0.25) 40%,
+      hsl(var(--hsl-primary-components) / 0.05) 80%,
+      transparent 100%,
+    );
 
     display: flex;
     align-items: center;
     gap: 1rem;
 
     .brand {
+      padding: 0rem 0.3rem;
       color: black;
+      background-color: var(--neutral-1000);
       text-decoration: none;
+      border-radius: .5rem;
 
       .title {
         font-size: 1.2rem;
@@ -105,28 +138,55 @@ const logInTo = ref({
       }
     }
 
+    nav {
+      display: flex;
+      height: 100%;
+      gap: 0.5rem;
+
+      > a {
+        padding: 0 0.5rem;
+        display: grid;
+        place-content: center;
+
+        text-decoration: none;
+        
+        color: var(--neutral-100);
+
+        &.active {
+          span {
+            text-decoration: underline solid 2px var(--hsl-primary);
+          }
+        }
+      }
+    }
+
     .user-panel {
       margin-inline-start: auto;
 
       display: grid;
       place-content: center;
+    }
 
-      .user-frame {
-        width: 4rem;
-        height: 4rem;
-        border-radius: 0.5rem;
+    .chip {
+      border-radius: 0.5rem;
+      background-color: var(--neutral-1000);
+      border: 1px solid var(--neutral-100);
+    }
 
-        border: 1px solid var(--neutral-100);
+    .user-frame {
+        width: 2.5rem;
+        height: 2.5rem;
 
         display: grid;
         place-items: center;
       }
-    }
 
     .dropdown {
       --c-dropdown-expanded: 0;
       position: relative;
       align-self: stretch;
+
+      transition: --c-dropdown-expanded 0.2s ease-in-out;
 
       .dropdown-container {
         position: absolute;
@@ -140,10 +200,11 @@ const logInTo = ref({
         transition: grid-template-rows 0.2s ease-in-out;
         
         > .items {
+          padding: calc(var(--c-dropdown-expanded) * 0.25rem) 0.25rem;
+          border-top: calc(var(--c-dropdown-expanded) * 1px) solid var(--hsl-primary);
+          backdrop-filter: blur(20px);
           overflow: hidden;
 
-          border: calc(var(--c-dropdown-expanded) * var(--header-border-size)) solid hsl(var(--hsl-primary-components));
-          border-top-width: 0;
           background-color: hsl(var(--hsl-primary-components) / 0.1);
         }
       }
@@ -188,6 +249,12 @@ const logInTo = ref({
       margin-top: 1.5rem;
     }
   }
+}
+
+@property --c-dropdown-expanded {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
 }
 
 </style>

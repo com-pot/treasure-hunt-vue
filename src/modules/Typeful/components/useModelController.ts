@@ -1,14 +1,11 @@
 import useAsyncIndicator from "@src/modules/Layout/mixins/useAsyncIndicator"
-import {AsyncValueRef, AwaitableAsyncValueRef} from "@src/modules/Typeful/types/asyncUtils"
+import {AsyncValueRef} from "@src/modules/Typeful/types/asyncUtils"
 
-import useModelService, {
-    CollectionPagination,
-    ModelServiceQueryTypes, stringifyModelItem,
-    TypefulModel,
-} from "@src/modules/Typeful/useModelService"
-import {reactive, ref, toRef} from "vue"
-import JsonApiAdapter from "@src/modules/Api/services/JsonApiAdapter"
-import {set, get} from "lodash"
+import {computed, reactive, shallowRef, toRef} from "vue"
+import {set} from "lodash"
+import { ModelServiceQueryTypes } from "../model/TypefulModel"
+import { ModelService, stringifyModelItem } from "../modelService"
+import { PaginatedList } from "../model/list"
 
 
 type ModelInstanceController<TValue> = AsyncValueRef<TValue> & {
@@ -18,19 +15,12 @@ type ModelInstanceController<TValue> = AsyncValueRef<TValue> & {
     awaitValue(promise: Promise<TValue>): Promise<TValue>,
 
     flush(): void,
-
-    getModel(): AwaitableAsyncValueRef<TypefulModel>,
 }
-type ModelCollectionController<TValue> = AsyncValueRef<TValue[]> & {
-    pagination: Readonly<CollectionPagination>,
-
+type ModelCollectionController<TValue> = AsyncValueRef<Readonly<PaginatedList<TValue>>> & {
     load(page?: number, perPage?: number, filter?: ModelServiceQueryTypes['filter'], sort?: ModelServiceQueryTypes['sort']): Promise<void>,
-    fluent(): CollectionLoad<TValue>,
     createNew(item: TValue): Promise<TValue>,
 
     flush(): void
-
-    getModel(): AwaitableAsyncValueRef<TypefulModel>,
 }
 
 interface CollectionLoad<TValue> {
@@ -44,28 +34,8 @@ export type ModelControllerOptions<TEntity> = {
     stringifyTo?: string,
 }
 
-function getAsyncModelFn(modelService: ReturnType<typeof useModelService>, modelName: string): () => AwaitableAsyncValueRef<TypefulModel> {
+export function useModelInstanceController<TEntity extends {} = any>(modelService: ModelService, modelName: string, options?: ModelControllerOptions<TEntity>): ModelInstanceController<TEntity> {
     const status = useAsyncIndicator('uninitialized')
-    let modelAsync: AwaitableAsyncValueRef<TypefulModel>|null = null
-
-    return () => {
-        if (!modelAsync) {
-            modelAsync = reactive({
-                status: toRef(status, 'status'),
-                value: null,
-                ready: () => modelService.getModelAsync(modelName),
-            })
-            status.awaitTask(modelAsync.ready)
-                .then((model) => modelAsync!.value = model)
-        }
-
-        return modelAsync
-    }
-}
-
-export function useModelInstanceController<TEntity extends {} = any>(api: JsonApiAdapter, modelName: string, options?: ModelControllerOptions<TEntity>): ModelInstanceController<TEntity> {
-    const status = useAsyncIndicator('uninitialized')
-    const modelService = useModelService<TEntity>(api)
 
     // use typed variable because of struggles with TS Error around UnwrapRef:
     // Type 'unknown' is not assignable to type 'TEntity'.
@@ -81,12 +51,12 @@ export function useModelInstanceController<TEntity extends {} = any>(api: JsonAp
         },
         load(id, filter) {
             return status.awaitTask(async () => {
-                let item = await modelService.loadModelItem(modelName, id)
+                let item = await modelService.loadModelItem<TEntity>(modelName, id)
                 if (options?.normalizeItem) {
                     item = await options.normalizeItem(item)
                 }
                 if (options?.stringifyTo) {
-                    const model = await ctrl.getModel().ready()
+                    const model = await modelService.getModelAsync(modelName)
                     set(item, options.stringifyTo, stringifyModelItem(model, item))
                 }
 
@@ -113,8 +83,6 @@ export function useModelInstanceController<TEntity extends {} = any>(api: JsonAp
             this.value = null
             status.status = 'uninitialized'
         },
-
-        getModel: getAsyncModelFn(modelService, modelName),
     }
 
     return reactive({
@@ -123,20 +91,23 @@ export function useModelInstanceController<TEntity extends {} = any>(api: JsonAp
     }) as ModelInstanceController<TEntity>
 }
 
-export function useModelCollectionController<TEntity extends {} = any>(api: JsonApiAdapter, modelName: string, options?: ModelControllerOptions<TEntity>): ModelCollectionController<TEntity> {
+export function useModelCollectionController<TEntity extends {} = any>(modelService: ModelService, modelName: string, options?: ModelControllerOptions<TEntity>): ModelCollectionController<TEntity> {
     const status = useAsyncIndicator()
-    const modelService = useModelService<TEntity>(api)
 
-    const pagination = ref<CollectionPagination>({page: 0, perPage: 0, totalItems: 0})
+    const data = shallowRef<PaginatedList<TEntity>>({
+        items: [],
+        page: 0,
+        perPage: 0,
+        totalItems: 0,
+        totalPages: 0,
+    })
 
-    const ctrl: ModelCollectionController<TEntity> = {
+    const ctrl: Partial<ModelCollectionController<TEntity>>= {
         status: 'uninitialized',
-        pagination: pagination.value,
-        value: [],
 
         async load(page?: number, perPage?: number, filter?: ModelServiceQueryTypes['filter'], sort?: ModelServiceQueryTypes['sort']): Promise<void> {
             await status.awaitTask(async () => {
-                const result = await modelService.loadCollection(modelName, {
+                const result = await modelService.loadCollection<TEntity>(modelName, {
                     pagination: {page, perPage},
                     filter,
                     sort,
@@ -147,45 +118,45 @@ export function useModelCollectionController<TEntity extends {} = any>(api: Json
                     items = await Promise.all(items.map(options.normalizeItem))
                 }
                 if (options?.stringifyTo) {
-                    const model = await ctrl.getModel().ready()
+                    const model = await modelService.getModelAsync(modelName)
                     for (let item of items) {
                         set(item, options.stringifyTo!, stringifyModelItem(model, item))
                     }
                 }
 
-                this.value = items
+                return data.value = {
+                    ...result,
+                    items,
+                }
             })
         },
         createNew(item) {
-            return modelService.saveNewItem(modelName, item)
+            return modelService.saveNewItem<TEntity>(modelName, item)
                 .then((item) => {
-                    this.value?.push(item)
+                    data.value = {
+                        ...data.value,
+                        items: [...data.value.items as any[], item],
+                        totalItems: data.value.totalItems + 1,
+                    }
                     return item
                 })
         },
-        fluent() {
-            let filter: ModelServiceQueryTypes['filter'] | undefined
-            return {
-                filter(query) {
-                    filter = query
-                    return this
-                },
-                load: (page, perPage) => this.load(page, perPage, filter),
-            }
-        },
         flush() {
-            this.value = []
+            data.value = {
+                items: [],
+                page: 0,
+                perPage: 0,
+                totalItems: 0,
+                totalPages: 0,
+            }
             status.status = 'uninitialized'
-            pagination.value.page = pagination.value.perPage = pagination.value.totalItems = 0
         },
-
-        getModel: getAsyncModelFn(modelService, modelName),
     }
 
     return reactive({
         ...ctrl,
+        value: computed(() => data.value) as unknown as Readonly<PaginatedList<TEntity>>,
         status: toRef(status, 'status'),
-        pagination: pagination,
     }) as ModelCollectionController<TEntity>
 
 }

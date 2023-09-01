@@ -1,19 +1,22 @@
 <template>
   <div class="minigame-configurator time-tables">
-    <div class="tile" data-bg="darken">
-      <TypefulList label="Destinace" :inner-type="schemas.destinations" v-model="iw.destinations"
+    <div class="tile tile-body" data-bg="darken">
+      <TypefulList label="Destinace"
+                   :items="schemas.destinations"
                    :create-item="() => getSchemaDefaultValue('destinations')"
+                   v-model="iw.destinations"
       />
     </div>
 
-    <div class="tile" data-bg="darken">
+    <div class="tile tile-body" data-bg="darken">
       <TypefulList label="Spojení"
-                   :inner-type="schemas.connections" v-model="iw.connections"
+                   :items="schemas.connections"
                    :create-item="() => getSchemaDefaultValue('connections')"
+                   v-model="iw.connections"
       />
     </div>
 
-    <div class="tile" data-bg="darken">
+    <div class="tile tile-body" data-bg="darken">
       <TypefulInputPair label="Začátek" name="start" v-model="iw.start"
                         type="select" :options="iw.destinations"
                         :in-opts="{label: 'name', valueProp: 'key'}"

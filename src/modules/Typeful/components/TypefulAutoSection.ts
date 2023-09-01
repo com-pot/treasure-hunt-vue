@@ -1,15 +1,17 @@
 import {defineComponent, h, PropType} from "vue"
-import {defaults} from 'lodash'
+import {defaults, get, set} from 'lodash'
 
 import {InputSpec} from "@src/modules/Typeful/types/InputSpec"
 import TypefulInputPair from "@src/modules/Typeful/components/TypefulInputPair"
 import {useTypeRegistry} from "@src/modules/Typeful/typeRegistry"
+import { InputRef } from "../model/TypefulModel"
 
 export default defineComponent({
+    name: "TypefulAutoSection",
     props: {
         modelValue: {type: Object, required: true},
         inputs: {
-            type: [Object, Array] as PropType<InputSpec[]|Record<string, InputSpec>>,
+            type: [Object, Array] as PropType<(InputSpec | InputRef)[]|Record<string, InputSpec>>,
             required: true,
         },
         tag: {type: String, default: 'div'},
@@ -17,15 +19,16 @@ export default defineComponent({
     setup(props) {
         const typeRegistry = useTypeRegistry()
 
-        const createFieldEl = (name: string, field: InputSpec) => {
+        const createFieldEl = (name: string, field: InputSpec | InputRef) => {
+            const path = "path" in field ? field.path as string[] : field.name || name
             const attrs = {
                 label: name,
                 name,
                 ...field,
 
-                modelValue: props.modelValue[name],
+                modelValue: get(props.modelValue, path),
                 'onUpdate:modelValue': (value: any) => {
-                    props.modelValue[name] = value
+                    set(props.modelValue, path, value)
                 },
             }
 

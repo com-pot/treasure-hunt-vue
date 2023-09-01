@@ -1,0 +1,5 @@
+.list {
+    > *:not(:first-child) {
+        margin-block-start: 0.5rem;
+    }
+}

@@ -126,7 +126,7 @@ function replaceOnError(block, index, action) {
     <div class="challenge-actions">
       <TypefulInputPair name="checkSum" v-model="block.checkSum" label="Správná odpověď"/>
       <hr>
-      <div class="tile" data-bg="brighten">
+      <div class="tile tile-body" data-bg="brighten">
         <TypefulList v-model="block.onError" label="Při nesprávné odpovědi"
                      :add-item="() => addOnError(block)">
           <template #item="{item, index}">

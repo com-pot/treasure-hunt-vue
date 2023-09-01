@@ -1,6 +1,6 @@
 <template>
   <div class="minigame time-tables flow">
-    <div class="travel-plan tile">
+    <div class="travel-plan tile tile-body">
       <template v-for="(destination, i) in fare.stopsDestinations">
         <div class="choice-done" v-if="i">➜</div>
         <div class="stop"
@@ -14,7 +14,7 @@
     </div>
 
     <div class="travel-options">
-      <div class="connection tile" v-for="connection in fare.visibleConnections">
+      <div class="connection tile tile-body" v-for="connection in fare.visibleConnections">
         <div class="name">{{ connection.destination.name }}</div>
         <button class="btn -sm" @click="fare.travelTo(connection.destination.key)">Jet</button>
         <div class="departures">

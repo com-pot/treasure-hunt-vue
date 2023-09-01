@@ -1,9 +1,8 @@
 .btn {
-  --acc-color: var(--neutral-0);
   --bg-color: var(--neutral-800);
-  --fg-color: var(--acc-color);
+  --fg-color: var(--acc-color, var(--neutral-0));
 
-  --border-color: var(--acc-color);
+  --border-color: var(--acc-color, var(--neutral-0));
 
   padding: 0.5em 1em;
   border-radius: 0;
@@ -30,8 +29,8 @@
   }
 
   &.-fill {
-    --bg-color: var(--acc-color);
-    --fg-color: var(--neutral-100);
+    --bg-color: var(--acc-color, var(--hsl-primary));
+    --fg-color: var(--acc-color-contrast, var(--color-primary-contrast));
   }
 
   &.-round {

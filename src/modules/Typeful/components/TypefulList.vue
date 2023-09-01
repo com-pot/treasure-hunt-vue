@@ -129,8 +129,8 @@ export default defineComponent({
       }
 
       return h(props.tag, {class: 'flow tf-list'}, [
-        h('div', {class: 'controls'}, listControlsElements),
         itemElements,
+        h('div', {class: 'controls'}, listControlsElements),
       ])
     }
   }

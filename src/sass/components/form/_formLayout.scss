@@ -13,9 +13,20 @@
 }
 
 .app-form {
-  fieldset.controls {
+  fieldset + .controls {
+    margin-block-start: 1rem;
+  }
+  .controls {
     display: flex;
     gap: 0.5rem;
     justify-content: center;
+  }
+}
+
+fieldset {
+  &.-plain {
+    margin: 0;
+    padding: 0;
+    border: none;
   }
 }

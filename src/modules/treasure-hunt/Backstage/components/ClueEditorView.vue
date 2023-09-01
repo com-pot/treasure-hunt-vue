@@ -12,8 +12,8 @@
       <template #item="{item}">{{ item.name }}</template>
     </EntityPicker>
 
-    <form class="app-form -auto-spacing -container" @submit.prevent="save" v-if="clueWorkingCopy.value">
-      <fieldset class="form-auto-layout">
+    <form class="app-form -auto-spacing tile -bg tile-body" @submit.prevent="save" v-if="clueWorkingCopy.value">
+      <fieldset class="form-auto-layout -plain">
         <TypefulInputPair name="name" label="Název" type="text"
                           v-model="clueWorkingCopy.value.name"
         />
@@ -26,9 +26,9 @@
                           v-model="clueWorkingCopy.value.tags"
         />
       </fieldset>
-      <fieldset class="controls">
+      <div class="controls">
         <button class="btn -fill -acc-primary">Uložit</button>
-      </fieldset>
+      </div>
     </form>
 
     <TabFrame :tabs="clueEditorTabs" v-model="activeTab"

@@ -4,6 +4,7 @@ import {UserAuthData} from "@src/modules/Auth/model/AuthModel"
 
 type AuthUser = {
     data: UserAuthData|null,
+    readonly initials: string | null,
 
     actions: {
         signUp(login: string, pass: string): Promise<UserAuthData>,
@@ -12,9 +13,23 @@ type AuthUser = {
     }
 }
 
+const initialsPattern = /[\-\s\.]+/g
+
 export default (): AuthUser => {
+    const data = computed(() => authStore.state.user.value)
+    const initials = computed(() => {
+        const login = data.value?.login
+        if (!login) return null
+
+        return login.split(initialsPattern)
+            .map((str) => str.substring(0, 1))
+            .filter(Boolean)
+            .join("")
+            .toUpperCase()
+    })
     return reactive({
-        data: computed(() => authStore.state.user.value),
+        data,
+        initials,
 
         actions: authStore.actions,
     })

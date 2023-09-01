@@ -19,6 +19,9 @@ let routes: RouteRecordRaw[] = [
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes,
+
+    linkActiveClass: "active",
+    linkExactActiveClass: "-exact",
 });
 
 

@@ -19,7 +19,8 @@ const stories = ref([
 const modules = [
   {
     caption: "treasure-hunt",
-    to: "/backstage ",
+    to: "/backstage",
+    class: "-need-exact",
   },
   {
     caption: "Minihry",
@@ -61,7 +62,7 @@ const logInTo = ref({
 
     <nav>
       <template v-for="mod of modules">
-        <router-link class="item" :to="mod.to">
+        <router-link class="item" :to="mod.to" :class="mod.class">
           <span>{{ mod.caption }}</span>
         </router-link>
       </template>
@@ -152,7 +153,7 @@ const logInTo = ref({
         
         color: var(--neutral-100);
 
-        &.active {
+        &.active:not(.-need-exact), &.active.-exact {
           span {
             text-decoration: underline solid 2px var(--hsl-primary);
           }

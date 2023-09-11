@@ -55,15 +55,12 @@ async function editItem(item: any) {
             model: model.value.spec,
             modelValue: workingCopy.value,
             async submit() {
-                console.log("submit", id, workingCopy.value)
-
                 const resultPromise = id 
                     ? modelService.updateItem(model.value.spec.meta.entityFqn, workingCopy.value)
                     : modelService.saveNewItem(model.value.spec.meta.entityFqn, workingCopy.value)
                 
                 try {
                     const result = await resultPromise
-                    console.log(result)
                     toast.success("Záznam uložen")
                     dialog.controls.confirm(result)
                 } catch (e) {
@@ -78,9 +75,7 @@ async function editItem(item: any) {
         rejectOnAbort: false,
     })
 
-    console.log("dialog", dialog)
     const result = await dialog.result
-    console.log("result", dialog.id, result)
 }
 
 onMounted(async () => {

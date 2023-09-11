@@ -5,6 +5,11 @@ const routes: RouteRecordRaw[] = [
         name: 'Typeful.ModelIndex',
         path: 'typeful/models',
         component: () => import('./views/Backstage/ModelIndex.vue'),
+        props(to) {
+            return {
+                section: to.query.section,
+            }
+        },
     },
     {
         name: "Typeful.Collection",

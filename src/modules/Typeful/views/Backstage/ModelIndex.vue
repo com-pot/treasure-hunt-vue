@@ -7,8 +7,14 @@ import { useDialogController } from "@src/modules/Layout/components/viewUtils"
 import ModelInfo from "../../components/ModelInfo.vue"
 import { resolveAfter } from "@src/utils/promiseUtils"
 
+const props = defineProps({
+  section: { type: String },
+})
+
 const models = useModelCollectionController<any>(useModelService(useApiAdapter()), 'typeful.model')
-models.load()
+models.load(undefined, undefined, {
+  section: props.section,
+})
 
 const dialogs = useDialogController()
 

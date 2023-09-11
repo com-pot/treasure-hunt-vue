@@ -28,7 +28,8 @@ const modules = [
   },
   {
     caption: "Data",
-    to: {name: "Typeful.ModelIndex"},
+    to: {name: "Typeful.ModelIndex", query: { section: "schedule" }},
+    class: "-need-exact",
   },
 ]
 

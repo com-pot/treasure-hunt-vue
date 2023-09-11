@@ -1,14 +1,5 @@
 .code-example {
   .header {
-    display: flex;
-    gap: 0.5em;
-    justify-content: space-between;
-    align-items: center;
-
-    > .actions {
-      margin-inline-start: auto;
-    }
-
     .toggle {
       cursor: pointer;
       width: 2ch;

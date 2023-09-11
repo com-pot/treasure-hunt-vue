@@ -2,6 +2,9 @@ import {get} from "lodash"
 
 export type StringifySpec = string | {template: string}
 
+/**
+ * @deprecated move the logic to the https://github.com/com-pot/typeful monorepo
+ */
 export function stringify(item: any, stringify: StringifySpec): string | undefined {
     if (typeof stringify === 'string') {
         return toStr(get(item, stringify))

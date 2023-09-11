@@ -54,6 +54,12 @@ html {
   }
 }
 
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .root-container {
   max-width: 60ch;
   width: 80vw;

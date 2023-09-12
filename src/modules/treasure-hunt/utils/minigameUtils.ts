@@ -55,7 +55,7 @@ export async function loadMinigameComponentDemoData(challengeType: string): Prom
         data = await data()
     }
     if (data && 'default' in data) {
-        data = data['default']
+        data = data['default'] as typeof data
     }
 
     return data || {}

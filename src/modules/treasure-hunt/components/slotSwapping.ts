@@ -17,7 +17,7 @@ export function twoPartyMultiGroupSwapping<T, G extends ItemGroup<T>>(groups: G)
         selectedIndex: null,
         pickItem(groupName, i) {
             if (!(groupName in groups)) {
-                console.warn(`Group '${groupName} is not valid'`)
+                console.warn(`Group '${groupName.toString()} is not valid'`)
                 return
             }
 

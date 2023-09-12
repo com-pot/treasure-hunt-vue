@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 import autoprefixer from 'autoprefixer'
@@ -10,6 +11,7 @@ const knownElements = Object.fromEntries([
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    basicSsl(),
     vue({
       template: {
         compilerOptions: {
@@ -39,7 +41,6 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/dev-api/, '/api'),
-
       },
     }
   },

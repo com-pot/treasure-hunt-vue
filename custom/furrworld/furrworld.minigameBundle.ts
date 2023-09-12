@@ -129,7 +129,7 @@ export default defineMinigameBundle({
 
                     return {
                         name,
-                        img: url.default,
+                        img: url,
                         joints: meta?.joints || {},
                         centerOfGravity: meta?.centerOfGravity ?? [0.5, 0.5],
                         defaultJoint: meta?.defaultJoint,

@@ -5,12 +5,12 @@ export default class UnderstandApi {
     public static async loadVocabulary(preset: string): Promise<VocabularyEntry[]> {
         console.log("loadVocabulary", preset)
         if (preset === 'fw') {
-            const loaders = import.meta.globEager("../../../furrworld/assets/robo-calibration/*.png")
+            const loaders = import.meta.glob("../../../furrworld/assets/robo-calibration/*.png", {eager: true, as: "url"})
             const files = Object.entries(loaders)
                 .map(([file, loader]): VocabularyEntry => {
                     const lastSlash = file.lastIndexOf('/')
                     const word = file.substring(lastSlash + 1)
-                    return {word, pictureUrl: loader.default as string}
+                    return {word, pictureUrl: loader as string}
                 })
 
             return files

@@ -76,6 +76,7 @@ async function editItem(item: any) {
     })
 
     const result = await dialog.result
+    items.execute()
 }
 
 onMounted(async () => {

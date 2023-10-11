@@ -1,6 +1,7 @@
 import defineTypefulModule, {defineAppType} from "@src/modules/Typeful/defineTypefulModule"
 
 import TextInput from "./components/TextInput.vue"
+import ObjectInput from "./components/ObjectInput.vue"
 
 import Multiselect from "@vueform/multiselect"
 import "@vueform/multiselect/themes/default.scss"
@@ -74,9 +75,11 @@ export default defineTypefulModule({
         object: defineAppType<ObjectTypeProps>({
             component: function (props: any) {
                 if (!props) {
-                    debugger
                     props = {}
                 }
+
+                if (props.format === "json") return h(ObjectInput, props) 
+
                 props = produceMutable(props, (props: any) => {
                     props.inputs = props.properties
                     delete props.properties

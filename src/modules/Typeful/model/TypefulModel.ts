@@ -48,7 +48,7 @@ export function crawlInputGroups(model: TypefulModel) {
 
         for (let [name, prop] of Object.entries(spec.properties || {})) {
             const propPath = [...path, name]
-            if (prop.type === "object") {
+            if (prop.type === "object" && prop.format !== "json") {
                 toWalk.push([propPath, prop])
                 continue
             }

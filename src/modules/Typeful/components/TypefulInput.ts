@@ -43,13 +43,13 @@ function getComponent(typeRegistry: ReturnType<typeof useTypeRegistry>, type: st
     let component: AppTypeDeclaration['component'] = typeSpec?.component
     // const discriminator = (typeSpec.componentDiscriminator ?? 'mode') as string
 
-    if (typeof component === 'function') {
+    // if (typeof component === 'function') {
         // const discriminatorValue = inputProps[discriminator]
         // delete inputProps[discriminator]
 
         // component = component(discriminatorValue)
-        component = inputProps
-    }
+        // component = inputProps
+    // }
 
     return component ?? null
 }
